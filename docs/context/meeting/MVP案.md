@@ -264,69 +264,39 @@ ENKATSUでは、口コミ数や人気度ではなく、ユーザーが選択し�
 
 ## 8. 技術スタック
 
-### Frontend
+Frontend:
+  Next.js + TypeScript + Tailwind CSS
 
-* Next.js
-* TypeScript
-* Tailwind CSS
+Backend:
+  Express.js + TypeScript
 
-スマホ利用を前提としたWebアプリ画面を実装します。
+Database:
+  Supabase Postgres
 
-### Backend
+ORM:
+  Prisma
 
-* Express.js
-* TypeScript
+Auth:
+  Supabase Auth
 
-園情報、検索、比較、決済、レポート閲覧判定のAPIを実装します。
+Cache:
+  Redis
 
-### Database
+Payment:
+  Stripe Checkout
 
-* Supabase Postgres
-* Supabase Auth
+Validation:
+  Zod
 
-園情報、比較項目、決済状態などを管理します。
+Security:
+  Helmet / CORS / Rate Limit / Prisma Client / XSS対策
 
-### Cache
+Logging:
+  Pino
 
-* Redis
-
-園一覧・検索結果をキャッシュし、同じ検索条件でのDBアクセスを減らします。
-
-### Payment
-
-* Stripe Checkout
-
-プレミアムプラン購入機能を実装します。
-
-### Validation
-
-* Zod
-
-検索条件やAPIリクエストの入力値を検証します。
-
-### Security
-
-* Helmet
-* CORS設定
-* Rate Limit
-* Prisma Client
-* XSSを意識した表示・入力制限
-
-SQL Injection対策として、Prisma Clientを利用し、文字列結合によるSQLやunsafe raw queryは使わない方針にします。
-
-### Logging
-
-* Pino
-
-開発環境と本番環境でログ出力を切り替えます。
-
-### Test
-
-* Vitest
-* Supertest
-
-検索条件、比較ロジック、課金判定、APIレスポンスなどに対して最小限の単体テスト・APIテストを実装します。
-
+Test:
+  Vitest / Supertest
+  
 ---
 
 ## 9. MVPで作成する画面
