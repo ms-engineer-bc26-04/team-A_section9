@@ -46,8 +46,10 @@ const schools = [
   },
 ]
 
-area: -渋谷区 - 新宿区 - 世田谷区
+// 検索事例
 
-mealType: -給食 - 弁当
+// area: -渋谷区 - 新宿区 - 世田谷区
 
-lifeBurden: -低 - 中 - 高
+// mealType: -給食 - 弁当
+
+// lifeBurden: -低 - 中 - 高
