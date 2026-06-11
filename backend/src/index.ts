@@ -1,11 +1,10 @@
-//ひな形です。
-
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { pinoHttp } from 'pino-http'
 import { connectRedis } from './lib/redis'
+import schoolRoutes from './routes/schoolRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -19,6 +18,8 @@ app.use(pinoHttp())
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
+
+app.use('/api/v1/schools', schoolRoutes)
 
 connectRedis()
 
