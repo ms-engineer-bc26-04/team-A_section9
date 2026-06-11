@@ -9,62 +9,38 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  name          String?
-  role          String         @default("user")
-
-  compareLists  CompareList[]
-  favorites     Favorite[]
-  subscription  Subscription?
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id        String   @id @db.Uuid
+  email     String   @unique @db.VarChar(255)
+  planType  String   @default("free") @map("plan_type") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("users")
 }
 
-model CompareList {
-  id        String   @id @default(uuid())
+model School {
+  id                     BigInt   @id @default(autoincrement())
+  name                   String   @db.VarChar(255)
+  area                   String   @db.VarChar(100)
+  address                String   @db.VarChar(255)
+  schoolType             String   @map("school_type") @db.VarChar(50)
+  lifeBurdenLevel        String   @map("life_burden_level") @db.VarChar(20)
+  timeBurdenLevel        String   @map("time_burden_level") @db.VarChar(20)
+  mealType               String   @map("meal_type") @db.VarChar(50)
+  itemBurdenLevel        String   @map("item_burden_level") @db.VarChar(20)
+  diaperSupport          String?  @map("diaper_support") @db.VarChar(50)
+  futonSupport           String?  @map("futon_support") @db.VarChar(50)
+  extendedCareUsage      String   @map("extended_care_usage") @db.VarChar(20)
+  weekdayEventsLevel     String   @map("weekday_events_level") @db.VarChar(20)
+  parentAssociationLevel String   @map("parent_association_level") @db.VarChar(20)
+  contactBookType        String?  @map("contact_book_type") @db.VarChar(50)
+  absenceContactMethod   String?  @map("absence_contact_method") @db.VarChar(50)
+  lessons                String?  @db.VarChar(255)
+  allergySupport         String?  @map("allergy_support") @db.VarChar(255)
+  description            String?  @db.Text
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
 
-  userId    String
-  schoolId  String
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, schoolId])
-  @@map("compare_lists")
-}
-
-model Favorite {
-  id        String   @id @default(uuid())
-
-  userId    String
-  schoolId  String
-
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  school    School   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, schoolId])
-  @@map("favorites")
-}
-
-model Subscription {
-  id          String   @id @default(uuid())
-
-  userId      String   @unique
-  plan        String   @default("free")
-  status      String   @default("inactive")
-
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("subscriptions")
+  @@index([area])
+  @@map("schools")
 }
