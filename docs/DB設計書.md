@@ -1,8 +1,8 @@
 # DB 設計
 
-> ER 図は drawSQL で作成し、リポジトリ内（例：`docs/diagrams/erd.drawSQL`）で管理することを推奨。
+> ER 図は drawSQL で作成し、リポジトリ内（例：`docs/diagrams/erd.png`）で管理することを推奨。
 >
-> - draw.io: https://www.drawio.com/
+> - drawSQL: https://drawsql.app/
 > - VSCode Extension: Draw.io Integration
 
 ## 1. 設計方針
@@ -31,7 +31,7 @@
 
 ## 2. ER 図
 
-> ![ERD](./diagrams/erd.svg)
+![ERD](./diagrams/erd.jpg)
 
 ---
 
