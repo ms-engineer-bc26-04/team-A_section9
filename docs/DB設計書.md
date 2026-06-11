@@ -7,7 +7,7 @@
 
 ## 1. 設計方針
 
-- 採用 DBMS：PostgreSQL
+- 採用 DBMS：Supabase Postgres（PostgreSQL）
 - ORM：Prisma
 - 認証：Supabase Auth
 - 決済：Stripe
