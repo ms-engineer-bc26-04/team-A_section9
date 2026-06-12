@@ -5,6 +5,7 @@ import rateLimit from 'express-rate-limit'
 import { pinoHttp } from 'pino-http'
 import { connectRedis } from './lib/redis'
 import schoolRoutes from './routes/schoolRoutes'
+import userRoutes from './routes/userRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -20,6 +21,7 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/api/v1/schools', schoolRoutes)
+app.use('/api/v1/users', userRoutes)
 
 connectRedis()
 
