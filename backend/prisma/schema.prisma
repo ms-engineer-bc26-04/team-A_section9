@@ -8,39 +8,163 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum BurdenLevel {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("burden_level")
+}
+
+enum SchoolType {
+  NURSERY
+  KINDERGARTEN
+  CERTIFIED_CHILDCARE_CENTER
+
+  @@map("school_type")
+}
+
+enum MealType {
+  SCHOOL_LUNCH
+  LUNCH_BOX
+  BOTH
+
+  @@map("meal_type")
+}
+
+enum ContactType {
+  APP
+  PHONE
+  PAPER
+  OTHER
+
+  @@map("contact_type")
+}
+
+enum MembershipType {
+  FREE
+  PAID
+
+  @@map("membership_type")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
+
+  @@map("subscription_status")
+}
+
 model User {
-  id        String   @id @db.Uuid
-  email     String   @unique @db.VarChar(255)
-  planType  String   @default("free") @map("plan_type") @db.VarChar(20)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String         @id @default(uuid()) @db.Uuid
+  email     String         @unique @db.VarChar(255)
+  planType  MembershipType @default(FREE) @map("plan_type")
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt @map("updated_at")
+
+  favorites        Favorite[]
+  subscription     Subscription?
+  compareHistories CompareHistory[]
+  reportHistories  ReportHistory[]
 
   @@map("users")
 }
 
 model School {
-  id                     BigInt   @id @default(autoincrement())
-  name                   String   @db.VarChar(255)
-  area                   String   @db.VarChar(100)
-  address                String   @db.VarChar(255)
-  schoolType             String   @map("school_type") @db.VarChar(50)
-  lifeBurdenLevel        String   @map("life_burden_level") @db.VarChar(20)
-  timeBurdenLevel        String   @map("time_burden_level") @db.VarChar(20)
-  mealType               String   @map("meal_type") @db.VarChar(50)
-  itemBurdenLevel        String   @map("item_burden_level") @db.VarChar(20)
-  diaperSupport          String?  @map("diaper_support") @db.VarChar(50)
-  futonSupport           String?  @map("futon_support") @db.VarChar(50)
-  extendedCareUsage      String   @map("extended_care_usage") @db.VarChar(20)
-  weekdayEventsLevel     String   @map("weekday_events_level") @db.VarChar(20)
-  parentAssociationLevel String   @map("parent_association_level") @db.VarChar(20)
-  contactBookType        String?  @map("contact_book_type") @db.VarChar(50)
-  absenceContactMethod   String?  @map("absence_contact_method") @db.VarChar(50)
-  lessons                String?  @db.VarChar(255)
-  allergySupport         String?  @map("allergy_support") @db.VarChar(255)
-  description            String?  @db.Text
-  createdAt              DateTime @default(now()) @map("created_at")
-  updatedAt              DateTime @updatedAt @map("updated_at")
+  id          BigInt  @id @default(autoincrement())
+  name        String  @db.VarChar(255)
+  area        String  @db.VarChar(100)
+  address     String  @db.VarChar(255)
+  phoneNumber String? @map("phone_number") @db.VarChar(20)
+  imageUrl    String? @map("image_url") @db.VarChar(255)
+
+  schoolType      SchoolType  @map("school_type")
+  lifeBurdenLevel BurdenLevel @map("life_burden_level")
+  timeBurdenLevel BurdenLevel @map("time_burden_level")
+
+  mealType         MealType    @map("meal_type")
+  itemBurdenLevel  BurdenLevel @map("item_burden_level")
+  itemBurdenDetail String?     @map("item_burden_detail") @db.VarChar(255)
+  diaperSupport    String?     @map("diaper_support") @db.VarChar(50)
+  futonSupport     String?     @map("futon_support") @db.VarChar(50)
+
+  extendedCareHours          String?     @map("extended_care_hours") @db.VarChar(50)
+  extendedCareUsage          String      @map("extended_care_usage") @db.VarChar(50)
+  weekdayEventsLevel         BurdenLevel @map("weekday_events_level")
+  weekdayEvents              String?     @map("weekday_events") @db.VarChar(100)
+  parentAssociationLevel     BurdenLevel @map("parent_association_level")
+  parentAssociationFrequency String?     @map("parent_association_frequency") @db.VarChar(100)
+
+  contactBookType      ContactType? @map("contact_book_type")
+  absenceContactMethod ContactType? @map("absence_contact_method")
+  lessons              String?      @db.VarChar(255)
+  allergySupport       String?      @map("allergy_support") @db.VarChar(255)
+  description          String?      @db.Text
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  favorites Favorite[]
 
   @@index([area])
+  @@index([schoolType])
+  @@index([lifeBurdenLevel])
+  @@index([timeBurdenLevel])
+  @@index([mealType])
   @@map("schools")
+}
+
+model Favorite {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  schoolId  BigInt   @map("school_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schoolId])
+  @@index([userId])
+  @@index([schoolId])
+  @@map("favorites")
+}
+
+model Subscription {
+  id        BigInt             @id @default(autoincrement())
+  userId    String             @unique @map("user_id") @db.Uuid
+  status    SubscriptionStatus @default(ACTIVE)
+  startedAt DateTime           @default(now()) @map("started_at")
+  endedAt   DateTime?          @map("ended_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model CompareHistory {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  schoolIds BigInt[] @map("school_ids")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("compare_histories")
+}
+
+model ReportHistory {
+  id        BigInt   @id @default(autoincrement())
+  userId    String   @map("user_id") @db.Uuid
+  schoolId  BigInt?  @map("school_id")
+  title     String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([schoolId])
+  @@map("report_histories")
 }
