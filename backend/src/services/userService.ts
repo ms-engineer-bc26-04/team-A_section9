@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { prisma } from "../lib/prisma";
 
@@ -8,60 +9,84 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
     throw new Error("Supabaseユーザーのメールアドレスが取得できません");
   }
 
-  const existingUserBySupabaseId = await prisma.user.findUnique({
-    where: {
-      supabaseUserId: authUser.id,
-    },
-    include: {
-      subscription: true,
-    },
-  });
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const existingUserBySupabaseId = await tx.user.findUnique({
+        where: {
+          supabaseUserId: authUser.id,
+        },
+        include: {
+          subscription: true,
+        },
+      });
 
-  if (existingUserBySupabaseId) {
-    return await prisma.user.update({
-      where: {
-        id: existingUserBySupabaseId.id,
-      },
-      data: {
-        email,
-      },
-      include: {
-        subscription: true,
-      },
+      if (existingUserBySupabaseId) {
+        return await tx.user.update({
+          where: {
+            id: existingUserBySupabaseId.id,
+          },
+          data: {
+            email,
+          },
+          include: {
+            subscription: true,
+          },
+        });
+      }
+
+      const existingUserByEmail = await tx.user.findUnique({
+        where: {
+          email,
+        },
+        include: {
+          subscription: true,
+        },
+      });
+
+      if (existingUserByEmail) {
+        return await tx.user.update({
+          where: {
+            id: existingUserByEmail.id,
+          },
+          data: {
+            supabaseUserId: authUser.id,
+          },
+          include: {
+            subscription: true,
+          },
+        });
+      }
+
+      return await tx.user.create({
+        data: {
+          supabaseUserId: authUser.id,
+          email,
+          planType: "FREE",
+        },
+        include: {
+          subscription: true,
+        },
+      });
     });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [{ supabaseUserId: authUser.id }, { email }],
+        },
+        include: {
+          subscription: true,
+        },
+      });
+
+      if (user) {
+        return user;
+      }
+    }
+
+    throw error;
   }
-
-  const existingUserByEmail = await prisma.user.findUnique({
-    where: {
-      email,
-    },
-    include: {
-      subscription: true,
-    },
-  });
-
-  if (existingUserByEmail) {
-    return await prisma.user.update({
-      where: {
-        id: existingUserByEmail.id,
-      },
-      data: {
-        supabaseUserId: authUser.id,
-      },
-      include: {
-        subscription: true,
-      },
-    });
-  }
-
-  return await prisma.user.create({
-    data: {
-      supabaseUserId: authUser.id,
-      email,
-      planType: "FREE",
-    },
-    include: {
-      subscription: true,
-    },
-  });
 };
