@@ -21,17 +21,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
       });
 
       if (existingUserBySupabaseId) {
-        return await tx.user.update({
-          where: {
-            id: existingUserBySupabaseId.id,
-          },
-          data: {
-            email,
-          },
-          include: {
-            subscription: true,
-          },
-        });
+        return existingUserBySupabaseId;
       }
 
       const existingUserByEmail = await tx.user.findUnique({
@@ -44,6 +34,13 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
       });
 
       if (existingUserByEmail) {
+        if (
+          existingUserByEmail.supabaseUserId &&
+          existingUserByEmail.supabaseUserId !== authUser.id
+        ) {
+          throw new Error("既存ユーザーのSupabaseユーザーIDが一致しません");
+        }
+
         return await tx.user.update({
           where: {
             id: existingUserByEmail.id,
