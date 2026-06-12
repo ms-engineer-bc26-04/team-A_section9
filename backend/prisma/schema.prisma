@@ -126,7 +126,6 @@ model Favorite {
   @@unique([userId, schoolId])
   @@index([userId])
   @@index([schoolId])
->>>>>>> afe03151814b66d426812a310d40000019e8a2c0
   @@map("favorites")
 }
 
@@ -170,4 +169,4 @@ model ReportHistory {
   @@index([schoolId])
   @@map("report_histories")
 }
->>>>>>> afe03151814b66d426812a310d40000019e8a2c0
+
