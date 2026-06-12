@@ -58,7 +58,7 @@ enum SubscriptionStatus {
 
 model User {
   id             String         @id @default(uuid()) @db.Uuid
-  supabaseUserId String         @unique @map("supabase_user_id") @db.Uuid
+  supabaseUserId String? @unique @map("supabase_user_id") @db.Uuid
   email          String         @unique @db.VarChar(255)
   planType       MembershipType @default(FREE) @map("plan_type")
   createdAt      DateTime       @default(now()) @map("created_at")
