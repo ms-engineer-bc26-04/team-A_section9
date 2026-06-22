@@ -1,0 +1,67 @@
+//園一覧・検索結果で1件分の園を表示するカード（画像・園名・住所・タグ・ハート）
+// src/components/school/SchoolCard.tsx
+import Link from 'next/link'
+import Image from 'next/image'
+import { SchoolSummary } from '@/types/school'
+import FavoriteButton from './FavoriteButton'
+
+type SchoolCardProps = {
+  school: SchoolSummary
+}
+
+export default function SchoolCard({ school }: SchoolCardProps) {
+  return (
+    <div className="relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
+      <Link href={`/schools/${school.id}`} className="flex gap-3 p-3">
+        {/* 画像 */}
+        <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+          {school.imageUrl ? (
+            <Image
+              src={school.imageUrl}
+              alt={school.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+              No Image
+            </div>
+          )}
+        </div>
+
+        {/* テキスト情報 */}
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <p className="font-bold text-gray-800 text-sm leading-snug">
+            {school.name}
+          </p>
+          <p className="text-gray-500 text-xs truncate">{school.address}</p>
+          {school.phoneNumber && (
+            <p className="text-gray-500 text-xs">
+              電話番号：{school.phoneNumber}
+            </p>
+          )}
+
+          {/* タグ */}
+          <div className="flex flex-wrap gap-1 mt-1">
+            {school.tags.map((tag) => (
+              <span
+                key={tag}
+                className="bg-primary-light text-primary text-xs px-2 py-0.5 rounded-full font-bold"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      </Link>
+
+      {/* お気に入りボタン */}
+      <div className="absolute bottom-3 right-3">
+        <FavoriteButton
+          schoolId={school.id}
+          isFavorited={school.isFavorited}
+        />
+      </div>
+    </div>
+  )
+}
