@@ -322,9 +322,22 @@ docker compose exec backend npx prisma studio
 
 ## 品質チェック
 
-PR作成前、または develop へ反映する前に、必要に応じて以下を確認します。
+本プロジェクトでは、コード品質を保つために ESLint / Prettier を導入しています。
 
-### Frontend
+また、`develop` ブランチへの Pull Request 作成時に GitHub Actions が自動で実行され、Lint / Format チェックが行われます。
+
+### GitHub Actions で確認される内容
+
+| 対象       | チェック内容            |
+| -------- | ----------------- |
+| Frontend | ESLint / Prettier |
+| Backend  | ESLint / Prettier |
+
+### ローカルで確認する場合
+
+PR作成前やエラー修正時は、必要に応じてローカルでも確認します。
+
+#### Frontend
 
 ```bash
 cd frontend
@@ -332,14 +345,32 @@ npm run lint
 npm run format:check
 ```
 
-### Backend
+#### Backend
 
 ```bash
 cd backend
 npm run lint
 npm run format:check
-npm run test
 ```
+
+### 自動修正する場合
+
+#### Frontend
+
+```bash
+cd frontend
+npm run lint:fix
+npm run format
+```
+
+#### Backend
+
+```bash
+cd backend
+npm run lint:fix
+npm run format
+```
+
 
 ---
 
