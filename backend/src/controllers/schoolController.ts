@@ -24,7 +24,8 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
         typeof req.query.weekdayEventsLevel === 'string'
           ? req.query.weekdayEventsLevel
           : undefined,
-      mealType: typeof req.query.mealType === 'string' ? req.query.mealType : undefined,
+      mealType:
+        typeof req.query.mealType === 'string' ? req.query.mealType : undefined,
     })
 
     res.json({
