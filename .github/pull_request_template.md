@@ -6,7 +6,11 @@
 
 ## 対応Issue
 
+Refs #<Issue番号> 
+or
 Closes #<Issue番号>
+
+※issueをCloseしたいときだけ、Closes #<Issue番号>を使用してください（Closes# を使うとPRがマージされたと同時にissueが勝手にcloseされますので注意）
 
 ---
 
