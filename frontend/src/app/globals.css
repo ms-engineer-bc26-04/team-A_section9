@@ -1,11 +1,11 @@
 /* src/app/globals.css */
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --color-primary: #8BC34A;
+  --color-primary: #8bc34a;
   --color-primary-dark: #6ea832;
   --color-primary-light: #e8f5e9;
-  --color-accent: #FF8C00;
+  --color-accent: #ff8c00;
   --color-text: #333333;
   --color-text-sub: #666666;
   --color-border: #e0e0e0;

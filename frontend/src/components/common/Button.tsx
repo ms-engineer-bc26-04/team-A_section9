@@ -13,7 +13,8 @@ type ButtonProps = {
 
 const variantStyles = {
   primary: 'bg-primary text-white hover:bg-primary-dark',
-  secondary: 'bg-white text-primary border border-primary hover:bg-primary-light',
+  secondary:
+    'bg-white text-primary border border-primary hover:bg-primary-light',
   accent: 'bg-accent text-white hover:opacity-90',
   ghost: 'bg-gray-200 text-gray-400 cursor-not-allowed',
 }

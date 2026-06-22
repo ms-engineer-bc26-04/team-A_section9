@@ -57,10 +57,7 @@ export default function SchoolCard({ school }: SchoolCardProps) {
 
       {/* お気に入りボタン */}
       <div className="absolute bottom-3 right-3">
-        <FavoriteButton
-          schoolId={school.id}
-          isFavorited={school.isFavorited}
-        />
+        <FavoriteButton schoolId={school.id} isFavorited={school.isFavorited} />
       </div>
     </div>
   )

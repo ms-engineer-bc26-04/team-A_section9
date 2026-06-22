@@ -29,14 +29,10 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   return (
     <>
       {/* オーバーレイ */}
-      <div
-        className="fixed inset-0 bg-black/20 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
 
       {/* メニュー本体 */}
       <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col overflow-hidden">
-        
         {/* ==========================================
             ブロック1: アカウントエリア
            ========================================== */}
@@ -44,7 +40,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         <div className="bg-gradient-to-b from-[#e3eedb] to-white rounded-bl-[40px] pb-6 flex flex-col">
           {/* ヘッダー帯：ここをしっかりした濃い緑に */}
           <div className="bg-[#a2d382] px-6 pt-6 pb-4 flex items-center justify-between rounded-bl-[30px]">
-            <p className="text-white font-bold text-lg tracking-wider">アカウント</p>
+            <p className="text-white font-bold text-lg tracking-wider">
+              アカウント
+            </p>
             <button
               onClick={onClose}
               className="flex flex-col gap-1 p-1"
@@ -63,7 +61,10 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 variant="primary"
                 size="md"
                 className="flex-1 bg-[#9ed07d] text-white border-none rounded-xl font-bold py-2.5 shadow-sm hover:bg-[#8bc169] transition-colors"
-                onClick={() => { router.push('/register'); onClose() }}
+                onClick={() => {
+                  router.push('/register')
+                  onClose()
+                }}
               >
                 新規会員登録
               </Button>
@@ -71,7 +72,10 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 variant="primary"
                 size="md"
                 className="flex-1 bg-[#9ed07d] text-white border-none rounded-xl font-bold py-2.5 shadow-sm hover:bg-[#8bc169] transition-colors"
-                onClick={() => { router.push('/login'); onClose() }}
+                onClick={() => {
+                  router.push('/login')
+                  onClose()
+                }}
               >
                 ログイン
               </Button>
@@ -86,18 +90,14 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         <div className="bg-gradient-to-b from-[#e3eedb] to-white rounded-bl-[50px] pb-8 flex flex-col mt-[-1px]">
           {/* マイ機能帯：ここをしっかりした濃い緑に */}
           <div className="bg-[#a2d382] px-6 py-4 rounded-bl-[30px]">
-            <p className="text-white font-bold text-lg tracking-wider">マイ機能</p>
+            <p className="text-white font-bold text-lg tracking-wider">
+              マイ機能
+            </p>
           </div>
 
           {/* メニューリスト（グラデーション背景の上に黒文字で配置） */}
           <div className="px-6 pt-4 flex flex-col gap-1">
-            <MenuItem
-              href="/"
-              label="ホーム"
-              onClick={onClose}
-              enabled
-              bold
-            />
+            <MenuItem href="/" label="ホーム" onClick={onClose} enabled bold />
             <MenuItem
               href="/mypage/favorites"
               label="お気に入り/比較"
@@ -161,7 +161,9 @@ function MenuItem({ href, label, onClick, enabled, bold }: MenuItemProps) {
   if (!enabled) {
     return (
       <div className="py-3">
-        <span className="text-gray-400 text-base font-bold tracking-wide">{label}</span>
+        <span className="text-gray-400 text-base font-bold tracking-wide">
+          {label}
+        </span>
       </div>
     )
   }

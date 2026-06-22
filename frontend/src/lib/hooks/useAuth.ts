@@ -27,12 +27,12 @@ export function useAuth(): AuthState {
     })
 
     // ログイン状態の変化を監視
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSupabaseUser(session?.user ?? null)
-        if (!session) setAppUser(null)
-      }
-    )
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSupabaseUser(session?.user ?? null)
+      if (!session) setAppUser(null)
+    })
 
     return () => subscription.unsubscribe()
   }, [])

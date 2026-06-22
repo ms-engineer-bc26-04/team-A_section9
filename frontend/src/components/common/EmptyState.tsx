@@ -18,9 +18,7 @@ export default function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-4 text-center">
       <p className="text-gray-500 font-bold">{message}</p>
-      {subMessage && (
-        <p className="text-gray-400 text-sm">{subMessage}</p>
-      )}
+      {subMessage && <p className="text-gray-400 text-sm">{subMessage}</p>}
       {actionLabel && onAction && (
         <Button onClick={onAction} variant="primary" size="md">
           {actionLabel}

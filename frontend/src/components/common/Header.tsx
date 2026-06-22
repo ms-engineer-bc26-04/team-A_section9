@@ -34,17 +34,14 @@ export default function Header() {
             className="text-white flex flex-col gap-1 p-1 ml-auto"
             aria-label="メニューを開く"
           >
-                <span className="block w-5 h-0.5 bg-white" />
-                <span className="block w-5 h-0.5 bg-white" />
-                <span className="block w-5 h-0.5 bg-white" />
+            <span className="block w-5 h-0.5 bg-white" />
+            <span className="block w-5 h-0.5 bg-white" />
+            <span className="block w-5 h-0.5 bg-white" />
           </button>
         </div>
       </header>
 
-      <HamburgerMenu
-        isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-      />
+      <HamburgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
     </>
   )
 }
