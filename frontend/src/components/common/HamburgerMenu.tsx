@@ -32,7 +32,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
       <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
 
       {/* メニュー本体 */}
-      <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col overflow-hidden">
+      <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col rounded-bl-3xl rounded-br-3xl overflow-hidden">
         {/* ==========================================
             ブロック1: アカウントエリア
            ========================================== */}

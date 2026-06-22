@@ -13,7 +13,8 @@ export default function Header() {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-30 flex justify-end">
-        <div className="bg-primary h-14 pl-4 pr-1 flex items-center justify-between rounded-bl-3xl w-1/2">
+        {/* スマホ：右半分のみ・左下丸 / PC：全幅・角なし */}
+        <div className="bg-primary h-14 px-4 flex items-center justify-between rounded-bl-3xl w-1/2 md:w-full md:rounded-none">
           {/* ロゴ */}
           <Link href="/" className="flex items-center gap-2">
             <Image
