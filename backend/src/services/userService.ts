@@ -1,12 +1,12 @@
-import { Prisma } from "@prisma/client";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
-import { prisma } from "../lib/prisma";
+import { Prisma } from '@prisma/client'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { prisma } from '../lib/prisma'
 
 export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
-  const email = authUser.email;
+  const email = authUser.email
 
   if (!email) {
-    throw new Error("Supabaseユーザーのメールアドレスが取得できません");
+    throw new Error('Supabaseユーザーのメールアドレスが取得できません')
   }
 
   try {
@@ -18,10 +18,10 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         include: {
           subscription: true,
         },
-      });
+      })
 
       if (existingUserBySupabaseId) {
-        return existingUserBySupabaseId;
+        return existingUserBySupabaseId
       }
 
       const existingUserByEmail = await tx.user.findUnique({
@@ -31,14 +31,14 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         include: {
           subscription: true,
         },
-      });
+      })
 
       if (existingUserByEmail) {
         if (
           existingUserByEmail.supabaseUserId &&
           existingUserByEmail.supabaseUserId !== authUser.id
         ) {
-          throw new Error("既存ユーザーのSupabaseユーザーIDが一致しません");
+          throw new Error('既存ユーザーのSupabaseユーザーIDが一致しません')
         }
 
         return await tx.user.update({
@@ -51,24 +51,24 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
           include: {
             subscription: true,
           },
-        });
+        })
       }
 
       return await tx.user.create({
         data: {
           supabaseUserId: authUser.id,
           email,
-          planType: "FREE",
+          planType: 'FREE',
         },
         include: {
           subscription: true,
         },
-      });
-    });
+      })
+    })
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
+      error.code === 'P2002'
     ) {
       const user = await prisma.user.findFirst({
         where: {
@@ -77,13 +77,13 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         include: {
           subscription: true,
         },
-      });
+      })
 
       if (user) {
-        return user;
+        return user
       }
     }
 
-    throw error;
+    throw error
   }
-};
+}
