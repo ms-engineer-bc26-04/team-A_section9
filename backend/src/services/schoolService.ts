@@ -18,9 +18,7 @@ export const getSchools = async (query: SchoolSearchQuery) => {
             ],
           }
         : {},
-      query.area
-        ? { area: { contains: query.area, mode: 'insensitive' } }
-        : {},
+      query.area ? { area: { contains: query.area, mode: 'insensitive' } } : {},
       query.mealType ? { mealType: query.mealType } : {},
       query.diaperSupport
         ? {
@@ -54,9 +52,7 @@ export const getSchools = async (query: SchoolSearchQuery) => {
             },
           }
         : {},
-      query.itemBurdenLevel
-        ? { itemBurdenLevel: query.itemBurdenLevel }
-        : {},
+      query.itemBurdenLevel ? { itemBurdenLevel: query.itemBurdenLevel } : {},
       query.weekdayEventsLevel
         ? { weekdayEventsLevel: query.weekdayEventsLevel }
         : {},
