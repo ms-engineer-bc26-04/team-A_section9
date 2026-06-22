@@ -82,7 +82,7 @@ ENKATSU では、園そのものの良し悪しではなく、保護者が復職
 | Validation | Zod                                                       |
 | Logging    | Pino                                                      |
 | Security   | Helmet / CORS / Rate Limit                                |
-| Test       | Vitest / Supertest                                        |
+| Test       | Vitest / Supertest（導入予定）                                  |
 | CI         | GitHub Actions                                            |
 | Container  | Docker / Docker Compose                                   |
 
@@ -371,7 +371,6 @@ npm run lint:fix
 npm run format
 ```
 
-
 ---
 
 ## ブランチ運用
@@ -406,7 +405,7 @@ git checkout -b feature/<issue-number>-<summary>
 * 作業前に `develop` を最新化する
 * 原則として `feature/*` ブランチで作業する
 * PR作成時は対応Issue・実装内容・確認内容を記載する
-* Lint / Format / Test を確認してからレビュー依頼する
+* Lint / Format を確認してからレビュー依頼する
 * 設計変更が発生した場合は、該当する docs を更新する
 
 ---
