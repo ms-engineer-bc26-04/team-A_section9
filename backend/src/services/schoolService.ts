@@ -11,7 +11,9 @@ export type SchoolSearchQuery = {
 export const getSchools = async (query: SchoolSearchQuery) => {
   return prisma.school.findMany({
     where: {
-      area: query.area ? { contains: query.area, mode: 'insensitive' } : undefined,
+      area: query.area
+        ? { contains: query.area, mode: 'insensitive' }
+        : undefined,
       extendedCareUsage: query.extendedCareUsage || undefined,
       itemBurdenLevel: query.itemBurdenLevel || undefined,
       weekdayEventsLevel: query.weekdayEventsLevel || undefined,
