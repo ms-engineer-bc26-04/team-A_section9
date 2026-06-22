@@ -18,6 +18,7 @@ ENKATSUは、共働き家庭・仕事復帰を控えた保護者向けに、保�
 * Stripe Checkout
 * Stripe Customer Portal
 * Stripe Webhook
+* Redisキャッシュを利用した園一覧・検索結果・おすすめ表示の高速化
 
 ---
 
@@ -26,7 +27,7 @@ ENKATSUは、共働き家庭・仕事復帰を控えた保護者向けに、保�
 本API設計書は、以下のドキュメントをもとに作成しています。
 
 * 要件定義書
-* 画面設計書 v0.5
+* 画面設計書 v0.7
 * DB設計書
 * 画面遷移図
 
@@ -40,9 +41,12 @@ DB設計書の確定に伴い、以下の方針を反映します。
 * APIレスポンスはフロントエンドで扱いやすいように `camelCase` とする
 * プレミアム判定は `subscriptions.status = active` を正とする
 * `users.plan_type` は画面表示用の補助情報として扱う
+* 会員登録後は一般ユーザーとして扱う
+* アプリ側の `users` レコードは、`GET /users/me` 実行時に必要に応じて自動作成する
 * 比較対象の選択は `/mypage/favorites` で行う
 * MVPでは比較リスト保存APIは作成しない
 * MVPではチャート表示専用API・詳細比較レポートAPIは作成しない
+* 園一覧・検索結果・おすすめ表示ではRedisキャッシュを利用する
 
 ---
 
@@ -179,11 +183,14 @@ createdAt
 
 ENKATSUでは以下の3区分を扱います。
 
-| 区分        | 内容            | DB上の扱い                          |
-| --------- | ------------- | ------------------------------- |
-| 未登録ユーザー   | ログインしていないユーザー | users レコードなし                    |
-| 一般ユーザー    | ログイン済みの無料ユーザー | `users.plan_type = free`        |
-| プレミアムユーザー | 月額課金済みの有料ユーザー | `subscriptions.status = active` |
+| 区分        | 内容              | DB上の扱い                          |
+| --------- | --------------- | ------------------------------- |
+| 未登録ユーザー   | ログインしていないユーザー   | users レコードなし                    |
+| 一般ユーザー    | ユーザー登録済みの無料ユーザー | `users.plan_type = free`        |
+| プレミアムユーザー | 月額課金済みの有料ユーザー   | `subscriptions.status = active` |
+
+ENKATSUにおける会員登録は、無料のユーザー登録を指します。
+プレミアムユーザーになるには、会員登録後にStripe Checkoutで決済を完了する必要があります。
 
 ---
 
@@ -198,7 +205,29 @@ Stripe Webhookで決済状態が変更された場合は、`subscriptions.status
 
 ---
 
-### 6-3. 認可ルール
+### 6-3. 会員登録後のユーザー作成方針
+
+Supabase Auth の会員登録後、ユーザーはまず一般ユーザーとして扱います。
+
+MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に作成します。
+
+ログイン済みユーザーが `GET /users/me` を実行した際に、Supabase Auth 上のユーザーは存在するが、アプリ側 `users` レコードが存在しない場合、バックエンド側で一般ユーザーとして自動作成します。
+
+作成時の初期値は以下とします。
+
+| DBカラム        | 値                      |
+| ------------ | ---------------------- |
+| `id`         | Supabase Auth User ID  |
+| `email`      | Supabase Auth のメールアドレス |
+| `plan_type`  | `free`                 |
+| `created_at` | 作成日時                   |
+| `updated_at` | 作成日時                   |
+
+この方針により、フロントエンド側で会員登録直後に別途ユーザー作成APIを呼び出す必要はありません。
+
+---
+
+### 6-4. 認可ルール
 
 | 機能                     | 未登録ユーザー | 一般ユーザー | プレミアムユーザー |
 | ---------------------- | ------- | ------ | --------- |
@@ -218,19 +247,19 @@ Stripe Webhookで決済状態が変更された場合は、`subscriptions.status
 
 ## 7. エンドポイント一覧
 
-| 分類    | メソッド   | エンドポイント                         | 認証 | 概要                           |
-| ----- | ------ | ------------------------------- | -- | ---------------------------- |
-| 園     | GET    | `/schools`                      | 任意 | 園一覧・検索結果取得                   |
-| 園     | GET    | `/schools/:id`                  | 任意 | 園詳細取得                        |
-| 園     | GET    | `/schools/compare`              | 必須 | 比較対象園取得                      |
-| ユーザー  | GET    | `/users/me`                     | 必須 | ログインユーザー情報取得                 |
-| ユーザー  | PUT    | `/users/me`                     | 必須 | ログインユーザー情報更新                 |
-| お気に入り | GET    | `/users/me/favorites`           | 必須 | お気に入り一覧取得                    |
-| お気に入り | POST   | `/users/me/favorites`           | 必須 | お気に入り登録                      |
-| お気に入り | DELETE | `/users/me/favorites/:schoolId` | 必須 | お気に入り解除                      |
-| 決済    | POST   | `/payment/checkout`             | 必須 | Stripe Checkout Session作成    |
-| 決済    | POST   | `/payment/customer-portal`      | 必須 | Stripe Customer Portal URL作成 |
-| 決済    | POST   | `/payment/webhook`              | 不要 | Stripe Webhook受信             |
+| 分類    | メソッド   | エンドポイント                         | 認証 | 概要                                    |
+| ----- | ------ | ------------------------------- | -- | ------------------------------------- |
+| 園     | GET    | `/schools`                      | 任意 | 園一覧・検索結果取得                            |
+| 園     | GET    | `/schools/:id`                  | 任意 | 園詳細取得                                 |
+| 園     | GET    | `/schools/compare`              | 必須 | 比較対象園取得                               |
+| ユーザー  | GET    | `/users/me`                     | 必須 | ログインユーザー情報取得。必要に応じて `users` レコードを自動作成 |
+| ユーザー  | PUT    | `/users/me`                     | 必須 | ログインユーザー情報更新                          |
+| お気に入り | GET    | `/users/me/favorites`           | 必須 | お気に入り一覧取得                             |
+| お気に入り | POST   | `/users/me/favorites`           | 必須 | お気に入り登録                               |
+| お気に入り | DELETE | `/users/me/favorites/:schoolId` | 必須 | お気に入り解除                               |
+| 決済    | POST   | `/payment/checkout`             | 必須 | Stripe Checkout Session作成             |
+| 決済    | POST   | `/payment/customer-portal`      | 必須 | Stripe Customer Portal URL作成          |
+| 決済    | POST   | `/payment/webhook`              | 不要 | Stripe Webhook受信                      |
 
 ---
 
@@ -244,6 +273,8 @@ Stripe Webhookで決済状態が変更された場合は、`subscriptions.status
 
 未ログインでも取得可能です。
 ログイン済みの場合は、お気に入り登録済みかどうかを `isFavorited` に含めます。
+
+MVPでは、園一覧・検索結果・おすすめ表示のDBアクセスを減らすため、Redisキャッシュを利用します。
 
 ---
 
@@ -302,6 +333,39 @@ GET /api/v1/schools
 4. 希望条件も設定されていない場合は、全件表示する
 
 MVPでは高度なレコメンド機能は作成せず、シンプルな条件一致数で並び替えます。
+
+---
+
+### Redisキャッシュ方針
+
+`GET /schools` ではRedisキャッシュを利用します。
+
+キャッシュ対象は、主に以下です。
+
+* 園一覧の元データ
+* キーワード検索結果
+* 条件検索結果
+* おすすめ表示の元データ
+
+キャッシュキーは、検索条件・並び順・ページング条件をもとに生成します。
+
+例：
+
+```txt
+schools:list:keyword=sakura:mealType=school_lunch:sort=createdAtDesc:limit=20:offset=0
+schools:recommended:userArea=渋谷区:preferences=mealType_school_lunch_item_low
+```
+
+ただし、`isFavorited` などログインユーザーごとに変わる情報は、キャッシュ対象の園データとは分けて付与します。
+
+キャッシュの基本方針は以下とします。
+
+| 項目       | 方針                                |
+| -------- | --------------------------------- |
+| キャッシュ対象  | 園一覧・検索結果・おすすめ表示の元データ              |
+| キャッシュ対象外 | `isFavorited`、ユーザーの会員状態、ユーザー固有の情報 |
+| キャッシュ削除  | seedデータ更新時、または必要に応じて手動削除          |
+| TTL      | MVPでは任意。設定する場合は短時間から開始する          |
 
 ---
 
@@ -701,6 +765,8 @@ GET /api/v1/schools/compare?ids=1,2,3
 
 マイページ、プロフィール編集画面、ヘッダー表示、会員区分判定に使用するログインユーザー情報を取得します。
 
+Supabase Auth 上のユーザーは存在するが、アプリ側 `users` レコードが存在しない場合、このAPI実行時に一般ユーザーとして自動作成します。
+
 ---
 
 ### メソッド・URL
@@ -714,6 +780,30 @@ GET /api/v1/users/me
 ### 認証
 
 必須。
+
+---
+
+### users レコード自動作成
+
+`GET /users/me` 実行時、以下の条件を満たす場合は、バックエンド側で `users` レコードを自動作成します。
+
+| 条件            | 内容                                        |
+| ------------- | ----------------------------------------- |
+| Supabase Auth | アクセストークンが有効で、Supabase Auth User ID を取得できる |
+| users テーブル    | 該当する `users.id` のレコードが存在しない               |
+
+自動作成時の初期値は以下とします。
+
+| DBカラム        | 値                      |
+| ------------ | ---------------------- |
+| `id`         | Supabase Auth User ID  |
+| `email`      | Supabase Auth のメールアドレス |
+| `plan_type`  | `free`                 |
+| `created_at` | 作成日時                   |
+| `updated_at` | 作成日時                   |
+
+作成直後は、`name`、`postal_code`、`address`、希望条件は未設定でもよいものとします。
+その後、プロフィール編集画面で更新します。
 
 ---
 
@@ -740,6 +830,36 @@ GET /api/v1/users/me
       "extendedCare": true,
       "weekdayEventsLevel": "low",
       "parentAssociationLevel": "low"
+    }
+  }
+}
+```
+
+---
+
+### レスポンス例：自動作成直後の一般ユーザー
+
+```json
+{
+  "data": {
+    "id": "d7f5b8a2-1111-4444-8888-123456789abc",
+    "email": "user@example.com",
+    "name": null,
+    "avatarUrl": null,
+    "postalCode": null,
+    "address": null,
+    "planType": "free",
+    "isPremium": false,
+    "favoriteCount": 0,
+    "favoriteLimit": 5,
+    "preferences": {
+      "mealType": null,
+      "itemBurdenLevel": null,
+      "diaperSupport": null,
+      "futonSupport": null,
+      "extendedCare": false,
+      "weekdayEventsLevel": null,
+      "parentAssociationLevel": null
     }
   }
 }
@@ -800,6 +920,8 @@ GET /api/v1/users/me
 
 プロフィール編集画面で、ユーザー情報・希望条件を更新します。
 
+DB上は `postal_code`、`address` を NULL 許可としますが、プロフィール編集画面ではおすすめ表示に利用するため、郵便番号・住所を必須入力とします。
+
 ---
 
 ### メソッド・URL
@@ -839,19 +961,19 @@ PUT /api/v1/users/me
 
 ### バリデーション
 
-| 項目                                   | 条件               |
-| ------------------------------------ | ---------------- |
-| `name`                               | 必須               |
-| `postalCode`                         | 任意。指定する場合は半角数字7桁 |
-| `address`                            | 任意               |
-| `preferences`                        | 任意               |
-| `preferences.mealType`               | 任意。定義済みの値のみ      |
-| `preferences.itemBurdenLevel`        | 任意。定義済みの値のみ      |
-| `preferences.diaperSupport`          | 任意。定義済みの値のみ      |
-| `preferences.futonSupport`           | 任意。定義済みの値のみ      |
-| `preferences.extendedCare`           | 任意。boolean       |
-| `preferences.weekdayEventsLevel`     | 任意。定義済みの値のみ      |
-| `preferences.parentAssociationLevel` | 任意。定義済みの値のみ      |
+| 項目                                   | 条件          |
+| ------------------------------------ | ----------- |
+| `name`                               | 必須          |
+| `postalCode`                         | 必須。半角数字7桁   |
+| `address`                            | 必須          |
+| `preferences`                        | 任意          |
+| `preferences.mealType`               | 任意。定義済みの値のみ |
+| `preferences.itemBurdenLevel`        | 任意。定義済みの値のみ |
+| `preferences.diaperSupport`          | 任意。定義済みの値のみ |
+| `preferences.futonSupport`           | 任意。定義済みの値のみ |
+| `preferences.extendedCare`           | 任意。boolean  |
+| `preferences.weekdayEventsLevel`     | 任意。定義済みの値のみ |
+| `preferences.parentAssociationLevel` | 任意。定義済みの値のみ |
 
 ---
 
@@ -890,6 +1012,15 @@ PUT /api/v1/users/me
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "郵便番号は半角数字7桁で入力してください"
+  }
+}
+```
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "住所を入力してください"
   }
 }
 ```
@@ -1153,6 +1284,9 @@ DELETE /api/v1/users/me/favorites/:schoolId
 ### 概要
 
 一般ユーザーがプレミアムプランへ登録するための Stripe Checkout Session を作成します。
+
+未登録ユーザーはこのAPIを利用できません。
+未登録ユーザーがプレミアム登録ボタンを押した場合は、まず会員登録画面 `/register` へ誘導します。
 
 ---
 
@@ -1476,6 +1610,8 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 * Enum系の検索条件は定義済みの値のみ許可
 * boolean系の検索条件は `true` / `false` のみ許可
 * 不正な検索条件は `VALIDATION_ERROR`
+* 園一覧・検索結果・おすすめ表示ではRedisキャッシュを利用する
+* `isFavorited` などユーザー固有の値はキャッシュ対象の園データとは分けて付与する
 
 ---
 
@@ -1512,11 +1648,13 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 ## 13-6. プロフィール更新
 
 * `name` は必須
-* `postalCode` は任意
-* `postalCode` を指定する場合は半角数字7桁
-* `address` は任意
+* `postalCode` は必須
+* `postalCode` は半角数字7桁
+* `address` は必須
 * `preferences` は任意
 * 希望条件の値は定義済みEnumのみ許可
+
+DB上は `postal_code`、`address` を NULL 許可としますが、プロフィール編集画面から更新する場合は、おすすめ表示に利用するため必須入力とします。
 
 ---
 
@@ -1641,9 +1779,9 @@ GET /api/v1/schools/compare?ids=1,2
 GET /api/v1/schools/compare?ids=1,2,3
 ```
 
-DB設計書に `compare_lists` テーブルが存在する場合でも、MVPのAPI設計では比較リスト保存APIは作成しません。
+DB設計書に `compare_lists` テーブルは存在しますが、MVPのAPI設計では比較リスト保存APIは作成しません。
 
-`compare_lists` を残す場合は、後続機能用または将来拡張用として扱います。
+`compare_lists` は、MVPではAPIから利用しない将来拡張用テーブルとして扱います。
 
 ---
 
@@ -1692,13 +1830,30 @@ MVPでは、seedデータに画像URLを登録するか、固定画像URLを登�
 
 ---
 
+## 16-6. Redisキャッシュについて
+
+MVPでは、園一覧・検索結果・おすすめ表示でRedisキャッシュを利用します。
+
+キャッシュ対象は、園データそのものや検索結果の元データとします。
+
+ログインユーザーごとに変わる以下の情報は、キャッシュ対象から分けて扱います。
+
+* `isFavorited`
+* `isPremium`
+* `favoriteCount`
+* `favoriteLimit`
+
+Redisキャッシュを導入することで、同一条件でのDBアクセスを減らし、検索結果表示のパフォーマンスを改善します。
+
+---
+
 # 17. 今後の確認事項
 
-* DB設計書の `compare_lists` をMVPで本当に保持するか
-* `compare_lists` を保持する場合、APIは作成しない方針でよいか
+* `compare_lists` はMVPではAPIから利用しないが、将来拡張用テーブルとして作成する方針でよいか
 * `schoolType`、`mealType`、`diaperSupport`、`futonSupport` などを Prisma Enum にするか、文字列管理にするか
 * `contactBookType`、`absenceContactMethod` もEnum化するか
 * `tags` をDBに持たず、API側で生成する方針でよいか
-* RedisキャッシュをMVPで実装するか、設計のみとするか
+* RedisキャッシュのTTLを何分に設定するか
+* Redisキャッシュの削除タイミングをどうするか
 * Stripe Webhook後に `users.plan_type` を同期するか
 * 園画像をURLで持つか、MVPでは固定画像にするか
