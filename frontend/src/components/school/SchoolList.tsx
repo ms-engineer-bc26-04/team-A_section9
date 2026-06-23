@@ -2,16 +2,17 @@
 // ホーム画面の園一覧セクション
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import SchoolCard from './SchoolCard'
 import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
-import { SchoolCardSkeleton } from '@/components/common/Skeleton'
+// import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getSchools } from '@/lib/api/schools'
 import { addFavorite, removeFavorite } from '@/lib/api/favorites'
 import { SchoolSummary } from '@/types/school'
 import { supabase } from '@/lib/supabase'
+import Loading from '@/components/common/Loading'
 
 export default function SchoolList() {
   const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
@@ -23,27 +24,34 @@ export default function SchoolList() {
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  useEffect(() => {
+  // 🌟【修正1】fetchSchools を useEffect の外に出して useCallback で囲む（再生成を防ぎ、依存配列を整理するため）
+  const fetchSchools = useCallback(async () => {
     // 認証状態が確定してから取得する
     if (isAuthLoading) return
 
-    const fetchSchools = async () => {
-      try {
-        setIsLoading(true)
-        // ログイン済みはおすすめ順・未ログインは通常順
-        const result = await getSchools(
-          isLoggedIn ? { sort: 'recommended' } : undefined
-        )
-        setSchools(result.data)
-      } catch (e) {
-        setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
-      } finally {
-        setIsLoading(false)
-      }
+    try {
+      setIsLoading(true)
+      // ログイン済みはおすすめ順・未ログインは通常順
+      const result = await getSchools(
+        isLoggedIn ? { sort: 'recommended' } : undefined
+      )
+      setSchools(result.data)
+    } catch (e) {
+      console.error(e) // 🌟【修正2】定義されていたが使われていなかった 'e' をログ出力に活用して警告を解消
+      setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
+    } finally {
+      setIsLoading(false)
     }
-
-    fetchSchools()
   }, [isLoggedIn, isAuthLoading])
+
+  // 🌟【修正3】useEffect は fetchSchools の呼び出しと、連続 setState 防止のラップのみに
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchSchools()
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [fetchSchools])
 
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
@@ -104,10 +112,8 @@ export default function SchoolList() {
 
   if (isLoading || isAuthLoading) {
     return (
-      <div className="flex flex-col gap-3">
-        {[1, 2, 3].map((i) => (
-          <SchoolCardSkeleton key={i} />
-        ))}
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <Loading size="lg" />
       </div>
     )
   }

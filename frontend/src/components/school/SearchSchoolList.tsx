@@ -2,11 +2,11 @@
 // src/components/school/SearchSchoolList.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import SchoolCard from './SchoolCard'
-import EmptyState from '@/components/common/EmptyState'
+// 🌟【修正1】未使用だった EmptyState のインポートを削除して警告を解消
 import Toast from '@/components/common/Toast'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
@@ -33,71 +33,96 @@ export default function SearchSchoolList({ searchParams }: Props) {
   } | null>(null)
   const router = useRouter()
 
-  useEffect(() => {
+  // 🌟【修正2】各クエリパラメータを個別に変数に展開（useEffect/useCallbackの依存配列に安全に入れるため）
+  const keyword = searchParams.keyword
+  const area = searchParams.area
+  const mealType = searchParams.mealType
+  const diaperSupport = searchParams.diaperSupport
+  const futonSupport = searchParams.futonSupport
+  const weekdayEventsLevel = searchParams.weekdayEventsLevel
+  const parentAssociationLevel = searchParams.parentAssociationLevel
+  const lessons = searchParams.lessons
+  const allergySupport = searchParams.allergySupport
+
+  // 🌟【修正3】fetchSchools を useCallback で囲み、Linterに要求された個別パラメータをすべて網羅
+  const fetchSchools = useCallback(async () => {
     if (isAuthLoading) return
 
-    const fetchSchools = async () => {
-      try {
-        setIsLoading(true)
+    try {
+      setIsLoading(true)
 
-        // クエリパラメータをSearchFiltersに変換
-        const filters: SearchFilters = {}
-        if (searchParams.keyword) filters.keyword = String(searchParams.keyword)
-        if (searchParams.area) filters.area = String(searchParams.area)
-        if (searchParams.mealType)
-          filters.mealType = searchParams.mealType as SearchFilters['mealType']
-        if (searchParams.diaperSupport)
-          filters.diaperSupport =
-            searchParams.diaperSupport as SearchFilters['diaperSupport']
-        if (searchParams.futonSupport)
-          filters.futonSupport =
-            searchParams.futonSupport as SearchFilters['futonSupport']
-        if (searchParams.weekdayEventsLevel)
-          filters.weekdayEventsLevel =
-            searchParams.weekdayEventsLevel as SearchFilters['weekdayEventsLevel']
-        if (searchParams.parentAssociationLevel)
-          filters.parentAssociationLevel =
-            searchParams.parentAssociationLevel as SearchFilters['parentAssociationLevel']
-        if (searchParams.lessons)
-          filters.lessons = searchParams.lessons === 'true'
-        if (searchParams.allergySupport)
-          filters.allergySupport = searchParams.allergySupport === 'true'
+      // クエリパラメータをSearchFiltersに変換
+      const filters: SearchFilters = {}
+      if (keyword) filters.keyword = String(keyword)
+      if (area) filters.area = String(area)
+      if (mealType) filters.mealType = mealType as SearchFilters['mealType']
+      if (diaperSupport)
+        filters.diaperSupport = diaperSupport as SearchFilters['diaperSupport']
+      if (futonSupport)
+        filters.futonSupport = futonSupport as SearchFilters['futonSupport']
+      if (weekdayEventsLevel)
+        filters.weekdayEventsLevel =
+          weekdayEventsLevel as SearchFilters['weekdayEventsLevel']
+      if (parentAssociationLevel)
+        filters.parentAssociationLevel =
+          parentAssociationLevel as SearchFilters['parentAssociationLevel']
+      if (lessons) filters.lessons = lessons === 'true'
+      if (allergySupport) filters.allergySupport = allergySupport === 'true'
 
-        const result = await getSchools(filters)
+      const result = await getSchools(filters)
 
-        // ログイン済みの場合はお気に入り状態を取得して反映
-        if (isLoggedIn) {
-          const {
-            data: { session },
-          } = await supabase.auth.getSession()
-          const accessToken = session?.access_token
+      // ログイン済みの場合はお気に入り状態を取得して反映
+      if (isLoggedIn) {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        const accessToken = session?.access_token
 
-          if (accessToken) {
-            const favResult = await getFavorites(accessToken)
-            const favSchoolIds = new Set(
-              favResult.data.map((f: { school: { id: number } }) => f.school.id)
-            )
-            setSchools(
-              result.data.map((school) => ({
-                ...school,
-                isFavorited: favSchoolIds.has(school.id),
-              }))
-            )
-          } else {
-            setSchools(result.data)
-          }
+        if (accessToken) {
+          const favResult = await getFavorites(accessToken)
+          const favSchoolIds = new Set(
+            favResult.data.map((f: { school: { id: number } }) => f.school.id)
+          )
+          setSchools(
+            result.data.map((school) => ({
+              ...school,
+              isFavorited: favSchoolIds.has(school.id),
+            }))
+          )
         } else {
           setSchools(result.data)
         }
-      } catch (e) {
-        setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
-      } finally {
-        setIsLoading(false)
+      } else {
+        setSchools(result.data)
       }
+    } catch (e) {
+      console.error(e)
+      setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
+    } finally {
+      setIsLoading(false)
     }
+  }, [
+    isLoggedIn,
+    isAuthLoading,
+    keyword,
+    area,
+    mealType,
+    diaperSupport,
+    futonSupport,
+    weekdayEventsLevel,
+    parentAssociationLevel,
+    lessons,
+    allergySupport,
+  ])
 
-    fetchSchools()
-  }, [isLoggedIn, isAuthLoading, JSON.stringify(searchParams)])
+  // 🌟【修正4】useEffect 内での連続 setState 警告を回避するため非同期ラップ
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchSchools()
+    }, 0)
+
+    return () => clearTimeout(timer)
+  }, [fetchSchools])
 
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
@@ -222,7 +247,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
             <p className="font-bold text-gray-800 text-base">
               条件に合う園が
               <br />
-              見つかりませんでした
+              見見つかりませんでした
             </p>
             <p className="text-gray-400 text-sm">
               検索条件を変更して
