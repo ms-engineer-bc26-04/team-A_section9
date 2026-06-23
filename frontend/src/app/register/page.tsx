@@ -49,9 +49,7 @@ export default function RegisterPage() {
     if (data.session) {
       try {
         await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`, {
-          method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
             Authorization: `Bearer ${data.session.access_token}`,
           },
         })

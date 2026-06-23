@@ -1,5 +1,9 @@
 import type { RequestHandler } from 'express'
 import { getSchoolById, getSchools } from '../services/schoolService'
+import {
+  schoolIdParamsSchema,
+  schoolSearchQuerySchema,
+} from '../validators/schoolValidator'
 
 const toSerializableSchool = (school: Record<string, unknown>) => {
   return {
@@ -8,25 +12,35 @@ const toSerializableSchool = (school: Record<string, unknown>) => {
   }
 }
 
+const getValidationErrorMessage = (error: unknown) => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'issues' in error &&
+    Array.isArray(error.issues) &&
+    error.issues[0]?.message
+  ) {
+    return error.issues[0].message
+  }
+
+  return '入力内容に誤りがあります'
+}
+
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
-    const schools = await getSchools({
-      area: typeof req.query.area === 'string' ? req.query.area : undefined,
-      extendedCareUsage:
-        typeof req.query.extendedCareUsage === 'string'
-          ? req.query.extendedCareUsage
-          : undefined,
-      itemBurdenLevel:
-        typeof req.query.itemBurdenLevel === 'string'
-          ? req.query.itemBurdenLevel
-          : undefined,
-      weekdayEventsLevel:
-        typeof req.query.weekdayEventsLevel === 'string'
-          ? req.query.weekdayEventsLevel
-          : undefined,
-      mealType:
-        typeof req.query.mealType === 'string' ? req.query.mealType : undefined,
-    })
+    const parsedQuery = schoolSearchQuerySchema.safeParse(req.query)
+
+    if (!parsedQuery.success) {
+      res.status(422).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: getValidationErrorMessage(parsedQuery.error),
+        },
+      })
+      return
+    }
+
+    const schools = await getSchools(parsedQuery.data)
 
     res.json({
       data: schools.map((school) => toSerializableSchool(school)),
@@ -45,26 +59,26 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
 
 export const getSchoolByIdController: RequestHandler = async (req, res) => {
   try {
-    const idParam = req.params.id
+    const parsedParams = schoolIdParamsSchema.safeParse(req.params)
 
-    if (typeof idParam !== 'string' || !/^\d+$/.test(idParam)) {
-      res.status(400).json({
+    if (!parsedParams.success) {
+      res.status(422).json({
         error: {
-          code: 'INVALID_SCHOOL_ID',
-          message: '園IDの形式が正しくありません',
+          code: 'VALIDATION_ERROR',
+          message: getValidationErrorMessage(parsedParams.error),
         },
       })
       return
     }
 
-    const id = BigInt(idParam)
+    const id = BigInt(parsedParams.data.id)
 
     const school = await getSchoolById(id)
 
     if (!school) {
       res.status(404).json({
         error: {
-          code: 'SCHOOL_NOT_FOUND',
+          code: 'NOT_FOUND',
           message: '指定された園が見つかりません',
         },
       })
