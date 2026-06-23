@@ -14,7 +14,7 @@ type HamburgerMenuProps = {
 }
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const { supabaseUser, appUser } = useAuth()
+  const { supabaseUser, appUser, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -50,8 +50,13 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           </div>
 
-          {/* 未ログイン：登録・ログインボタン */}
-          {!supabaseUser ? (
+          {/* ローディング中 */}
+          {isLoading ? (
+            <div className="px-6 py-5 flex justify-center">
+              <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : !supabaseUser ? (
+            /* 未ログイン：登録・ログインボタン */
             <div className="px-6 py-5 flex gap-3">
               <button
                 onClick={() => {
@@ -73,13 +78,11 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               </button>
             </div>
           ) : (
-            // ログイン済み：ユーザー情報
+            /* ログイン済み：ユーザー情報 */
             <div className="px-6 pt-4 pb-6 flex flex-col gap-2">
-              {/* 会員種別を上に */}
               <p className="text-gray-600 text-base">
                 {appUser?.isPremium ? 'プレミアム会員' : '一般会員'}
               </p>
-              {/* 名前 */}
               <p className="font-bold text-gray-800 text-2xl">
                 {appUser?.name ?? supabaseUser.email} さん
               </p>
@@ -101,13 +104,13 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               href="/mypage/favorites"
               label="お気に入り/比較"
               onClick={onClose}
-              enabled={!!supabaseUser}
+              enabled={isLoading || !!supabaseUser}
             />
             <MenuItem
               href="/mypage"
               label="マイページ"
               onClick={onClose}
-              enabled={!!supabaseUser}
+              enabled={isLoading || !!supabaseUser}
             />
             <MenuItem
               href="/plans"
@@ -117,8 +120,8 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               bold
             />
 
-            {/* ログアウトボタン：プラン・料金確認の下 */}
-            {supabaseUser && (
+            {/* ログアウトボタン */}
+            {!isLoading && supabaseUser && (
               <div className="mt-4">
                 <button
                   onClick={handleLogout}
@@ -145,7 +148,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     </>
   )
 }
-
 type MenuItemProps = {
   href: string
   label: string
