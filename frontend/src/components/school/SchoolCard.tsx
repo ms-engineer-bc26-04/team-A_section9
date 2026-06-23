@@ -7,9 +7,15 @@ import FavoriteButton from './FavoriteButton'
 
 type SchoolCardProps = {
   school: SchoolSummary
+  isLoggedIn?: boolean
+  onToggleFavorite?: (schoolId: number) => void
 }
 
-export default function SchoolCard({ school }: SchoolCardProps) {
+export default function SchoolCard({
+  school,
+  isLoggedIn = false,
+  onToggleFavorite,
+}: SchoolCardProps) {
   return (
     <div className="relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
       <Link href={`/schools/${school.id}`} className="flex gap-3 p-3">
@@ -43,10 +49,10 @@ export default function SchoolCard({ school }: SchoolCardProps) {
 
           {/* タグ */}
           <div className="flex flex-wrap gap-1 mt-1">
-            {school.tags.map((tag) => (
+            {(school.tags ?? []).map((tag) => (
               <span
                 key={tag}
-                className="bg-primary-light text-primary text-xs px-2 py-0.5 rounded-full font-bold"
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
               >
                 {tag}
               </span>
@@ -57,7 +63,12 @@ export default function SchoolCard({ school }: SchoolCardProps) {
 
       {/* お気に入りボタン */}
       <div className="absolute bottom-3 right-3">
-        <FavoriteButton schoolId={school.id} isFavorited={school.isFavorited} />
+        <FavoriteButton
+          schoolId={school.id}
+          isFavorited={school.isFavorited}
+          isLoggedIn={isLoggedIn}
+          onToggle={onToggleFavorite}
+        />
       </div>
     </div>
   )
