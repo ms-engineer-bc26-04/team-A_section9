@@ -1,14 +1,24 @@
 import type { RequestHandler } from 'express'
-import { getSchoolById, getSchools } from '../services/schoolService'
+import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
+import { getOrCreateCurrentUser } from '../services/userService'
+import {
+  getFavoritedSchoolIds,
+  getSchoolById,
+  getSchools,
+} from '../services/schoolService'
 import {
   schoolIdParamsSchema,
   schoolSearchQuerySchema,
 } from '../validators/schoolValidator'
 
-const toSerializableSchool = (school: Record<string, unknown>) => {
+const toSerializableSchool = (
+  school: Record<string, unknown>,
+  isFavorited = false
+) => {
   return {
     ...school,
     id: school.id?.toString(),
+    isFavorited,
   }
 }
 
@@ -26,6 +36,16 @@ const getValidationErrorMessage = (error: unknown) => {
   return '入力内容に誤りがあります'
 }
 
+const getCurrentUserIdIfAuthenticated = async (req: AuthenticatedRequest) => {
+  if (!req.authUser) {
+    return null
+  }
+
+  const user = await getOrCreateCurrentUser(req.authUser)
+
+  return user.id
+}
+
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
     const parsedQuery = schoolSearchQuerySchema.safeParse(req.query)
@@ -41,9 +61,24 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
     }
 
     const schools = await getSchools(parsedQuery.data)
+    const userId = await getCurrentUserIdIfAuthenticated(
+      req as AuthenticatedRequest
+    )
+
+    const favoritedSchoolIds = userId
+      ? await getFavoritedSchoolIds(
+          userId,
+          schools.map((school) => school.id)
+        )
+      : new Set<string>()
 
     res.json({
-      data: schools.map((school) => toSerializableSchool(school)),
+      data: schools.map((school) =>
+        toSerializableSchool(
+          school,
+          favoritedSchoolIds.has(school.id.toString())
+        )
+      ),
     })
   } catch (error) {
     console.error(error)
@@ -85,8 +120,19 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
       return
     }
 
+    const userId = await getCurrentUserIdIfAuthenticated(
+      req as AuthenticatedRequest
+    )
+
+    const favoritedSchoolIds = userId
+      ? await getFavoritedSchoolIds(userId, [school.id])
+      : new Set<string>()
+
     res.json({
-      data: toSerializableSchool(school),
+      data: toSerializableSchool(
+        school,
+        favoritedSchoolIds.has(school.id.toString())
+      ),
     })
   } catch (error) {
     console.error(error)
