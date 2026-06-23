@@ -23,6 +23,13 @@ const MEAL_TYPE_TAGS: Record<string, string> = {
   BOTH: '給食・弁当',
 }
 
+const SUPPORT_FIELDS = {
+  contactBookType: null,
+  absenceContactMethod: null,
+  lessons: null,
+  allergySupport: null,
+}
+
 const getSchoolTags = (school: Record<string, unknown>) => {
   const tags: string[] = []
 
@@ -50,15 +57,86 @@ const getSchoolTags = (school: Record<string, unknown>) => {
   return tags
 }
 
-const toSerializableSchool = (
+const isPremiumUser = (
+  user: Awaited<ReturnType<typeof getOrCreateCurrentUser>> | null
+) => {
+  if (!user) {
+    return false
+  }
+
+  return user.subscription?.status === 'ACTIVE' || user.planType === 'PAID'
+}
+
+const toSchoolListItem = (
   school: Record<string, unknown>,
   isFavorited = false
 ) => {
   return {
-    ...school,
     id: school.id?.toString(),
+    name: school.name,
+    area: school.area,
+    address: school.address,
+    schoolType: school.schoolType,
+    lifeBurdenLevel: school.lifeBurdenLevel,
+    timeBurdenLevel: school.timeBurdenLevel,
+    mealType: school.mealType,
+    itemBurdenLevel: school.itemBurdenLevel,
+    diaperSupport: school.diaperSupport,
+    futonSupport: school.futonSupport,
+    extendedCareHours: school.extendedCareHours,
+    extendedCareUsage: school.extendedCareUsage,
+    weekdayEventsLevel: school.weekdayEventsLevel,
+    parentAssociationLevel: school.parentAssociationLevel,
     tags: getSchoolTags(school),
     isFavorited,
+  }
+}
+
+const toSupportInfo = (
+  school: Record<string, unknown>,
+  canViewSupportInfo: boolean
+) => {
+  if (!canViewSupportInfo) {
+    return {
+      isLocked: true,
+      ...SUPPORT_FIELDS,
+    }
+  }
+
+  return {
+    isLocked: false,
+    contactBookType: school.contactBookType,
+    absenceContactMethod: school.absenceContactMethod,
+    lessons: school.lessons,
+    allergySupport: school.allergySupport,
+  }
+}
+
+const toSchoolDetail = (
+  school: Record<string, unknown>,
+  isFavorited = false,
+  canViewSupportInfo = false
+) => {
+  return {
+    id: school.id?.toString(),
+    name: school.name,
+    area: school.area,
+    address: school.address,
+    schoolType: school.schoolType,
+    lifeBurdenLevel: school.lifeBurdenLevel,
+    timeBurdenLevel: school.timeBurdenLevel,
+    mealType: school.mealType,
+    itemBurdenLevel: school.itemBurdenLevel,
+    diaperSupport: school.diaperSupport,
+    futonSupport: school.futonSupport,
+    extendedCareHours: school.extendedCareHours,
+    extendedCareUsage: school.extendedCareUsage,
+    weekdayEventsLevel: school.weekdayEventsLevel,
+    parentAssociationLevel: school.parentAssociationLevel,
+    description: school.description,
+    tags: getSchoolTags(school),
+    isFavorited,
+    supportInfo: toSupportInfo(school, canViewSupportInfo),
   }
 }
 
@@ -76,14 +154,12 @@ const getValidationErrorMessage = (error: unknown) => {
   return '入力内容に誤りがあります'
 }
 
-const getCurrentUserIdIfAuthenticated = async (req: AuthenticatedRequest) => {
+const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
   if (!req.authUser) {
     return null
   }
 
-  const user = await getOrCreateCurrentUser(req.authUser)
-
-  return user.id
+  return getOrCreateCurrentUser(req.authUser)
 }
 
 export const getSchoolsController: RequestHandler = async (req, res) => {
@@ -101,24 +177,24 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
     }
 
     const schools = await getSchools(parsedQuery.data)
-    const userId = await getCurrentUserIdIfAuthenticated(
+    const user = await getCurrentUserIfAuthenticated(
       req as AuthenticatedRequest
     )
 
-    const favoritedSchoolIds = userId
+    const favoritedSchoolIds = user
       ? await getFavoritedSchoolIds(
-          userId,
+          user.id,
           schools.map((school) => school.id)
         )
       : new Set<string>()
 
     res.json({
       data: schools.map((school) =>
-        toSerializableSchool(
-          school,
-          favoritedSchoolIds.has(school.id.toString())
-        )
+        toSchoolListItem(school, favoritedSchoolIds.has(school.id.toString()))
       ),
+      meta: {
+        count: schools.length,
+      },
     })
   } catch (error) {
     console.error(error)
@@ -160,18 +236,19 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
       return
     }
 
-    const userId = await getCurrentUserIdIfAuthenticated(
+    const user = await getCurrentUserIfAuthenticated(
       req as AuthenticatedRequest
     )
 
-    const favoritedSchoolIds = userId
-      ? await getFavoritedSchoolIds(userId, [school.id])
+    const favoritedSchoolIds = user
+      ? await getFavoritedSchoolIds(user.id, [school.id])
       : new Set<string>()
 
     res.json({
-      data: toSerializableSchool(
+      data: toSchoolDetail(
         school,
-        favoritedSchoolIds.has(school.id.toString())
+        favoritedSchoolIds.has(school.id.toString()),
+        isPremiumUser(user)
       ),
     })
   } catch (error) {
