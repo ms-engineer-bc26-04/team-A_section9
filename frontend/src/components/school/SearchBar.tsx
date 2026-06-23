@@ -1,15 +1,15 @@
 // src/components/school/SearchBar.tsx
 //園名・住所を入力して検索するテキストボックス＋検索ボタン
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 type SearchBarProps = {
   defaultValue?: string
 }
 
-export default function SearchBar({ defaultValue = "" }: SearchBarProps) {
+export default function SearchBar({ defaultValue = '' }: SearchBarProps) {
   const [keyword, setKeyword] = useState(defaultValue)
   const router = useRouter()
 
@@ -19,7 +19,7 @@ export default function SearchBar({ defaultValue = "" }: SearchBarProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSearch()
+    if (e.key === 'Enter') handleSearch()
   }
 
   return (

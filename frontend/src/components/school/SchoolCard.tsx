@@ -47,17 +47,17 @@ export default function SchoolCard({
             </p>
           )}
 
-            {/* タグ */}
-            <div className="flex flex-wrap gap-1 mt-1">
-              {(school.tags ?? []).map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+          {/* タグ */}
+          <div className="flex flex-wrap gap-1 mt-1">
+            {(school.tags ?? []).map((tag) => (
+              <span
+                key={tag}
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
       </Link>
 

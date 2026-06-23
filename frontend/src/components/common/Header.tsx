@@ -22,7 +22,7 @@ export default function Header() {
               alt="ENKATSUロゴ"
               width={36}
               height={36}
-              style={{ width: "36px", height: "auto" }}
+              style={{ width: '36px', height: 'auto' }}
               className="rounded-full"
             />
             <span className="text-white font-bold text-lg tracking-wide">

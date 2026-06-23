@@ -1,20 +1,24 @@
 // src/components/school/FilterPanel.tsx
 //「条件で検索」の開閉パネル。毎日給食・おむつ廃棄などのチェックボックス群
-"use client"
+'use client'
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import Button from "@/components/common/Button"
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Button from '@/components/common/Button'
 
 const FILTER_OPTIONS = [
-  { key: "hasLunch", label: "毎日給食" },
-  { key: "hasClub", label: "園内習い事あり" },
-  { key: "diaperDisposal", label: "おむつ破棄" },
-  { key: "allergySupport", label: "アレルギー対応あり" },
-  { key: "noBedding", label: "布団持参なし" },
-  { key: "extendedCareUntil19", label: "延長保育の利用時間〜19時まで", full: true },
-  { key: "noWeekdayEvents", label: "平日行事なし" },
-  { key: "noPTA", label: "保護者会なし" },
+  { key: 'hasLunch', label: '毎日給食' },
+  { key: 'hasClub', label: '園内習い事あり' },
+  { key: 'diaperDisposal', label: 'おむつ破棄' },
+  { key: 'allergySupport', label: 'アレルギー対応あり' },
+  { key: 'noBedding', label: '布団持参なし' },
+  {
+    key: 'extendedCareUntil19',
+    label: '延長保育の利用時間〜19時まで',
+    full: true,
+  },
+  { key: 'noWeekdayEvents', label: '平日行事なし' },
+  { key: 'noPTA', label: '保護者会なし' },
 ]
 
 type FilterPanelProps = {
@@ -23,7 +27,8 @@ type FilterPanelProps = {
 
 export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [filters, setFilters] = useState<Record<string, boolean>>(defaultFilters)
+  const [filters, setFilters] =
+    useState<Record<string, boolean>>(defaultFilters)
   const router = useRouter()
 
   const toggleFilter = (key: string) => {
@@ -33,7 +38,7 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
   const handleSearch = () => {
     const params = new URLSearchParams()
     Object.entries(filters).forEach(([key, value]) => {
-      if (value) params.set(key, "true")
+      if (value) params.set(key, 'true')
     })
     router.push(`/schools/search?${params.toString()}`)
   }
@@ -45,7 +50,7 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full text-left px-4 py-3 text-gray-500 text-xs font-medium"
       >
-        {isOpen ? "▲" : "▼"} 条件で検索
+        {isOpen ? '▲' : '▼'} 条件で検索
       </button>
 
       {/* フィルター項目 */}

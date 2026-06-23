@@ -20,13 +20,18 @@ export async function getSchools(
   if (filters?.mealType) params.set('mealType', filters.mealType)
   if (filters?.diaperSupport) params.set('diaperSupport', filters.diaperSupport)
   if (filters?.futonSupport) params.set('futonSupport', filters.futonSupport)
-  if (filters?.weekdayEventsLevel) params.set('weekdayEventsLevel', filters.weekdayEventsLevel)
-  if (filters?.parentAssociationLevel) params.set('parentAssociationLevel', filters.parentAssociationLevel)
-  if (filters?.lessons !== undefined) params.set('lessons', String(filters.lessons))
-  if (filters?.allergySupport !== undefined) params.set('allergySupport', String(filters.allergySupport))
+  if (filters?.weekdayEventsLevel)
+    params.set('weekdayEventsLevel', filters.weekdayEventsLevel)
+  if (filters?.parentAssociationLevel)
+    params.set('parentAssociationLevel', filters.parentAssociationLevel)
+  if (filters?.lessons !== undefined)
+    params.set('lessons', String(filters.lessons))
+  if (filters?.allergySupport !== undefined)
+    params.set('allergySupport', String(filters.allergySupport))
   if (filters?.sort) params.set('sort', filters.sort)
   if (filters?.limit !== undefined) params.set('limit', String(filters.limit))
-  if (filters?.offset !== undefined) params.set('offset', String(filters.offset))
+  if (filters?.offset !== undefined)
+    params.set('offset', String(filters.offset))
 
   const res = await fetch(
     `${getApiUrl()}/api/v1/schools?${params.toString()}`,
@@ -41,10 +46,9 @@ export async function getSchools(
 }
 
 export async function getSchool(id: string): Promise<{ data: SchoolDetail }> {
-  const res = await fetch(
-    `${getApiUrl()}/api/v1/schools/${id}`,
-    { cache: 'no-store' }
-  )
+  const res = await fetch(`${getApiUrl()}/api/v1/schools/${id}`, {
+    cache: 'no-store',
+  })
 
   if (!res.ok) {
     throw new Error('園詳細の取得に失敗しました')
