@@ -5,10 +5,50 @@ import {
   schoolSearchQuerySchema,
 } from '../validators/schoolValidator'
 
+const SCHOOL_TYPE_TAGS: Record<string, string> = {
+  NURSERY: '保育園',
+  KINDERGARTEN: '幼稚園',
+  CERTIFIED_CHILDCARE_CENTER: 'こども園',
+}
+
+const MEAL_TYPE_TAGS: Record<string, string> = {
+  SCHOOL_LUNCH: '毎日給食',
+  LUNCH_BOX: '毎日弁当',
+  BOTH: '給食・弁当',
+}
+
+const getSchoolTags = (school: Record<string, unknown>) => {
+  const tags: string[] = []
+
+  if (
+    typeof school.schoolType === 'string' &&
+    SCHOOL_TYPE_TAGS[school.schoolType]
+  ) {
+    tags.push(SCHOOL_TYPE_TAGS[school.schoolType])
+  }
+
+  if (typeof school.mealType === 'string' && MEAL_TYPE_TAGS[school.mealType]) {
+    tags.push(MEAL_TYPE_TAGS[school.mealType])
+  }
+
+  if (typeof school.diaperSupport === 'string') {
+    if (school.diaperSupport.includes('園で廃棄')) {
+      tags.push('おむつ園処理')
+    } else if (school.diaperSupport.includes('サブスク')) {
+      tags.push('おむつサブスク')
+    } else if (school.diaperSupport.includes('持ち帰り')) {
+      tags.push('おむつ持ち帰り')
+    }
+  }
+
+  return tags
+}
+
 const toSerializableSchool = (school: Record<string, unknown>) => {
   return {
     ...school,
     id: school.id?.toString(),
+    tags: getSchoolTags(school),
   }
 }
 
