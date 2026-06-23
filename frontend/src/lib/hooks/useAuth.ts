@@ -2,20 +2,20 @@
 // ログイン状態・ユーザー情報の取得・会員区分の管理を行う
 
 import { useEffect, useState, useCallback } from 'react'
-import { User } from '@supabase/supabase-js'
+import { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { AppUser } from '@/types/user'
+import { User } from '@/types/user'
 
 type AuthState = {
-  supabaseUser: User | null // Supabase Auth のユーザー
-  appUser: AppUser | null // アプリ側のユーザー情報
+  supabaseUser: SupabaseUser | null // Supabase Auth のユーザー
+  appUser: User | null // アプリ側のユーザー情報
   isLoading: boolean // 読み込み中かどうか
   isLoggedIn: boolean // ログイン済みかどうか
 }
 
 export const useAuth = (): AuthState => {
-  const [supabaseUser, setSupabaseUser] = useState<User | null>(null)
-  const [appUser, setAppUser] = useState<AppUser | null>(null)
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
+  const [appUser, setAppUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   // バックエンドからアプリ側ユーザー情報を取得する
