@@ -88,3 +88,26 @@ export const getSchoolById = async (id: bigint) => {
     },
   })
 }
+
+export const getFavoritedSchoolIds = async (
+  userId: string,
+  schoolIds: bigint[]
+) => {
+  if (schoolIds.length === 0) {
+    return new Set<string>()
+  }
+
+  const favorites = await prisma.favorite.findMany({
+    where: {
+      userId,
+      schoolId: {
+        in: schoolIds,
+      },
+    },
+    select: {
+      schoolId: true,
+    },
+  })
+
+  return new Set(favorites.map((favorite) => favorite.schoolId.toString()))
+}
