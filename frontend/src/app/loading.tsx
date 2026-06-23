@@ -1,5 +1,6 @@
 //app/loading.tsx
 //ページ遷移中に自動で表示されるローディング画面
+// src/app/loading.tsx
 import Loading from '@/components/common/Loading'
 
 export default function LoadingPage() {
