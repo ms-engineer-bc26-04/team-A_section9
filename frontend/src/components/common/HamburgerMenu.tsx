@@ -4,7 +4,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import Button from './Button'
+// import Button from './Button'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -31,15 +31,14 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
       {/* オーバーレイ */}
       <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
 
-      {/* メニュー本体 */}
-      <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col rounded-bl-3xl rounded-br-3xl overflow-hidden">
+        {/* メニュー本体 */}
+        <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col rounded-bl-[30px] overflow-hidden">
         {/* ==========================================
             ブロック1: アカウントエリア
-           ========================================== */}
-        {/* 外側を「薄い緑➔白」のグラデーションにし、左下を角丸に */}
-        <div className="bg-gradient-to-b from-[#e3eedb] to-white rounded-bl-[40px] pb-6 flex flex-col">
-          {/* ヘッダー帯：ここをしっかりした濃い緑に */}
-          <div className="bg-[#a2d382] px-6 pt-6 pb-4 flex items-center justify-between rounded-bl-[30px]">
+          ========================================== */}
+        <div className="bg-gradient-to-b from-[#e3eedb] to-white rounded-bl-[40px] flex flex-col">
+          {/* ヘッダー帯 */}
+          <div className="bg-[#a2d382] h-14 px-6 flex items-center justify-between rounded-bl-[30px]">
             <p className="text-white font-bold text-lg tracking-wider">
               アカウント
             </p>
@@ -54,31 +53,21 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           </div>
 
-          {/* 新規会員登録・ログインボタン（白背景に抜ける部分に配置） */}
+          {/* 新規会員登録・ログインボタン */}
           {!supabaseUser && (
-            <div className="px-6 pt-6 flex gap-4">
-              <Button
-                variant="primary"
-                size="md"
-                className="flex-1 bg-[#9ed07d] text-white border-none rounded-xl font-bold py-2.5 shadow-sm hover:bg-[#8bc169] transition-colors"
-                onClick={() => {
-                  router.push('/register')
-                  onClose()
-                }}
+            <div className="px-6 py-5 flex gap-3">
+              <button
+                onClick={() => { router.push('/register'); onClose() }}
+                className="flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors"
               >
                 新規会員登録
-              </Button>
-              <Button
-                variant="primary"
-                size="md"
-                className="flex-1 bg-[#9ed07d] text-white border-none rounded-xl font-bold py-2.5 shadow-sm hover:bg-[#8bc169] transition-colors"
-                onClick={() => {
-                  router.push('/login')
-                  onClose()
-                }}
+              </button>
+              <button
+                onClick={() => { router.push('/login'); onClose() }}
+                className="flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors"
               >
                 ログイン
-              </Button>
+              </button>
             </div>
           )}
         </div>
@@ -89,7 +78,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
         {/* 外側を「薄い緑➔白」のグラデーションにし、左下を大きな角丸に */}
         <div className="bg-gradient-to-b from-[#e3eedb] to-white rounded-bl-[50px] pb-8 flex flex-col mt-[-1px]">
           {/* マイ機能帯：ここをしっかりした濃い緑に */}
-          <div className="bg-[#a2d382] px-6 py-4 rounded-bl-[30px]">
+          <div className="bg-[#a2d382] h-14 px-6 flex items-center rounded-bl-[30px]">
             <p className="text-white font-bold text-lg tracking-wider">
               マイ機能
             </p>
@@ -138,9 +127,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           <Image
             src="/images/logo2.png"
             alt="ENKATSU"
-            width={240}
-            height={72}
-            className="object-contain"
+            width={320}
+            height={96}
+            className="object-contain w-full max-w-[280px]"
           />
         </div>
       </div>

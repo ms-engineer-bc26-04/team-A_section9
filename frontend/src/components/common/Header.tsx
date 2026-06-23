@@ -14,7 +14,7 @@ export default function Header() {
     <>
       <header className="fixed top-0 left-0 right-0 z-30 flex justify-end">
         {/* スマホ：右半分のみ・左下丸 / PC：全幅・角なし */}
-        <div className="bg-primary h-14 px-4 flex items-center justify-between rounded-bl-3xl w-1/2 md:w-full md:rounded-none">
+        <div className="bg-[#A0CD83] h-14 px-4 flex items-center justify-between rounded-bl-3xl w-1/2 md:w-full md:rounded-none">
           {/* ロゴ */}
           <Link href="/" className="flex items-center gap-2">
             <Image
@@ -22,6 +22,7 @@ export default function Header() {
               alt="ENKATSUロゴ"
               width={36}
               height={36}
+              style={{ width: "36px", height: "auto" }}
               className="rounded-full"
             />
             <span className="text-white font-bold text-lg tracking-wide">
@@ -32,7 +33,7 @@ export default function Header() {
           {/* ハンバーガーボタン */}
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="text-white flex flex-col gap-1 p-1 ml-auto"
+            className="text-white flex flex-col gap-1 p-1 ml-auto mr-[-6px]"
             aria-label="メニューを開く"
           >
             <span className="block w-5 h-0.5 bg-white" />
