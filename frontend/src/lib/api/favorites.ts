@@ -8,10 +8,6 @@ export async function addFavorite(
   schoolId: number,
   accessToken: string
 ): Promise<void> {
-  //TODO:お気に入り機能の実装が完了したらconsole.logは削除する
-  console.log('addFavorite called', schoolId)
-  console.log('Authorization:', `Bearer ${accessToken.slice(0, 20)}...`)
-
   const res = await fetch(`${API_URL}/api/v1/users/me/favorites`, {
     method: 'POST',
     headers: {
@@ -20,13 +16,9 @@ export async function addFavorite(
     },
     body: JSON.stringify({ schoolId }),
   })
-  //TODO:お気に入り機能の実装が完了したらconsole.logは削除する
-  console.log('response status:', res.status)
 
   if (!res.ok) {
     const json = await res.json()
-    //TODO:お気に入り機能の実装が完了したらconsole.logは削除する
-    console.log('error response:', json)
     throw new Error(json.error?.code || 'UNKNOWN_ERROR')
   }
 }

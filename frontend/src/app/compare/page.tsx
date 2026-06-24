@@ -1,7 +1,5 @@
 //比較画面
 // src/app/compare/page.tsx
-// 比較画面
-// src/app/compare/page.tsx
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
@@ -19,30 +17,31 @@ type CompareSchool = {
   schoolType: string
   lifeBurden: {
     mealType: string
-    itemBurdenLevel: string
+    itemBurdenDetail: string
     diaperSupport: string | null
     futonSupport: string | null
   }
   timeBurden: {
     extendedCareTime: string | null
     extendedCareUsage: string
-    weekdayEventsLevel: string
-    parentAssociationLevel: string
+    weekdayEvents: string
+    parentAssociationFrequency: string
   }
 }
 
 type MatchHighlights = {
   [schoolId: string]: {
     mealType: boolean
-    itemBurdenLevel: boolean
+    itemBurdenDetail: boolean
     diaperSupport: boolean
     futonSupport: boolean
     extendedCare: boolean
-    weekdayEventsLevel: boolean
-    parentAssociationLevel: boolean
+    weekdayEvents: boolean
+    parentAssociationFrequency: boolean
   }
 } | null
 
+//DBからの情報を日本語に変換している
 const mealTypeLabel: Record<string, string> = {
   SCHOOL_LUNCH: '毎日給食あり',
   LUNCH_BOX_REQUIRED: '弁当あり',
@@ -58,11 +57,6 @@ const futonLabel: Record<string, string> = {
   TAKE_HOME_WEEKLY: '毎週持ち帰り',
   MANAGED_BY_SCHOOL: '園で管理',
 }
-const burdenLabel: Record<string, string> = {
-  LOW: '少ない',
-  MIDDLE: '普通',
-  HIGH: '多い',
-}
 
 export default function ComparePage() {
   const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
@@ -76,9 +70,6 @@ export default function ComparePage() {
   const idsParam = searchParams.get('ids')
   const isPremium = appUser?.isPremium ?? false
 
-  // 🌟【修正1】fetchCompareの定義をuseEffectの上に移動
-  // 🌟【修正2】これまではuseEffect内で行っていたバリデーション（条件チェック）をこちらの最初で行うように集約
-  // fetchCompare の中身を少しだけ修正します（非同期呼び出しに対応）
   const fetchCompare = useCallback(
     async (ids: string | null) => {
       if (isAuthLoading) return
@@ -163,7 +154,6 @@ export default function ComparePage() {
     [isLoggedIn, isAuthLoading, router]
   )
 
-  // 🌟【ここを修正】setTimeoutでラップし、レンダリングサイクルとsetStateを分離します
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompare(idsParam)
@@ -250,11 +240,8 @@ export default function ComparePage() {
         <CompareRow
           label="持ち物"
           schools={schools}
-          getValue={(s) =>
-            burdenLabel[s.lifeBurden.itemBurdenLevel] ??
-            s.lifeBurden.itemBurdenLevel
-          }
-          highlightKey="itemBurdenLevel"
+          getValue={(s) => s.lifeBurden.itemBurdenDetail}
+          highlightKey="itemBurdenDetail"
           matchHighlights={matchHighlights}
           isPremium={isPremium}
         />
@@ -309,22 +296,16 @@ export default function ComparePage() {
         <CompareRow
           label="平日行事"
           schools={schools}
-          getValue={(s) =>
-            burdenLabel[s.timeBurden.weekdayEventsLevel] ??
-            s.timeBurden.weekdayEventsLevel
-          }
-          highlightKey="weekdayEventsLevel"
+          getValue={(s) => s.timeBurden.weekdayEvents}
+          highlightKey="weekdayEvents"
           matchHighlights={matchHighlights}
           isPremium={isPremium}
         />
         <CompareRow
           label="保護者会"
           schools={schools}
-          getValue={(s) =>
-            burdenLabel[s.timeBurden.parentAssociationLevel] ??
-            s.timeBurden.parentAssociationLevel
-          }
-          highlightKey="parentAssociationLevel"
+          getValue={(s) => s.timeBurden.parentAssociationFrequency}
+          highlightKey="parentAssociationFrequency"
           matchHighlights={matchHighlights}
           isPremium={isPremium}
           isLast
