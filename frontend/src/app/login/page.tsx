@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -56,7 +57,12 @@ export default function LoginPage() {
 
         {/* 鍵アイコン */}
         <div className="flex justify-center mb-6">
-          <span className="text-5xl">🔒</span>
+          <Image
+            src="/images/icon9.png"
+            alt="ログイン"
+            width={80}
+            height={80}
+          />
         </div>
 
         {/* エラーメッセージ */}

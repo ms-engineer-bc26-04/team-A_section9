@@ -7,6 +7,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -70,7 +71,12 @@ export default function RegisterPage() {
 
         {/* 人物アイコン */}
         <div className="flex justify-center mb-6">
-          <span className="text-5xl">👤</span>
+          <Image
+            src="/images/icon20.png"
+            alt="会員登録"
+            width={80}
+            height={80}
+          />
         </div>
 
         {/* エラーメッセージ */}
