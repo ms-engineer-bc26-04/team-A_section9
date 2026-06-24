@@ -11,7 +11,7 @@ ENKATSUは、共働き家庭・仕事復帰を控えた保護者向けに、保�
 * 園一覧・検索
 * 園詳細
 * ログインユーザー情報取得
-* プロフィール編集
+* ユーザー希望条件の保存・取得
 * お気に入り登録・解除
 * お気に入り一覧
 * 園比較
@@ -27,24 +27,30 @@ ENKATSUは、共働き家庭・仕事復帰を控えた保護者向けに、保�
 本API設計書は、以下のドキュメントをもとに作成しています。
 
 * 要件定義書
-* 画面設計書 v0.7
+* 画面設計書
 * DB設計書
 * 画面遷移図
 
 DB設計書の確定に伴い、以下の方針を反映します。
 
-* `users.id` は Supabase Auth User ID と同じ `uuid` とする
+* `users.id` はアプリ内ユーザーIDとして UUID を使用する
+* `users.supabase_user_id` は Supabase Auth User ID と紐づける
 * `schools.id` は `bigint` とする
 * `favorites.id` は `bigint` とする
 * `subscriptions.id` は `bigint` とする
 * DBカラム名は `snake_case` とする
 * APIレスポンスはフロントエンドで扱いやすいように `camelCase` とする
-* プレミアム判定は `subscriptions.status = active` を正とする
+* Prisma Enum の値はAPI上でも基本的に `UPPER_SNAKE_CASE` で扱う
+* プレミアム判定は `subscriptions.status = ACTIVE` を正とする
 * `users.plan_type` は画面表示用の補助情報として扱う
 * 会員登録後は一般ユーザーとして扱う
 * アプリ側の `users` レコードは、`GET /users/me` 実行時に必要に応じて自動作成する
+* ユーザー希望条件は `user_preferences` テーブルで管理する
+* ユーザー希望条件は `PATCH /users/me/preferences` で保存・更新する
+* 希望条件が未設定の場合、`GET /users/me` では `preference: null` を返す
 * 比較対象の選択は `/mypage/favorites` で行う
 * MVPでは比較リスト保存APIは作成しない
+* MVPでは比較履歴保存は行わない
 * MVPではチャート表示専用API・詳細比較レポートAPIは作成しない
 * 園一覧・検索結果・おすすめ表示ではRedisキャッシュを利用する
 
@@ -110,7 +116,27 @@ createdAt
 
 ---
 
-### 3-5. APIレスポンス形式
+### 3-5. 表示用テキスト項目の方針
+
+園詳細API・比較APIでは、画面表示で使いやすいように、一部項目について表示用テキスト項目を返します。
+
+MVPでは、Enum値に対して `xxxText` / `xxxLabel` のような別項目を追加するのではなく、DB上に用意している表示用テキストカラムをそのままAPIレスポンスに含めます。
+
+主な表示用テキスト項目は以下です。
+
+| 項目                           | 内容                |
+| ---------------------------- | ----------------- |
+| `itemBurdenDetail`           | 持ち物負担の具体的な表示用テキスト |
+| `weekdayEvents`              | 平日行事の具体的な表示用テキスト  |
+| `parentAssociationFrequency` | 保護者会頻度の表示用テキスト    |
+
+園詳細APIでは、Enum値も返したうえで、上記の表示用テキスト項目を追加して返します。
+
+比較APIでは、比較画面でそのまま表示できるように、`itemBurdenLevel` / `weekdayEventsLevel` / `parentAssociationLevel` ではなく、`itemBurdenDetail` / `weekdayEvents` / `parentAssociationFrequency` を返します。
+
+---
+
+### 3-6. APIレスポンス形式
 
 正常系レスポンスは、原則として以下の形式に統一します。
 
@@ -186,21 +212,23 @@ ENKATSUでは以下の3区分を扱います。
 | 区分        | 内容              | DB上の扱い                          |
 | --------- | --------------- | ------------------------------- |
 | 未登録ユーザー   | ログインしていないユーザー   | users レコードなし                    |
-| 一般ユーザー    | ユーザー登録済みの無料ユーザー | `users.plan_type = free`        |
-| プレミアムユーザー | 月額課金済みの有料ユーザー   | `subscriptions.status = active` |
+| 一般ユーザー    | ユーザー登録済みの無料ユーザー | `users.plan_type = FREE`        |
+| プレミアムユーザー | 月額課金済みの有料ユーザー   | `subscriptions.status = ACTIVE` |
 
 ENKATSUにおける会員登録は、無料のユーザー登録を指します。
+
 プレミアムユーザーになるには、会員登録後にStripe Checkoutで決済を完了する必要があります。
 
 ---
 
 ### 6-2. プレミアム判定
 
-プレミアム会員の判定は、`subscriptions.status = active` を正とします。
+プレミアム会員の判定は、`subscriptions.status = ACTIVE` を正とします。
 
 `users.plan_type` は画面表示や簡易的な会員種別表示のための補助情報として扱います。
 
 Stripe Webhookで決済状態が変更された場合は、`subscriptions.status` を更新します。
+
 必要に応じて `users.plan_type` も同期します。
 
 ---
@@ -215,13 +243,14 @@ MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に
 
 作成時の初期値は以下とします。
 
-| DBカラム        | 値                      |
-| ------------ | ---------------------- |
-| `id`         | Supabase Auth User ID  |
-| `email`      | Supabase Auth のメールアドレス |
-| `plan_type`  | `free`                 |
-| `created_at` | 作成日時                   |
-| `updated_at` | 作成日時                   |
+| DBカラム              | 値                      |
+| ------------------ | ---------------------- |
+| `id`               | UUIDを自動生成              |
+| `supabase_user_id` | Supabase Auth User ID  |
+| `email`            | Supabase Auth のメールアドレス |
+| `plan_type`        | `FREE`                 |
+| `created_at`       | 作成日時                   |
+| `updated_at`       | 作成日時                   |
 
 この方針により、フロントエンド側で会員登録直後に別途ユーザー作成APIを呼び出す必要はありません。
 
@@ -239,7 +268,7 @@ MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に
 | 3園比較                   | ×       | ×      | ○         |
 | サポート情報の内容閲覧            | ×       | ×      | ○         |
 | 希望条件との一致表示             | ×       | ×      | ○         |
-| プロフィール編集               | ×       | ○      | ○         |
+| ユーザー希望条件の保存・更新         | ×       | ○      | ○         |
 | Stripe Checkout        | ×       | ○      | ×         |
 | Stripe Customer Portal | ×       | ×      | ○         |
 
@@ -253,7 +282,7 @@ MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に
 | 園     | GET    | `/schools/:id`                  | 任意 | 園詳細取得                                 |
 | 園     | GET    | `/schools/compare`              | 必須 | 比較対象園取得                               |
 | ユーザー  | GET    | `/users/me`                     | 必須 | ログインユーザー情報取得。必要に応じて `users` レコードを自動作成 |
-| ユーザー  | PUT    | `/users/me`                     | 必須 | ログインユーザー情報更新                          |
+| ユーザー  | PATCH  | `/users/me/preferences`         | 必須 | ログインユーザーの希望条件を保存・更新                   |
 | お気に入り | GET    | `/users/me/favorites`           | 必須 | お気に入り一覧取得                             |
 | お気に入り | POST   | `/users/me/favorites`           | 必須 | お気に入り登録                               |
 | お気に入り | DELETE | `/users/me/favorites/:schoolId` | 必須 | お気に入り解除                               |
@@ -272,6 +301,7 @@ MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に
 園一覧、検索結果、ホーム画面のおすすめ表示に使用する園データを取得します。
 
 未ログインでも取得可能です。
+
 ログイン済みの場合は、お気に入り登録済みかどうかを `isFavorited` に含めます。
 
 MVPでは、園一覧・検索結果・おすすめ表示のDBアクセスを減らすため、Redisキャッシュを利用します。
@@ -294,43 +324,62 @@ GET /api/v1/schools
 
 ### クエリパラメータ
 
-| パラメータ                    | 型       | 必須 | 内容        |
-| ------------------------ | ------- | -- | --------- |
-| `keyword`                | string  | 任意 | 保育園名・住所検索 |
-| `area`                   | string  | 任意 | エリア・市区町村  |
-| `mealType`               | string  | 任意 | 給食・弁当     |
-| `diaperSupport`          | string  | 任意 | おむつ対応     |
-| `futonSupport`           | string  | 任意 | 布団対応      |
-| `extendedCareTime`       | string  | 任意 | 延長保育利用時間  |
-| `weekdayEventsLevel`     | string  | 任意 | 平日行事の多さ   |
-| `parentAssociationLevel` | string  | 任意 | 保護者会の負担   |
-| `lessons`                | boolean | 任意 | 園内習い事あり   |
-| `allergySupport`         | boolean | 任意 | アレルギー対応あり |
-| `sort`                   | string  | 任意 | 並び順       |
-| `limit`                  | number  | 任意 | 取得件数      |
-| `offset`                 | number  | 任意 | 取得開始位置    |
+| パラメータ                    | 型      | 必須 | 内容                                |
+| ------------------------ | ------ | -- | --------------------------------- |
+| `keyword`                | string | 任意 | 園名・住所・エリア検索                       |
+| `q`                      | string | 任意 | 園名・住所・エリア検索。`keyword` と同用途        |
+| `area`                   | string | 任意 | エリア・市区町村                          |
+| `mealType`               | string | 任意 | 給食・弁当                             |
+| `diaperSupport`          | string | 任意 | おむつ対応。チェックボックス条件では `true` を送信     |
+| `futonSupport`           | string | 任意 | 布団対応。チェックボックス条件では `true` を送信      |
+| `extendedCareHours`      | string | 任意 | 延長保育利用時間                          |
+| `extendedCareUsage`      | string | 任意 | 延長保育利用者数。チェックボックス条件では `true` を送信  |
+| `itemBurdenLevel`        | string | 任意 | 持ち物負担                             |
+| `weekdayEventsLevel`     | string | 任意 | 平日行事の多さ                           |
+| `parentAssociationLevel` | string | 任意 | 保護者会の負担                           |
+| `lessons`                | string | 任意 | 園内習い事あり。チェックボックス条件では `true` を送信   |
+| `allergySupport`         | string | 任意 | アレルギー対応あり。チェックボックス条件では `true` を送信 |
+| `sort`                   | string | 任意 | 並び順                               |
+
+---
+
+### 条件検索の基準
+
+MVPでは、条件検索の「多い・少ない」はユーザーごとの主観ではなく、アプリ内の検索基準として定義します。
+
+フロントエンド側では、検索画面のチェックボックス条件を以下のquery paramsとして送信します。
+
+| 画面表示       | query params                 | バックエンド側の検索条件                   |
+| ---------- | ---------------------------- | ------------------------------ |
+| 毎日給食       | `mealType=SCHOOL_LUNCH`      | `mealType = SCHOOL_LUNCH`      |
+| おむつ園処理あり   | `diaperSupport=true`         | `diaperSupport = "園で廃棄"`       |
+| 布団負担少なめ    | `futonSupport=true`          | `futonSupport = "園で管理"`        |
+| 保護者会少なめ    | `parentAssociationLevel=LOW` | `parentAssociationLevel = LOW` |
+| 延長保育利用者が多い | `extendedCareUsage=true`     | `extendedCareUsage = "20人以上"`  |
+| 園内習い事あり    | `lessons=true`               | `lessons IS NOT NULL`          |
+| アレルギー対応あり  | `allergySupport=true`        | `allergySupport IS NOT NULL`   |
+| 平日行事少なめ    | `weekdayEventsLevel=LOW`     | `weekdayEventsLevel = LOW`     |
+
+`true` はそのまま文字列検索せず、バックエンド側で検索基準に変換して絞り込みます。
+
+日本語を含む `keyword` / `q` / `area` を送信する場合は、フロントエンド側でURLエンコードされたquery paramsとして送信します。
 
 ---
 
 ### sort
 
-| 値               | 内容    |
-| --------------- | ----- |
-| `recommended`   | おすすめ順 |
-| `createdAtDesc` | 新着順   |
+| 値             | 内容    |
+| ------------- | ----- |
+| `id_asc`      | ID昇順  |
+| `recommended` | おすすめ順 |
 
 ---
 
 ### おすすめ表示について
 
-`sort=recommended` が指定され、ログイン済みユーザーの場合は、ユーザーの住所・希望条件をもとにおすすめ順で返します。
+`sort=recommended` が指定され、ログイン済みユーザーの場合は、ユーザーのお気に入り傾向や希望条件をもとにおすすめ順で返します。
 
-おすすめ表示では、以下の順で表示します。
-
-1. ユーザーの住所と同じエリアの園を優先する
-2. 希望条件が設定されている場合は、一致度が高い順に表示する
-3. エリア該当がない場合は、希望条件のみで並び替える
-4. 希望条件も設定されていない場合は、全件表示する
+希望条件は `user_preferences` の内容を参照します。
 
 MVPでは高度なレコメンド機能は作成せず、シンプルな条件一致数で並び替えます。
 
@@ -347,25 +396,24 @@ MVPでは高度なレコメンド機能は作成せず、シンプルな条件�
 * 条件検索結果
 * おすすめ表示の元データ
 
-キャッシュキーは、検索条件・並び順・ページング条件をもとに生成します。
+キャッシュキーは、検索条件・並び順をもとに生成します。
 
 例：
 
 ```txt
-schools:list:keyword=sakura:mealType=school_lunch:sort=createdAtDesc:limit=20:offset=0
-schools:recommended:userArea=渋谷区:preferences=mealType_school_lunch_item_low
+schools:list:keyword=sakura:mealType=SCHOOL_LUNCH:sort=id_asc
+schools:list:diaperSupport=true:futonSupport=true:extendedCareUsage=true
+schools:recommended:userId=<user_id>
 ```
 
-ただし、`isFavorited` などログインユーザーごとに変わる情報は、キャッシュ対象の園データとは分けて付与します。
+ただし、`isFavorited` や `preference` などログインユーザーごとに変わる情報は、キャッシュ対象の園データとは分けて付与します。
 
-キャッシュの基本方針は以下とします。
-
-| 項目       | 方針                                |
-| -------- | --------------------------------- |
-| キャッシュ対象  | 園一覧・検索結果・おすすめ表示の元データ              |
-| キャッシュ対象外 | `isFavorited`、ユーザーの会員状態、ユーザー固有の情報 |
-| キャッシュ削除  | seedデータ更新時、または必要に応じて手動削除          |
-| TTL      | MVPでは任意。設定する場合は短時間から開始する          |
+| 項目       | 方針                                             |
+| -------- | ---------------------------------------------- |
+| キャッシュ対象  | 園一覧・検索結果・おすすめ表示の元データ                           |
+| キャッシュ対象外 | `isFavorited`、ユーザーの会員状態、ユーザー固有の情報、`preference` |
+| キャッシュ削除  | seedデータ更新時、または必要に応じて手動削除                       |
+| TTL      | MVPでは任意。設定する場合は短時間から開始する                       |
 
 ---
 
@@ -373,12 +421,10 @@ schools:recommended:userArea=渋谷区:preferences=mealType_school_lunch_item_lo
 
 | 項目                       | 型             | 内容            |
 | ------------------------ | ------------- | ------------- |
-| `id`                     | number        | 園ID           |
+| `id`                     | string        | 園ID           |
 | `name`                   | string        | 園名            |
 | `area`                   | string        | エリア・市区町村      |
 | `address`                | string        | 住所            |
-| `phoneNumber`            | string | null | 電話番号          |
-| `imageUrl`               | string | null | 園画像URL        |
 | `schoolType`             | string        | 園種別           |
 | `lifeBurdenLevel`        | string        | 生活負担          |
 | `timeBurdenLevel`        | string        | 時間負担          |
@@ -386,8 +432,8 @@ schools:recommended:userArea=渋谷区:preferences=mealType_school_lunch_item_lo
 | `itemBurdenLevel`        | string        | 持ち物負担         |
 | `diaperSupport`          | string | null | おむつ対応         |
 | `futonSupport`           | string | null | 布団対応          |
-| `extendedCareTime`       | string | null | 延長保育利用時間      |
-| `extendedCareUsage`      | string        | 延長保育利用者の目安    |
+| `extendedCareHours`      | string | null | 延長保育利用時間      |
+| `extendedCareUsage`      | string | null | 延長保育利用者の目安    |
 | `weekdayEventsLevel`     | string        | 平日行事の多さ       |
 | `parentAssociationLevel` | string        | 保護者会の負担       |
 | `tags`                   | string[]      | 特徴タグ          |
@@ -398,7 +444,15 @@ schools:recommended:userArea=渋谷区:preferences=mealType_school_lunch_item_lo
 ### リクエスト例
 
 ```http
-GET /api/v1/schools?keyword=さくら&mealType=school_lunch&sort=recommended
+GET /api/v1/schools?mealType=SCHOOL_LUNCH&lessons=true&allergySupport=true
+```
+
+```http
+GET /api/v1/schools?diaperSupport=true&futonSupport=true&extendedCareUsage=true
+```
+
+```http
+GET /api/v1/schools?area=%E4%B8%96%E7%94%B0%E8%B0%B7%E5%8C%BA
 ```
 
 ---
@@ -409,29 +463,27 @@ GET /api/v1/schools?keyword=さくら&mealType=school_lunch&sort=recommended
 {
   "data": [
     {
-      "id": 1,
+      "id": "1",
       "name": "さくら保育園",
       "area": "渋谷区",
       "address": "東京都渋谷区さくら1-1-1",
-      "phoneNumber": "03-0000-0000",
-      "imageUrl": "/images/schools/sakura.jpg",
-      "schoolType": "nursery",
-      "lifeBurdenLevel": "low",
-      "timeBurdenLevel": "low",
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental",
-      "extendedCareTime": "18:00〜20:00",
-      "extendedCareUsage": "5人程度",
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low",
+      "schoolType": "NURSERY",
+      "lifeBurdenLevel": "LOW",
+      "timeBurdenLevel": "LOW",
+      "mealType": "SCHOOL_LUNCH",
+      "itemBurdenLevel": "LOW",
+      "diaperSupport": "園で廃棄",
+      "futonSupport": "園で管理",
+      "extendedCareHours": "18:00〜20:00",
+      "extendedCareUsage": "20人以上",
+      "weekdayEventsLevel": "LOW",
+      "parentAssociationLevel": "LOW",
       "tags": ["保育園", "毎日給食", "おむつ園処理"],
       "isFavorited": false
     }
   ],
   "meta": {
-    "total": 1
+    "count": 1
   }
 }
 ```
@@ -458,7 +510,10 @@ GET /api/v1/schools?keyword=さくら&mealType=school_lunch&sort=recommended
 指定した園の詳細情報を取得します。
 
 未登録ユーザー・一般ユーザーの場合、サポート情報の項目名とロック表示用の情報のみ返します。
+
 プレミアムユーザーの場合、サポート情報の内容まで返します。
+
+園詳細APIでは、Enum値に加えて、画面表示でそのまま使える表示用テキスト項目として `itemBurdenDetail` / `weekdayEvents` / `parentAssociationFrequency` を返します。
 
 ---
 
@@ -494,44 +549,68 @@ GET /api/v1/schools/1
 
 ---
 
+### レスポンス項目
+
+| 項目                           | 型             | 内容             |
+| ---------------------------- | ------------- | -------------- |
+| `id`                         | string        | 園ID            |
+| `name`                       | string        | 園名             |
+| `area`                       | string        | エリア・市区町村       |
+| `address`                    | string        | 住所             |
+| `schoolType`                 | string        | 園種別            |
+| `lifeBurdenLevel`            | string        | 生活負担           |
+| `timeBurdenLevel`            | string        | 時間負担           |
+| `mealType`                   | string        | 給食・弁当          |
+| `itemBurdenLevel`            | string        | 持ち物負担レベル       |
+| `itemBurdenDetail`           | string | null | 持ち物負担の表示用テキスト  |
+| `diaperSupport`              | string | null | おむつ対応          |
+| `futonSupport`               | string | null | 布団対応           |
+| `extendedCareHours`          | string | null | 延長保育利用時間       |
+| `extendedCareUsage`          | string | null | 延長保育利用者の目安     |
+| `weekdayEventsLevel`         | string        | 平日行事の多さ        |
+| `weekdayEvents`              | string | null | 平日行事の表示用テキスト   |
+| `parentAssociationLevel`     | string        | 保護者会の負担        |
+| `parentAssociationFrequency` | string | null | 保護者会頻度の表示用テキスト |
+| `description`                | string | null | 園説明            |
+| `tags`                       | string[]      | 特徴タグ           |
+| `isFavorited`                | boolean       | お気に入り登録済みかどうか  |
+| `supportInfo`                | object        | プレミアム限定のサポート情報 |
+
+---
+
 ### レスポンス例：未登録・一般ユーザー
 
 ```json
 {
   "data": {
-    "id": 1,
+    "id": "1",
     "name": "さくら保育園",
     "area": "渋谷区",
     "address": "東京都渋谷区さくら1-1-1",
-    "phoneNumber": "03-0000-0000",
-    "imageUrl": "/images/schools/sakura.jpg",
-    "schoolType": "nursery",
+    "schoolType": "NURSERY",
+    "lifeBurdenLevel": "LOW",
+    "timeBurdenLevel": "LOW",
+    "mealType": "SCHOOL_LUNCH",
+    "itemBurdenLevel": "LOW",
+    "itemBurdenDetail": "着替え・上履き程度",
+    "diaperSupport": "園で廃棄",
+    "futonSupport": "園で管理",
+    "extendedCareHours": "18:00〜20:00",
+    "extendedCareUsage": "20人以上",
+    "weekdayEventsLevel": "LOW",
+    "weekdayEvents": "平日行事は少なめ",
+    "parentAssociationLevel": "LOW",
+    "parentAssociationFrequency": "年に1回程度",
     "description": "駅から近く、延長保育の利用者が多い園です。",
-    "lifeBurden": {
-      "lifeBurdenLevel": "low",
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental"
-    },
-    "timeBurden": {
-      "timeBurdenLevel": "low",
-      "extendedCareTime": "18:00〜20:00",
-      "extendedCareUsage": "5人程度",
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low"
-    },
+    "tags": ["保育園", "毎日給食", "おむつ園処理"],
+    "isFavorited": false,
     "supportInfo": {
       "isLocked": true,
-      "message": "プレミアムユーザーに登録すれば閲覧可能です",
-      "items": [
-        "連絡帳",
-        "欠席連絡方法",
-        "園内習い事",
-        "アレルギー対応"
-      ]
-    },
-    "isFavorited": false
+      "contactBookType": null,
+      "absenceContactMethod": null,
+      "lessons": null,
+      "allergySupport": null
+    }
   }
 }
 ```
@@ -543,36 +622,34 @@ GET /api/v1/schools/1
 ```json
 {
   "data": {
-    "id": 1,
+    "id": "1",
     "name": "さくら保育園",
     "area": "渋谷区",
     "address": "東京都渋谷区さくら1-1-1",
-    "phoneNumber": "03-0000-0000",
-    "imageUrl": "/images/schools/sakura.jpg",
-    "schoolType": "nursery",
+    "schoolType": "NURSERY",
+    "lifeBurdenLevel": "LOW",
+    "timeBurdenLevel": "LOW",
+    "mealType": "SCHOOL_LUNCH",
+    "itemBurdenLevel": "LOW",
+    "itemBurdenDetail": "着替え・上履き程度",
+    "diaperSupport": "園で廃棄",
+    "futonSupport": "園で管理",
+    "extendedCareHours": "18:00〜20:00",
+    "extendedCareUsage": "20人以上",
+    "weekdayEventsLevel": "LOW",
+    "weekdayEvents": "平日行事は少なめ",
+    "parentAssociationLevel": "LOW",
+    "parentAssociationFrequency": "年に1回程度",
     "description": "駅から近く、延長保育の利用者が多い園です。",
-    "lifeBurden": {
-      "lifeBurdenLevel": "low",
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental"
-    },
-    "timeBurden": {
-      "timeBurdenLevel": "low",
-      "extendedCareTime": "18:00〜20:00",
-      "extendedCareUsage": "5人程度",
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low"
-    },
+    "tags": ["保育園", "毎日給食", "おむつ園処理"],
+    "isFavorited": true,
     "supportInfo": {
       "isLocked": false,
-      "contactBookType": "app",
-      "absenceContactMethod": "app",
-      "lessons": "体操教室あり",
-      "allergySupport": "完全除去＋園で代替食"
-    },
-    "isFavorited": true
+      "contactBookType": "APP",
+      "absenceContactMethod": "APP",
+      "lessons": "体操教室",
+      "allergySupport": "個別相談可"
+    }
   }
 }
 ```
@@ -599,6 +676,14 @@ GET /api/v1/schools/1
 比較画面で使用する園情報を取得します。
 
 比較対象の園IDはクエリパラメータで指定します。
+
+比較APIでは、比較画面でそのまま表示しやすいように、一部のEnum項目は返さず、DBの表示用テキスト項目を返します。
+
+具体的には、`itemBurdenLevel` / `weekdayEventsLevel` / `parentAssociationLevel` ではなく、`itemBurdenDetail` / `weekdayEvents` / `parentAssociationFrequency` を返します。
+
+後続Issueでは、プレミアムユーザー向けに `user_preferences` の希望条件を参照し、園情報との一致判定結果を `matchHighlights` として返します。
+
+希望条件が未設定の場合、`matchHighlights` は `null` とします。
 
 ---
 
@@ -652,35 +737,39 @@ GET /api/v1/schools/compare?ids=1,2,3
   "data": {
     "schools": [
       {
-        "id": 1,
+        "id": "1",
         "name": "さくら保育園",
+        "area": "渋谷区",
+        "schoolType": "NURSERY",
         "lifeBurden": {
-          "mealType": "school_lunch",
-          "itemBurdenLevel": "low",
-          "diaperSupport": "disposed_by_school",
-          "futonSupport": "rental"
+          "mealType": "SCHOOL_LUNCH",
+          "itemBurdenDetail": "着替え・上履き程度",
+          "diaperSupport": "園で廃棄",
+          "futonSupport": "園で管理"
         },
         "timeBurden": {
           "extendedCareTime": "18:00〜20:00",
-          "extendedCareUsage": "5人程度",
-          "weekdayEventsLevel": "low",
-          "parentAssociationLevel": "low"
+          "extendedCareUsage": "20人以上",
+          "weekdayEvents": "平日行事は少なめ",
+          "parentAssociationFrequency": "年に1回程度"
         }
       },
       {
-        "id": 2,
+        "id": "2",
         "name": "みらいこども園",
+        "area": "新宿区",
+        "schoolType": "CERTIFIED_CHILDCARE_CENTER",
         "lifeBurden": {
-          "mealType": "mixed",
-          "itemBurdenLevel": "middle",
-          "diaperSupport": "take_home",
-          "futonSupport": "take_home_weekly"
+          "mealType": "SCHOOL_LUNCH",
+          "itemBurdenDetail": "通園バッグ・着替え・上履き程度",
+          "diaperSupport": "サブスク対応",
+          "futonSupport": "園で管理"
         },
         "timeBurden": {
-          "extendedCareTime": "18:00〜19:00",
-          "extendedCareUsage": "3人程度",
-          "weekdayEventsLevel": "middle",
-          "parentAssociationLevel": "middle"
+          "extendedCareTime": "18:00〜20:30",
+          "extendedCareUsage": "20人以上",
+          "weekdayEvents": "月1回程度あり",
+          "parentAssociationFrequency": "年に1〜2回程度"
         }
       }
     ],
@@ -698,33 +787,25 @@ GET /api/v1/schools/compare?ids=1,2,3
   "data": {
     "schools": [
       {
-        "id": 1,
+        "id": "1",
         "name": "さくら保育園",
+        "area": "渋谷区",
+        "schoolType": "NURSERY",
         "lifeBurden": {
-          "mealType": "school_lunch",
-          "itemBurdenLevel": "low",
-          "diaperSupport": "disposed_by_school",
-          "futonSupport": "rental"
+          "mealType": "SCHOOL_LUNCH",
+          "itemBurdenDetail": "着替え・上履き程度",
+          "diaperSupport": "園で廃棄",
+          "futonSupport": "園で管理"
         },
         "timeBurden": {
           "extendedCareTime": "18:00〜20:00",
-          "extendedCareUsage": "5人程度",
-          "weekdayEventsLevel": "low",
-          "parentAssociationLevel": "low"
+          "extendedCareUsage": "20人以上",
+          "weekdayEvents": "平日行事は少なめ",
+          "parentAssociationFrequency": "年に1回程度"
         }
       }
     ],
-    "matchHighlights": {
-      "1": {
-        "mealType": true,
-        "itemBurdenLevel": true,
-        "diaperSupport": true,
-        "futonSupport": false,
-        "extendedCare": true,
-        "weekdayEventsLevel": true,
-        "parentAssociationLevel": false
-      }
-    }
+    "matchHighlights": null
   }
 }
 ```
@@ -767,6 +848,10 @@ GET /api/v1/schools/compare?ids=1,2,3
 
 Supabase Auth 上のユーザーは存在するが、アプリ側 `users` レコードが存在しない場合、このAPI実行時に一般ユーザーとして自動作成します。
 
+ユーザー希望条件が登録済みの場合は `preference` に希望条件を返します。
+
+希望条件が未設定の場合は `preference: null` を返します。
+
 ---
 
 ### メソッド・URL
@@ -790,110 +875,82 @@ GET /api/v1/users/me
 | 条件            | 内容                                        |
 | ------------- | ----------------------------------------- |
 | Supabase Auth | アクセストークンが有効で、Supabase Auth User ID を取得できる |
-| users テーブル    | 該当する `users.id` のレコードが存在しない               |
+| users テーブル    | 該当する `supabase_user_id` のレコードが存在しない       |
 
 自動作成時の初期値は以下とします。
 
-| DBカラム        | 値                      |
-| ------------ | ---------------------- |
-| `id`         | Supabase Auth User ID  |
-| `email`      | Supabase Auth のメールアドレス |
-| `plan_type`  | `free`                 |
-| `created_at` | 作成日時                   |
-| `updated_at` | 作成日時                   |
+| DBカラム              | 値                      |
+| ------------------ | ---------------------- |
+| `id`               | UUIDを自動生成              |
+| `supabase_user_id` | Supabase Auth User ID  |
+| `email`            | Supabase Auth のメールアドレス |
+| `plan_type`        | `FREE`                 |
+| `created_at`       | 作成日時                   |
+| `updated_at`       | 作成日時                   |
 
-作成直後は、`name`、`postal_code`、`address`、希望条件は未設定でもよいものとします。
-その後、プロフィール編集画面で更新します。
+作成直後は、希望条件は未設定でもよいものとします。
+
+希望条件が未設定の場合、`preference: null` を返します。
 
 ---
 
-### レスポンス例：一般ユーザー
+### レスポンス項目
+
+| 項目                   | 型             | 内容                      |
+| -------------------- | ------------- | ----------------------- |
+| `id`                 | string        | アプリ内ユーザーID              |
+| `email`              | string        | メールアドレス                 |
+| `membershipType`     | string        | 会員種別。`FREE` / `PAID`    |
+| `subscriptionStatus` | string | null | 課金状態。未登録の場合は `null`     |
+| `preference`         | object | null | ユーザー希望条件。未設定の場合は `null` |
+
+#### preference
+
+| 項目                                | 型             | 内容            |
+| --------------------------------- | ------------- | ------------- |
+| `preferredMealType`               | string | null | 希望する給食・弁当区分   |
+| `preferredItemBurdenLevel`        | string | null | 希望する持ち物負担レベル  |
+| `preferredDiaperSupport`          | string | null | 希望するおむつ対応     |
+| `preferredFutonSupport`           | string | null | 希望する布団対応      |
+| `preferredExtendedCare`           | string | null | 希望する延長保育条件    |
+| `preferredWeekdayEventsLevel`     | string | null | 希望する平日行事負担レベル |
+| `preferredParentAssociationLevel` | string | null | 希望する保護者会負担レベル |
+
+---
+
+### レスポンス例：希望条件未設定
 
 ```json
 {
   "data": {
-    "id": "d7f5b8a2-1111-4444-8888-123456789abc",
+    "id": "8a230a51-3319-4c49-ba51-70d52ce9f4fa",
     "email": "user@example.com",
-    "name": "佐藤 恵",
-    "avatarUrl": null,
-    "postalCode": "1500001",
-    "address": "東京都渋谷区",
-    "planType": "free",
-    "isPremium": false,
-    "favoriteCount": 3,
-    "favoriteLimit": 5,
-    "preferences": {
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental",
-      "extendedCare": true,
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low"
-    }
+    "membershipType": "FREE",
+    "subscriptionStatus": null,
+    "preference": null
   }
 }
 ```
 
 ---
 
-### レスポンス例：自動作成直後の一般ユーザー
+### レスポンス例：希望条件登録済み
 
 ```json
 {
   "data": {
-    "id": "d7f5b8a2-1111-4444-8888-123456789abc",
+    "id": "8a230a51-3319-4c49-ba51-70d52ce9f4fa",
     "email": "user@example.com",
-    "name": null,
-    "avatarUrl": null,
-    "postalCode": null,
-    "address": null,
-    "planType": "free",
-    "isPremium": false,
-    "favoriteCount": 0,
-    "favoriteLimit": 5,
-    "preferences": {
-      "mealType": null,
-      "itemBurdenLevel": null,
-      "diaperSupport": null,
-      "futonSupport": null,
-      "extendedCare": false,
-      "weekdayEventsLevel": null,
-      "parentAssociationLevel": null
-    }
-  }
-}
-```
-
----
-
-### レスポンス例：プレミアムユーザー
-
-```json
-{
-  "data": {
-    "id": "d7f5b8a2-1111-4444-8888-123456789abc",
-    "email": "user@example.com",
-    "name": "佐藤 恵",
-    "avatarUrl": null,
-    "postalCode": "1500001",
-    "address": "東京都渋谷区",
-    "planType": "premium",
-    "isPremium": true,
-    "favoriteCount": 12,
-    "favoriteLimit": null,
-    "preferences": {
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental",
-      "extendedCare": true,
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low"
-    },
-    "subscription": {
-      "status": "active",
-      "currentPeriodEnd": "2026-07-31T23:59:59.000Z"
+    "membershipType": "FREE",
+    "subscriptionStatus": "ACTIVE",
+    "preference": {
+      "preferredMealType": "SCHOOL_LUNCH",
+      "preferredItemBurdenLevel": "LOW",
+      "preferredDiaperSupport": "園で廃棄",
+      "preferredFutonSupport": "園で管理",
+      "preferredExtendedCare": "18:00以降",
+      "preferredWeekdayEventsLevel": "LOW",
+      "preferredParentAssociationLevel": "LOW"
     }
   }
 }
@@ -914,20 +971,24 @@ GET /api/v1/users/me
 
 ---
 
-## 9-2. ログインユーザー情報更新
+## 9-2. ログインユーザー希望条件更新
 
 ### 概要
 
-プロフィール編集画面で、ユーザー情報・希望条件を更新します。
+プロフィール編集画面で、ログインユーザーの希望条件を保存・更新します。
 
-DB上は `postal_code`、`address` を NULL 許可としますが、プロフィール編集画面ではおすすめ表示に利用するため、郵便番号・住所を必須入力とします。
+希望条件は `user_preferences` テーブルに保存します。
+
+未作成の場合は作成し、作成済みの場合は更新します。
+
+このAPIで保存された希望条件は、後続の比較APIにおける `matchHighlights` 判定、およびおすすめ順ロジックで利用します。
 
 ---
 
 ### メソッド・URL
 
 ```http
-PUT /api/v1/users/me
+PATCH /api/v1/users/me/preferences
 ```
 
 ---
@@ -942,38 +1003,43 @@ PUT /api/v1/users/me
 
 ```json
 {
-  "name": "佐藤 恵",
-  "postalCode": "1500001",
-  "address": "東京都渋谷区",
-  "preferences": {
-    "mealType": "school_lunch",
-    "itemBurdenLevel": "low",
-    "diaperSupport": "disposed_by_school",
-    "futonSupport": "rental",
-    "extendedCare": true,
-    "weekdayEventsLevel": "low",
-    "parentAssociationLevel": "low"
-  }
+  "preferredMealType": "SCHOOL_LUNCH",
+  "preferredItemBurdenLevel": "LOW",
+  "preferredDiaperSupport": "園で廃棄",
+  "preferredFutonSupport": "園で管理",
+  "preferredExtendedCare": "18:00以降",
+  "preferredWeekdayEventsLevel": "LOW",
+  "preferredParentAssociationLevel": "LOW"
 }
 ```
 
 ---
 
+### リクエスト項目
+
+| 項目                                | 型             | 必須 | 内容            |
+| --------------------------------- | ------------- | -- | ------------- |
+| `preferredMealType`               | string | null | 任意 | 希望する給食・弁当区分   |
+| `preferredItemBurdenLevel`        | string | null | 任意 | 希望する持ち物負担レベル  |
+| `preferredDiaperSupport`          | string | null | 任意 | 希望するおむつ対応     |
+| `preferredFutonSupport`           | string | null | 任意 | 希望する布団対応      |
+| `preferredExtendedCare`           | string | null | 任意 | 希望する延長保育条件    |
+| `preferredWeekdayEventsLevel`     | string | null | 任意 | 希望する平日行事負担レベル |
+| `preferredParentAssociationLevel` | string | null | 任意 | 希望する保護者会負担レベル |
+
+---
+
 ### バリデーション
 
-| 項目                                   | 条件          |
-| ------------------------------------ | ----------- |
-| `name`                               | 必須          |
-| `postalCode`                         | 必須。半角数字7桁   |
-| `address`                            | 必須          |
-| `preferences`                        | 任意          |
-| `preferences.mealType`               | 任意。定義済みの値のみ |
-| `preferences.itemBurdenLevel`        | 任意。定義済みの値のみ |
-| `preferences.diaperSupport`          | 任意。定義済みの値のみ |
-| `preferences.futonSupport`           | 任意。定義済みの値のみ |
-| `preferences.extendedCare`           | 任意。boolean  |
-| `preferences.weekdayEventsLevel`     | 任意。定義済みの値のみ |
-| `preferences.parentAssociationLevel` | 任意。定義済みの値のみ |
+| 項目                                | 条件                                                     |
+| --------------------------------- | ------------------------------------------------------ |
+| `preferredMealType`               | 任意。指定する場合は `SCHOOL_LUNCH` / `LUNCH_BOX` / `BOTH` のいずれか |
+| `preferredItemBurdenLevel`        | 任意。指定する場合は `LOW` / `MEDIUM` / `HIGH` のいずれか             |
+| `preferredDiaperSupport`          | 任意                                                     |
+| `preferredFutonSupport`           | 任意                                                     |
+| `preferredExtendedCare`           | 任意                                                     |
+| `preferredWeekdayEventsLevel`     | 任意。指定する場合は `LOW` / `MEDIUM` / `HIGH` のいずれか             |
+| `preferredParentAssociationLevel` | 任意。指定する場合は `LOW` / `MEDIUM` / `HIGH` のいずれか             |
 
 ---
 
@@ -982,22 +1048,14 @@ PUT /api/v1/users/me
 ```json
 {
   "data": {
-    "id": "d7f5b8a2-1111-4444-8888-123456789abc",
-    "email": "user@example.com",
-    "name": "佐藤 恵",
-    "avatarUrl": null,
-    "postalCode": "1500001",
-    "address": "東京都渋谷区",
-    "planType": "free",
-    "isPremium": false,
-    "preferences": {
-      "mealType": "school_lunch",
-      "itemBurdenLevel": "low",
-      "diaperSupport": "disposed_by_school",
-      "futonSupport": "rental",
-      "extendedCare": true,
-      "weekdayEventsLevel": "low",
-      "parentAssociationLevel": "low"
+    "preference": {
+      "preferredMealType": "SCHOOL_LUNCH",
+      "preferredItemBurdenLevel": "LOW",
+      "preferredDiaperSupport": "園で廃棄",
+      "preferredFutonSupport": "園で管理",
+      "preferredExtendedCare": "18:00以降",
+      "preferredWeekdayEventsLevel": "LOW",
+      "preferredParentAssociationLevel": "LOW"
     }
   }
 }
@@ -1005,22 +1063,26 @@ PUT /api/v1/users/me
 
 ---
 
-### エラー例
+### エラー例：未ログイン
 
 ```json
 {
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "郵便番号は半角数字7桁で入力してください"
+    "code": "UNAUTHORIZED",
+    "message": "ログインが必要です"
   }
 }
 ```
 
+---
+
+### エラー例：バリデーションエラー
+
 ```json
 {
   "error": {
     "code": "VALIDATION_ERROR",
-    "message": "住所を入力してください"
+    "message": "希望条件の値が不正です"
   }
 }
 ```
@@ -1059,16 +1121,13 @@ GET /api/v1/users/me/favorites
 {
   "data": [
     {
-      "id": 1,
+      "id": "1",
       "school": {
-        "id": 1,
+        "id": "1",
         "name": "さくら保育園",
         "area": "渋谷区",
         "address": "東京都渋谷区さくら1-1-1",
-        "phoneNumber": "03-0000-0000",
-        "imageUrl": "/images/schools/sakura.jpg",
-        "schoolType": "nursery",
-        "tags": ["保育園", "毎日給食"]
+        "schoolType": "NURSERY"
       },
       "createdAt": "2026-06-14T10:00:00.000Z"
     }
@@ -1088,16 +1147,13 @@ GET /api/v1/users/me/favorites
 {
   "data": [
     {
-      "id": 1,
+      "id": "1",
       "school": {
-        "id": 1,
+        "id": "1",
         "name": "さくら保育園",
         "area": "渋谷区",
         "address": "東京都渋谷区さくら1-1-1",
-        "phoneNumber": "03-0000-0000",
-        "imageUrl": "/images/schools/sakura.jpg",
-        "schoolType": "nursery",
-        "tags": ["保育園", "毎日給食"]
+        "schoolType": "NURSERY"
       },
       "createdAt": "2026-06-14T10:00:00.000Z"
     }
@@ -1131,6 +1187,7 @@ GET /api/v1/users/me/favorites
 指定した園をログインユーザーのお気に入りに登録します。
 
 一般ユーザーは5件まで登録できます。
+
 プレミアムユーザーは無制限に登録できます。
 
 ---
@@ -1173,8 +1230,8 @@ POST /api/v1/users/me/favorites
 ```json
 {
   "data": {
-    "id": 1,
-    "schoolId": 1,
+    "id": "1",
+    "schoolId": "1",
     "createdAt": "2026-06-14T10:00:00.000Z"
   }
 }
@@ -1256,7 +1313,7 @@ DELETE /api/v1/users/me/favorites/:schoolId
 ```json
 {
   "data": {
-    "schoolId": 1,
+    "schoolId": "1",
     "deleted": true
   }
 }
@@ -1286,6 +1343,7 @@ DELETE /api/v1/users/me/favorites/:schoolId
 一般ユーザーがプレミアムプランへ登録するための Stripe Checkout Session を作成します。
 
 未登録ユーザーはこのAPIを利用できません。
+
 未登録ユーザーがプレミアム登録ボタンを押した場合は、まず会員登録画面 `/register` へ誘導します。
 
 ---
@@ -1496,24 +1554,24 @@ POST /api/v1/payment/webhook
 
 # 12. Enum定義
 
-DB設計書に合わせて、APIでも以下の値を基本とします。
+APIで扱う主なEnum値は以下とします。
 
-## 12-1. planType
+## 12-1. membershipType
 
-| 値         | 内容        |
-| --------- | --------- |
-| `free`    | 一般ユーザー    |
-| `premium` | プレミアムユーザー |
+| 値      | 内容        |
+| ------ | --------- |
+| `FREE` | 一般ユーザー    |
+| `PAID` | プレミアムユーザー |
 
 ---
 
 ## 12-2. subscriptionStatus
 
-| 値          | 内容    |
-| ---------- | ----- |
-| `active`   | 有効    |
-| `canceled` | 解約済み  |
-| `past_due` | 支払い遅延 |
+| 値          | 内容   |
+| ---------- | ---- |
+| `ACTIVE`   | 有効   |
+| `CANCELED` | 解約済み |
+| `EXPIRED`  | 期限切れ |
 
 ---
 
@@ -1521,9 +1579,9 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 
 | 値                            | 内容     |
 | ---------------------------- | ------ |
-| `nursery`                    | 保育園    |
-| `certified_childcare_center` | 認定こども園 |
-| `small_scale_nursery`        | 小規模保育  |
+| `NURSERY`                    | 保育園    |
+| `KINDERGARTEN`               | 幼稚園    |
+| `CERTIFIED_CHILDCARE_CENTER` | 認定こども園 |
 
 ---
 
@@ -1531,59 +1589,30 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 
 | 値        | 内容  |
 | -------- | --- |
-| `low`    | 少ない |
-| `middle` | 普通  |
-| `high`   | 多い  |
+| `LOW`    | 少なめ |
+| `MEDIUM` | 普通  |
+| `HIGH`   | 多め  |
 
 ---
 
 ## 12-5. mealType
 
-| 値                    | 内容      |
-| -------------------- | ------- |
-| `school_lunch`       | 給食のみ    |
-| `lunch_box_required` | 弁当あり    |
-| `mixed`              | 給食・弁当併用 |
+| 値              | 内容    |
+| -------------- | ----- |
+| `SCHOOL_LUNCH` | 毎日給食  |
+| `LUNCH_BOX`    | 毎日弁当  |
+| `BOTH`         | 給食・弁当 |
 
 ---
 
-## 12-6. diaperSupport
-
-| 値                    | 内容     |
-| -------------------- | ------ |
-| `disposed_by_school` | 園で処理   |
-| `take_home`          | 持ち帰り   |
-| `subscription`       | サブスク対応 |
-
----
-
-## 12-7. futonSupport
-
-| 値                   | 内容     |
-| ------------------- | ------ |
-| `rental`            | レンタルあり |
-| `take_home_weekly`  | 毎週持ち帰り |
-| `managed_by_school` | 園で管理   |
-
----
-
-## 12-8. contactBookType
+## 12-6. contactType
 
 | 値       | 内容  |
 | ------- | --- |
-| `app`   | アプリ |
-| `paper` | 手書き |
-| `both`  | 併用  |
-
----
-
-## 12-9. absenceContactMethod
-
-| 値       | 内容     |
-| ------- | ------ |
-| `app`   | アプリ    |
-| `phone` | 電話     |
-| `both`  | アプリ・電話 |
+| `APP`   | アプリ |
+| `PHONE` | 電話  |
+| `PAPER` | 紙   |
+| `OTHER` | その他 |
 
 ---
 
@@ -1593,7 +1622,7 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 
 * 必須項目が未入力の場合は `VALIDATION_ERROR`
 * ID形式が不正な場合は `VALIDATION_ERROR`
-* `schools.id` は number として扱う
+* `schools.id` は number または string として受け取り、内部では bigint として扱う
 * `users.id` は uuid として扱う
 * 対象データが存在しない場合は `NOT_FOUND`
 * 権限がない場合は `FORBIDDEN`
@@ -1604,11 +1633,15 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 ## 13-2. 園一覧・検索
 
 * `keyword` は任意
+* `q` は任意
 * `area` は任意
-* `limit` は任意。指定する場合は正の整数
-* `offset` は任意。指定する場合は0以上の整数
 * Enum系の検索条件は定義済みの値のみ許可
-* boolean系の検索条件は `true` / `false` のみ許可
+* チェックボックス系の検索条件は、フロントエンドから `true` を送信する
+* `diaperSupport=true` は `diaperSupport = "園で廃棄"` として扱う
+* `futonSupport=true` は `futonSupport = "園で管理"` として扱う
+* `extendedCareUsage=true` は `extendedCareUsage = "20人以上"` として扱う
+* `lessons=true` は `lessons IS NOT NULL` として扱う
+* `allergySupport=true` は `allergySupport IS NOT NULL` として扱う
 * 不正な検索条件は `VALIDATION_ERROR`
 * 園一覧・検索結果・おすすめ表示ではRedisキャッシュを利用する
 * `isFavorited` などユーザー固有の値はキャッシュ対象の園データとは分けて付与する
@@ -1642,19 +1675,23 @@ DB設計書に合わせて、APIでも以下の値を基本とします。
 * 存在しない園IDが含まれる場合はエラー
 * 一般ユーザーは2件まで
 * プレミアムユーザーは3件まで
+* プレミアムユーザーの場合、希望条件が設定されていれば後続Issueで `matchHighlights` に一致判定結果を返す
+* 希望条件が未設定の場合、`matchHighlights` は `null` とする
 
 ---
 
-## 13-6. プロフィール更新
+## 13-6. ユーザー希望条件更新
 
-* `name` は必須
-* `postalCode` は必須
-* `postalCode` は半角数字7桁
-* `address` は必須
-* `preferences` は任意
-* 希望条件の値は定義済みEnumのみ許可
-
-DB上は `postal_code`、`address` を NULL 許可としますが、プロフィール編集画面から更新する場合は、おすすめ表示に利用するため必須入力とします。
+* `PATCH /api/v1/users/me/preferences` は認証必須
+* 希望条件はすべて任意
+* 希望条件未設定の場合、`GET /api/v1/users/me` では `preference: null` を返す
+* 保存済みの希望条件がある場合、`GET /api/v1/users/me` では `preference` に保存内容を返す
+* `preferredMealType` は `SCHOOL_LUNCH` / `LUNCH_BOX` / `BOTH` のいずれか
+* `preferredItemBurdenLevel` は `LOW` / `MEDIUM` / `HIGH` のいずれか
+* `preferredWeekdayEventsLevel` は `LOW` / `MEDIUM` / `HIGH` のいずれか
+* `preferredParentAssociationLevel` は `LOW` / `MEDIUM` / `HIGH` のいずれか
+* `preferredDiaperSupport` / `preferredFutonSupport` / `preferredExtendedCare` は文字列または `null` とする
+* 不正な値は `VALIDATION_ERROR` とする
 
 ---
 
@@ -1672,6 +1709,7 @@ DB上は `postal_code`、`address` を NULL 許可としますが、プロフィ
 * 詳細比較レポートAPI
 * チャート表示専用API
 * 比較リスト保存API
+* 比較履歴保存API
 * 請求履歴取得API
 * 独自のプラン変更API
 
@@ -1681,59 +1719,68 @@ DB上は `postal_code`、`address` を NULL 許可としますが、プロフィ
 
 ## 15-1. users
 
-| DBカラム                          | API項目                                |
-| ------------------------------ | ------------------------------------ |
-| `id`                           | `id`                                 |
-| `email`                        | `email`                              |
-| `name`                         | `name`                               |
-| `avatar_url`                   | `avatarUrl`                          |
-| `postal_code`                  | `postalCode`                         |
-| `address`                      | `address`                            |
-| `plan_type`                    | `planType`                           |
-| `preferred_meal_type`          | `preferences.mealType`               |
-| `preferred_item_burden`        | `preferences.itemBurdenLevel`        |
-| `preferred_diaper_support`     | `preferences.diaperSupport`          |
-| `preferred_futon_support`      | `preferences.futonSupport`           |
-| `preferred_extended_care`      | `preferences.extendedCare`           |
-| `preferred_weekday_events`     | `preferences.weekdayEventsLevel`     |
-| `preferred_parent_association` | `preferences.parentAssociationLevel` |
-| `created_at`                   | `createdAt`                          |
-| `updated_at`                   | `updatedAt`                          |
+| DBカラム              | API項目            |
+| ------------------ | ---------------- |
+| `id`               | `id`             |
+| `supabase_user_id` | 内部利用             |
+| `email`            | `email`          |
+| `plan_type`        | `membershipType` |
+| `created_at`       | `createdAt`      |
+| `updated_at`       | `updatedAt`      |
 
 ---
 
-## 15-2. schools
+## 15-2. user_preferences
 
-| DBカラム                      | API項目                              |
-| -------------------------- | ---------------------------------- |
-| `id`                       | `id`                               |
-| `name`                     | `name`                             |
-| `area`                     | `area`                             |
-| `address`                  | `address`                          |
-| `phone_number`             | `phoneNumber`                      |
-| `image_url`                | `imageUrl`                         |
-| `school_type`              | `schoolType`                       |
-| `life_burden_level`        | `lifeBurdenLevel`                  |
-| `time_burden_level`        | `timeBurdenLevel`                  |
-| `meal_type`                | `mealType`                         |
-| `item_burden_level`        | `itemBurdenLevel`                  |
-| `diaper_support`           | `diaperSupport`                    |
-| `futon_support`            | `futonSupport`                     |
-| `extended_care_time`       | `extendedCareTime`                 |
-| `extended_care_usage`      | `extendedCareUsage`                |
-| `weekday_events_level`     | `weekdayEventsLevel`               |
-| `parent_association_level` | `parentAssociationLevel`           |
-| `contact_book_type`        | `supportInfo.contactBookType`      |
-| `absence_contact_method`   | `supportInfo.absenceContactMethod` |
-| `lessons`                  | `supportInfo.lessons`              |
-| `allergy_support`          | `supportInfo.allergySupport`       |
-| `description`              | `description`                      |
-| `created_at`               | `createdAt`                        |
-| `updated_at`               | `updatedAt`                        |
+| DBカラム                                | API項目                                        |
+| ------------------------------------ | -------------------------------------------- |
+| `id`                                 | 内部利用                                         |
+| `user_id`                            | 内部利用                                         |
+| `preferred_meal_type`                | `preference.preferredMealType`               |
+| `preferred_item_burden_level`        | `preference.preferredItemBurdenLevel`        |
+| `preferred_diaper_support`           | `preference.preferredDiaperSupport`          |
+| `preferred_futon_support`            | `preference.preferredFutonSupport`           |
+| `preferred_extended_care`            | `preference.preferredExtendedCare`           |
+| `preferred_weekday_events_level`     | `preference.preferredWeekdayEventsLevel`     |
+| `preferred_parent_association_level` | `preference.preferredParentAssociationLevel` |
+| `created_at`                         | `createdAt`                                  |
+| `updated_at`                         | `updatedAt`                                  |
 
 ---
 
-## 15-3. favorites
+## 15-3. schools
+
+| DBカラム                          | API項目                              |
+| ------------------------------ | ---------------------------------- |
+| `id`                           | `id`                               |
+| `name`                         | `name`                             |
+| `area`                         | `area`                             |
+| `address`                      | `address`                          |
+| `school_type`                  | `schoolType`                       |
+| `life_burden_level`            | `lifeBurdenLevel`                  |
+| `time_burden_level`            | `timeBurdenLevel`                  |
+| `meal_type`                    | `mealType`                         |
+| `item_burden_level`            | `itemBurdenLevel`                  |
+| `item_burden_detail`           | `itemBurdenDetail`                 |
+| `diaper_support`               | `diaperSupport`                    |
+| `futon_support`                | `futonSupport`                     |
+| `extended_care_hours`          | `extendedCareHours`                |
+| `extended_care_usage`          | `extendedCareUsage`                |
+| `weekday_events_level`         | `weekdayEventsLevel`               |
+| `weekday_events`               | `weekdayEvents`                    |
+| `parent_association_level`     | `parentAssociationLevel`           |
+| `parent_association_frequency` | `parentAssociationFrequency`       |
+| `contact_book_type`            | `supportInfo.contactBookType`      |
+| `absence_contact_method`       | `supportInfo.absenceContactMethod` |
+| `lessons`                      | `supportInfo.lessons`              |
+| `allergy_support`              | `supportInfo.allergySupport`       |
+| `description`                  | `description`                      |
+| `created_at`                   | `createdAt`                        |
+| `updated_at`                   | `updatedAt`                        |
+
+---
+
+## 15-4. favorites
 
 | DBカラム        | API項目       |
 | ------------ | ----------- |
@@ -1744,7 +1791,7 @@ DB上は `postal_code`、`address` を NULL 許可としますが、プロフィ
 
 ---
 
-## 15-4. subscriptions
+## 15-5. subscriptions
 
 | DBカラム                    | API項目                           |
 | ------------------------ | ------------------------------- |
@@ -1752,7 +1799,7 @@ DB上は `postal_code`、`address` を NULL 許可としますが、プロフィ
 | `user_id`                | 内部利用                            |
 | `stripe_customer_id`     | 内部利用                            |
 | `stripe_subscription_id` | 内部利用                            |
-| `status`                 | `subscription.status`           |
+| `status`                 | `subscriptionStatus`            |
 | `current_period_end`     | `subscription.currentPeriodEnd` |
 | `created_at`             | `createdAt`                     |
 | `updated_at`             | `updatedAt`                     |
@@ -1779,9 +1826,9 @@ GET /api/v1/schools/compare?ids=1,2
 GET /api/v1/schools/compare?ids=1,2,3
 ```
 
-DB設計書に `compare_lists` テーブルは存在しますが、MVPのAPI設計では比較リスト保存APIは作成しません。
+比較APIでは、プレミアムユーザー向けに `user_preferences` の希望条件を参照し、後続Issueで `matchHighlights` を返す想定です。
 
-`compare_lists` は、MVPではAPIから利用しない将来拡張用テーブルとして扱います。
+希望条件が未設定の場合、`matchHighlights` は `null` とします。
 
 ---
 
@@ -1797,6 +1844,7 @@ DB設計書に `compare_lists` テーブルは存在しますが、MVPのAPI設�
 * アレルギー対応
 
 未登録ユーザー・一般ユーザーには、項目名とロック表示用の情報のみ返します。
+
 プレミアムユーザーには、実際の内容を返します。
 
 ---
@@ -1806,7 +1854,7 @@ DB設計書に `compare_lists` テーブルは存在しますが、MVPのAPI設�
 ホーム画面のおすすめ表示では、以下を考慮します。
 
 * ユーザー住所と同じエリアの園を優先
-* 希望条件が設定されている場合は一致度順
+* `user_preferences` に希望条件が設定されている場合は一致度順
 * エリア該当がない場合は希望条件のみで並び替え
 * 希望条件も未設定の場合は全件表示
 
@@ -1816,7 +1864,7 @@ MVPでは高度なレコメンド機能は作成せず、シンプルな条件�
 
 ## 16-4. プレミアム判定について
 
-プレミアム判定は、`subscriptions.status = active` をもとに行います。
+プレミアム判定は、`subscriptions.status = ACTIVE` をもとに行います。
 
 バックエンド側で必ず判定し、フロントエンド側の表示制御だけに依存しないようにします。
 
@@ -1824,9 +1872,7 @@ MVPでは高度なレコメンド機能は作成せず、シンプルな条件�
 
 ## 16-5. 園画像について
 
-`schools.image_url` を利用して園画像を表示します。
-
-MVPでは、seedデータに画像URLを登録するか、固定画像URLを登録する想定です。
+MVPでは、園画像は固定画像または将来拡張で対応する想定です。
 
 ---
 
@@ -1842,18 +1888,47 @@ MVPでは、園一覧・検索結果・おすすめ表示でRedisキャッシュ
 * `isPremium`
 * `favoriteCount`
 * `favoriteLimit`
+* `preference`
+* `matchHighlights`
 
 Redisキャッシュを導入することで、同一条件でのDBアクセスを減らし、検索結果表示のパフォーマンスを改善します。
 
 ---
 
+## 16-7. seedデータと条件検索の関係
+
+#32 で検索・比較確認用のseedデータを20件に拡充しています。
+
+MVPの条件検索では、以下の値を検索基準として使用します。
+
+* おむつ園処理あり：`diaperSupport = "園で廃棄"`
+* 布団負担少なめ：`futonSupport = "園で管理"`
+* 延長保育利用者が多い：`extendedCareUsage = "20人以上"`
+* 園内習い事あり：`lessons IS NOT NULL`
+* 園内習い事なし：`lessons = null`
+* アレルギー対応あり：`allergySupport IS NOT NULL`
+* アレルギー対応なし：`allergySupport = null`
+* 保護者会少なめ：`parentAssociationLevel = LOW`
+* 平日行事少なめ：`weekdayEventsLevel = LOW`
+
+---
+
 # 17. 今後の確認事項
 
-* `compare_lists` はMVPではAPIから利用しないが、将来拡張用テーブルとして作成する方針でよいか
-* `schoolType`、`mealType`、`diaperSupport`、`futonSupport` などを Prisma Enum にするか、文字列管理にするか
-* `contactBookType`、`absenceContactMethod` もEnum化するか
+* `schoolType`、`mealType` などのEnum値と表示用テキストの対応をどこまで共通化するか
 * `tags` をDBに持たず、API側で生成する方針でよいか
 * RedisキャッシュのTTLを何分に設定するか
 * Redisキャッシュの削除タイミングをどうするか
 * Stripe Webhook後に `users.plan_type` を同期するか
 * 園画像をURLで持つか、MVPでは固定画像にするか
+* `user_preferences` の希望条件と比較APIの `matchHighlights` の対応項目をどこまで揃えるか
+
+---
+
+# 18. 変更履歴
+
+| バージョン | 日付         | 変更内容                                                                                               |
+| ----- | ---------- | -------------------------------------------------------------------------------------------------- |
+| v0.1  | 2026/06/22 | MVPで使用するAPI仕様の初版を作成                                                                                |
+| v0.2  | 2026/06/23 | 園検索条件、比較API、Redisキャッシュ方針、Stripe関連APIを整理                                                            |
+| v0.3  | 2026/06/24 | ユーザー希望条件を `user_preferences` で管理する方針に合わせ、`GET /users/me` のレスポンスと `PATCH /users/me/preferences` を追加 |
