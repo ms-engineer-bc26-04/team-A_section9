@@ -23,6 +23,11 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
 
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
+    client_reference_id: user.id,
+    metadata: {
+      userId: user.id,
+      supabaseUserId: user.supabaseUserId ?? '',
+    },
     line_items: [
       {
         price: process.env.STRIPE_PRICE_ID,
