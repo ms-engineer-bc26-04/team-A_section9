@@ -4,10 +4,12 @@ import type { SchoolSearchQueryInput } from '../validators/schoolValidator'
 
 export type SchoolSearchQuery = SchoolSearchQueryInput
 
-export const getSchools = async (query: SchoolSearchQuery) => {
+const buildSchoolWhere = (
+  query: SchoolSearchQuery
+): Prisma.SchoolWhereInput => {
   const keyword = query.keyword || query.q
 
-  const where: Prisma.SchoolWhereInput = {
+  return {
     AND: [
       keyword
         ? {
@@ -72,12 +74,96 @@ export const getSchools = async (query: SchoolSearchQuery) => {
         : {},
     ],
   }
+}
 
+export const getSchools = async (query: SchoolSearchQuery) => {
   return prisma.school.findMany({
-    where,
+    where: buildSchoolWhere(query),
     orderBy: {
       id: 'asc',
     },
+  })
+}
+
+type SchoolForRecommendation = Awaited<ReturnType<typeof getSchools>>[number]
+
+const calculateRecommendedScore = (
+  school: SchoolForRecommendation,
+  favoriteSchools: SchoolForRecommendation[]
+) => {
+  return favoriteSchools.reduce((score, favoriteSchool) => {
+    let nextScore = score
+
+    if (school.area === favoriteSchool.area) {
+      nextScore += 4
+    }
+
+    if (school.schoolType === favoriteSchool.schoolType) {
+      nextScore += 2
+    }
+
+    if (school.mealType === favoriteSchool.mealType) {
+      nextScore += 2
+    }
+
+    if (school.lifeBurdenLevel === favoriteSchool.lifeBurdenLevel) {
+      nextScore += 1
+    }
+
+    if (school.timeBurdenLevel === favoriteSchool.timeBurdenLevel) {
+      nextScore += 1
+    }
+
+    if (school.itemBurdenLevel === favoriteSchool.itemBurdenLevel) {
+      nextScore += 1
+    }
+
+    if (school.weekdayEventsLevel === favoriteSchool.weekdayEventsLevel) {
+      nextScore += 1
+    }
+
+    if (
+      school.parentAssociationLevel === favoriteSchool.parentAssociationLevel
+    ) {
+      nextScore += 1
+    }
+
+    return nextScore
+  }, 0)
+}
+
+export const getRecommendedSchools = async (
+  query: SchoolSearchQuery,
+  userId: string
+) => {
+  const schools = await getSchools(query)
+
+  const favoriteSchools = await prisma.school.findMany({
+    where: {
+      favorites: {
+        some: {
+          userId,
+        },
+      },
+    },
+    orderBy: {
+      id: 'asc',
+    },
+  })
+
+  if (favoriteSchools.length === 0) {
+    return schools
+  }
+
+  return [...schools].sort((a, b) => {
+    const scoreA = calculateRecommendedScore(a, favoriteSchools)
+    const scoreB = calculateRecommendedScore(b, favoriteSchools)
+
+    if (scoreA !== scoreB) {
+      return scoreB - scoreA
+    }
+
+    return Number(a.id - b.id)
   })
 }
 
