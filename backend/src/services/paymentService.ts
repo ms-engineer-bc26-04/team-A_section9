@@ -20,9 +20,36 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
   if (user.subscription?.status === 'ACTIVE') {
     throw new Error('ALREADY_PREMIUM')
   }
+  let customerId = user.subscription?.stripeCustomerId
 
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: user.email,
+      metadata: {
+        userId: user.id,
+        supabaseUserId: user.supabaseUserId ?? '',
+      },
+    })
+
+    customerId = customer.id
+
+    await prisma.subscription.upsert({
+      where: {
+        userId: user.id,
+      },
+      update: {
+        stripeCustomerId: customerId,
+      },
+      create: {
+        userId: user.id,
+        stripeCustomerId: customerId,
+        status: 'CANCELED',
+      },
+    })
+  }
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
+    customer: customerId,
     client_reference_id: user.id,
     metadata: {
       userId: user.id,
@@ -37,7 +64,6 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
     success_url: `${process.env.FRONTEND_URL}/payment/complete`,
     cancel_url: `${process.env.FRONTEND_URL}/plans`,
   })
-
   return {
     checkoutUrl: session.url,
   }
