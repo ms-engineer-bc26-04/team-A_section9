@@ -61,14 +61,27 @@ const buildSchoolWhere = (
       query.parentAssociationLevel
         ? { parentAssociationLevel: query.parentAssociationLevel }
         : {},
-      query.lessons
-        ? { lessons: { contains: query.lessons, mode: 'insensitive' } }
+
+      // 園内習い事あり
+      // フロントから lessons=true が送られてきた場合は、
+      // "true" という文字列の部分一致検索ではなく、
+      // lessons が null ではない園を取得する
+      query.lessons === 'true'
+        ? {
+            lessons: {
+              not: null,
+            },
+          }
         : {},
-      query.allergySupport
+
+      // アレルギー対応あり
+      // フロントから allergySupport=true が送られてきた場合は、
+      // "true" という文字列の部分一致検索ではなく、
+      // allergySupport が null ではない園を取得する
+      query.allergySupport === 'true'
         ? {
             allergySupport: {
-              contains: query.allergySupport,
-              mode: 'insensitive',
+              not: null,
             },
           }
         : {},
