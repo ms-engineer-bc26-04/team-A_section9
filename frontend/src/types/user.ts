@@ -11,6 +11,8 @@ export type UserPreferences = {
   extendedCare?: boolean
   weekdayEventsLevel?: string
   parentAssociationLevel?: string
+  lessons?: boolean | null // ← ここに追加
+  allergySupport?: boolean | null // ← ここに追加
 }
 
 export type User = {

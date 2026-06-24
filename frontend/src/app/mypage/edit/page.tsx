@@ -16,8 +16,6 @@ export default function MyPageEditPage() {
   const [userName, setUserName] = useState(appUser?.name ?? '')
   const [postalCode, setPostalCode] = useState(appUser?.postalCode ?? '')
   const [address, setAddress] = useState(appUser?.address ?? '')
-
-  // 希望条件
   const [hasLunch, setHasLunch] = useState(
     appUser?.preferences?.mealType === 'school_lunch'
   )
@@ -36,8 +34,10 @@ export default function MyPageEditPage() {
   const [noPTA, setNoPTA] = useState(
     appUser?.preferences?.parentAssociationLevel === 'low'
   )
-  const [hasClub, setHasClub] = useState(false)
-  const [allergySupport, setAllergySupport] = useState(false)
+  const [hasClub, setHasClub] = useState(!!appUser?.preferences?.lessons)
+  const [allergySupport, setAllergySupport] = useState(
+    !!appUser?.preferences?.allergySupport
+  )
 
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{
