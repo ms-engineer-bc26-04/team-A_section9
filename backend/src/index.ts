@@ -7,6 +7,7 @@ import { connectRedis } from './lib/redis'
 import schoolRoutes from './routes/schoolRoutes'
 import userRoutes from './routes/userRoutes'
 import favoriteRoutes from './routes/favoriteRoutes'
+import paymentRoutes from './routes/paymentRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -24,6 +25,7 @@ app.get('/health', (req, res) => {
 app.use('/api/v1/schools', schoolRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/users', favoriteRoutes)
+app.use('/api/v1/payment', paymentRoutes)
 
 connectRedis()
 
