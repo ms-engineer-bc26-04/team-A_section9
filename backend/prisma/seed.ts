@@ -24,7 +24,7 @@ async function main() {
         imageUrl: null,
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け：準備・時間調整がしやすい園
+        // 佐藤恵さん向け：毎日給食・おむつ園処理・布団管理・平日行事少なめ・延長利用者多め
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -37,7 +37,7 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
 
@@ -67,13 +67,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:30',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: '月に1回程度',
-        parentAssociationFrequency: '年に2回',
+        parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・体操・プログラミング',
+        lessons: '英語教室・体操教室・プログラミング',
         allergySupport: '個別対応あり',
       },
       {
@@ -97,13 +97,13 @@ async function main() {
         futonSupport: '週末にシーツ持ち帰り',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: '学期に1回程度',
         parentAssociationFrequency: '学期に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・リトミック',
+        lessons: '英語教室・リトミック',
         allergySupport: '完全除去＋園で代替食対応',
       },
       {
@@ -127,13 +127,13 @@ async function main() {
         futonSupport: 'バスタオル持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '月に数回利用',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に1回程度',
-        parentAssociationFrequency: '年に2回',
+        parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: 'リトミック・造形あそび',
+        lessons: 'リトミック',
         allergySupport: '完全除去＋個別面談あり',
       },
       {
@@ -157,13 +157,13 @@ async function main() {
         futonSupport: '週末にシーツ持ち帰り',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '学期に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '英語',
+        lessons: '英語教室',
         allergySupport: '除去食対応あり',
       },
       {
@@ -187,13 +187,13 @@ async function main() {
         futonSupport: '敷布団・掛布団持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '1〜2人程度',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '月に1回',
 
         contactBookType: ContactType.PAPER,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '季節イベント・制作活動',
+        lessons: null,
         allergySupport: '完全除去＋家庭から弁当持参',
       },
       {
@@ -216,13 +216,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・体操',
+        lessons: '英語教室・体操教室',
         allergySupport: '個別相談可',
       },
       {
@@ -245,7 +245,7 @@ async function main() {
         futonSupport: '週末にシーツ持ち帰り',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '学期に1回',
 
@@ -274,13 +274,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:30',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: '学期に1回程度',
         parentAssociationFrequency: '年に2回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・プログラミング',
+        lessons: '英語教室・プログラミング',
         allergySupport: '完全除去＋代替食対応',
       },
       {
@@ -303,13 +303,13 @@ async function main() {
         futonSupport: 'バスタオル持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '1〜2人程度',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に2回程度',
         parentAssociationFrequency: '学期に1回',
 
         contactBookType: ContactType.PAPER,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '自然遊び・造形あそび',
+        lessons: null,
         allergySupport: '個別相談可',
       },
       {
@@ -332,13 +332,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・音楽',
+        lessons: '英語教室・音楽教室',
         allergySupport: '除去食対応あり',
       },
       {
@@ -361,7 +361,7 @@ async function main() {
         futonSupport: '週末にシーツ持ち帰り',
 
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '学期に1回',
 
@@ -390,13 +390,13 @@ async function main() {
         futonSupport: '敷布団・掛布団持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '1〜2人程度',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '月に1回',
 
         contactBookType: ContactType.PAPER,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '季節イベント',
+        lessons: null,
         allergySupport: '家庭から弁当持参',
       },
       {
@@ -419,13 +419,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:30',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・リトミック',
+        lessons: '英語教室・リトミック',
         allergySupport: '個別相談可',
       },
       {
@@ -448,13 +448,13 @@ async function main() {
         futonSupport: '週末にシーツ持ち帰り',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '学期に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '体操・造形あそび',
+        lessons: '体操教室',
         allergySupport: '除去食対応あり',
       },
       {
@@ -477,13 +477,13 @@ async function main() {
         futonSupport: 'バスタオル持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '月に数回利用',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '年に2回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: 'リトミック・英語',
+        lessons: 'リトミック・英語教室',
         allergySupport: '個別面談あり',
       },
       {
@@ -506,13 +506,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: '学期に1回程度',
         parentAssociationFrequency: '学期に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・体操・音楽',
+        lessons: '英語教室・体操教室・音楽教室',
         allergySupport: '完全除去＋代替食対応',
       },
       {
@@ -535,14 +535,14 @@ async function main() {
         futonSupport: '敷布団・掛布団持参',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '1〜2人程度',
+        extendedCareUsage: '10人未満',
         weekdayEvents: '月に2回程度',
         parentAssociationFrequency: '月に1回',
 
         contactBookType: ContactType.PAPER,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '季節イベント・制作活動',
-        allergySupport: '家庭から弁当持参',
+        lessons: null,
+        allergySupport: null,
       },
       {
         name: 'わかば保育園',
@@ -564,13 +564,13 @@ async function main() {
         futonSupport: '園で管理',
 
         extendedCareHours: '18:00〜20:30',
-        extendedCareUsage: '5人以上',
+        extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語・プログラミング',
+        lessons: '英語教室・プログラミング',
         allergySupport: '個別対応あり',
       },
       {
@@ -593,13 +593,13 @@ async function main() {
         futonSupport: 'バスタオル持参',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '3人程度',
+        extendedCareUsage: '10〜20人程度',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '年に2回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '体操・自然遊び',
+        lessons: null,
         allergySupport: '除去食対応あり',
       },
     ],
