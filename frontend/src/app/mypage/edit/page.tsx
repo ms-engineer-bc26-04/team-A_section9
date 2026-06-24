@@ -66,7 +66,7 @@ export default function MyPageEditPage() {
           `https://zipcloud.ibsrio.com/api/search?zipcode=${value}`
         )
         const data = await res.json()
-        if (data.results) {
+        if (data.results && data.results.length > 0) {
           const result = data.results[0]
           setAddress(`${result.address1}${result.address2}${result.address3}`)
         }
