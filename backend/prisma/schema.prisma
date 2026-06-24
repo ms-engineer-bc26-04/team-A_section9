@@ -58,7 +58,7 @@ enum SubscriptionStatus {
 
 model User {
   id             String         @id @default(uuid()) @db.Uuid
-  supabaseUserId String? @unique @map("supabase_user_id") @db.Uuid
+  supabaseUserId String?        @unique @map("supabase_user_id") @db.Uuid
   email          String         @unique @db.VarChar(255)
   planType       MembershipType @default(FREE) @map("plan_type")
   createdAt      DateTime       @default(now()) @map("created_at")
@@ -131,8 +131,13 @@ model Favorite {
 }
 
 model Subscription {
-  id        BigInt             @id @default(autoincrement())
-  userId    String             @unique @map("user_id") @db.Uuid
+  id     BigInt @id @default(autoincrement())
+  userId String @unique @map("user_id") @db.Uuid
+
+  stripeCustomerId     String?   @map("stripe_customer_id") @db.VarChar(255)
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id") @db.VarChar(255)
+  currentPeriodEnd     DateTime? @map("current_period_end")
+
   status    SubscriptionStatus @default(ACTIVE)
   startedAt DateTime           @default(now()) @map("started_at")
   endedAt   DateTime?          @map("ended_at")
@@ -143,6 +148,7 @@ model Subscription {
 
   @@map("subscriptions")
 }
+
 model CompareHistory {
   id        BigInt   @id @default(autoincrement())
   userId    String   @map("user_id") @db.Uuid
