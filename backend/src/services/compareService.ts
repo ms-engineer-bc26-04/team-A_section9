@@ -36,15 +36,25 @@ const toCompareSchool = (school: School) => {
     schoolType: school.schoolType,
     lifeBurden: {
       mealType: school.mealType,
-      itemBurdenLevel: school.itemBurdenLevel,
+
+      // 比較画面では enum の itemBurdenLevel ではなく、
+      // DBのテキストカラム itemBurdenDetail をそのまま返す
+      itemBurdenDetail: school.itemBurdenDetail,
+
       diaperSupport: school.diaperSupport,
       futonSupport: school.futonSupport,
     },
     timeBurden: {
       extendedCareTime: school.extendedCareHours,
       extendedCareUsage: school.extendedCareUsage,
-      weekdayEventsLevel: school.weekdayEventsLevel,
-      parentAssociationLevel: school.parentAssociationLevel,
+
+      // 比較画面では enum の weekdayEventsLevel ではなく、
+      // DBのテキストカラム weekdayEvents をそのまま返す
+      weekdayEvents: school.weekdayEvents,
+
+      // 比較画面では enum の parentAssociationLevel ではなく、
+      // DBのテキストカラム parentAssociationFrequency をそのまま返す
+      parentAssociationFrequency: school.parentAssociationFrequency,
     },
   }
 }
