@@ -4,7 +4,9 @@ import type { SchoolSearchQueryInput } from '../validators/schoolValidator'
 
 export type SchoolSearchQuery = SchoolSearchQueryInput
 
-const buildSchoolWhere = (query: SchoolSearchQuery): Prisma.SchoolWhereInput => {
+const buildSchoolWhere = (
+  query: SchoolSearchQuery
+): Prisma.SchoolWhereInput => {
   const keyword = query.keyword || query.q
 
   return {
@@ -120,7 +122,9 @@ const calculateRecommendedScore = (
       nextScore += 1
     }
 
-    if (school.parentAssociationLevel === favoriteSchool.parentAssociationLevel) {
+    if (
+      school.parentAssociationLevel === favoriteSchool.parentAssociationLevel
+    ) {
       nextScore += 1
     }
 

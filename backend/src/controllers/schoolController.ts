@@ -178,13 +178,13 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
     }
 
     const user = await getCurrentUserIfAuthenticated(
-  req as AuthenticatedRequest
-)
+      req as AuthenticatedRequest
+    )
 
-const schools =
-  parsedQuery.data.sort === 'recommended' && user
-    ? await getRecommendedSchools(parsedQuery.data, user.id)
-    : await getSchools(parsedQuery.data)
+    const schools =
+      parsedQuery.data.sort === 'recommended' && user
+        ? await getRecommendedSchools(parsedQuery.data, user.id)
+        : await getSchools(parsedQuery.data)
 
     const favoritedSchoolIds = user
       ? await getFavoritedSchoolIds(
