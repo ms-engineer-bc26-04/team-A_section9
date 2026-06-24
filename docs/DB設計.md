@@ -1,10 +1,11 @@
 # DB 設計書：ENKATSU 〜園活を円滑に〜
 
-> 本 DB 設計書は、ENKATSU の MVP 実装に必要なデータ構造を整理する。
+> 本 DB 設計書は、画面設計書 v0.7 を最新版として優先し、MVP 実装に必要なデータ構造を整理する。
 >
-> 園情報は MVP では seed データで管理し、管理画面 CRUD は MVP 対象外とする。
+> ER 図は drawSQL で作成し、リポジトリ内（例：`docs/diagrams/erd.jpg`）で管理することを推奨。
 >
-> ER 図は drawSQL 等で作成し、リポジトリ内（例：`docs/diagrams/erd.jpg`）で管理することを推奨。
+> * drawSQL: https://drawsql.app/
+> * VSCode Extension: Draw.io Integration
 
 ---
 
@@ -21,17 +22,18 @@
   * カラム名：snake_case
   * 主キー：id
   * 外部キー：`xxx_id`
-* APIレスポンスでは、フロントエンドで扱いやすいように `camelCase` へ変換する
+* 画面設計書 v0.7 を最新版として優先する
 * 園情報は MVP では seed データで管理する
 * 管理画面 CRUD は MVP 対象外
 * お気に入りは一般ユーザーも利用可能とし、一般ユーザーは最大5件、プレミアムユーザーは無制限とする
 * 比較は一般ユーザーは2園、プレミアムユーザーは3園までとする
-* プロフィール編集画面で登録する住所・希望条件は、ホーム画面のおすすめ表示とプレミアム比較画面の一致表示に利用する
-* DB上は `postal_code`、`address` を NULL 許可とするが、プロフィール編集画面ではおすすめ表示に利用するため、郵便番号・住所を必須入力とする
+* プロフィール編集画面で登録するユーザー希望条件は、`user_preferences` テーブルで管理する
+* ユーザー希望条件は、ホーム画面のおすすめ表示とプレミアム比較画面の一致表示に利用する
 * プレミアム判定は `subscriptions.status = ACTIVE` を正とし、`users.plan_type` は画面表示用の補助情報として扱う
 * 会員登録後は一般ユーザーとして扱う
 * アプリ側の `users` レコードは、`GET /users/me` 実行時に必要に応じて自動作成する
-* `compare_lists` はMVPではAPIから利用しないが、将来拡張用としてテーブルのみ作成する
+* `compare_histories` は将来拡張用として存在するが、MVPでは比較履歴保存は行わない
+* `report_histories` は将来拡張用として存在する
 * RedisキャッシュはMVPで利用する
 * 物理削除 / 論理削除
 
@@ -48,17 +50,45 @@
 
 ![ERD](./diagrams/erd.jpg)
 
+### ER図 更新内容
+
+今回のユーザー希望条件対応により、以下のリレーションを追加する。
+
+```txt
+users 1 ─── 0..1 user_preferences
+```
+
+意味：
+
+* 1人のユーザーは、希望条件を0件または1件持つ
+* 1件の希望条件は、必ず1人のユーザーに紐づく
+* `user_preferences.user_id` に UNIQUE 制約を設定し、1ユーザーにつき希望条件は1件のみ保持する
+
+Mermaidで表す場合：
+
+```mermaid
+erDiagram
+  users ||--o| user_preferences : has
+  users ||--o{ favorites : has
+  users ||--o| subscriptions : has
+  users ||--o{ compare_histories : has
+  users ||--o{ report_histories : has
+  schools ||--o{ favorites : has
+```
+
 ---
 
 ## 3. テーブル一覧
 
-| テーブル名         | 役割                                          |
-| ------------- | ------------------------------------------- |
-| users         | Supabase Auth と紐づくアプリ内ユーザー情報・会員状態・希望条件を管理する |
-| schools       | 園の基本情報・生活負担・時間負担・サポート情報を管理する                |
-| favorites     | ユーザーがお気に入り登録した園を管理する                        |
-| compare_lists | 後続拡張用。MVPではAPIから利用しないが、将来拡張用としてテーブルのみ作成する   |
-| subscriptions | Stripe の課金状態・プレミアム状態を管理する                   |
+| テーブル名             | 役割                                     |
+| ----------------- | -------------------------------------- |
+| users             | Supabase Auth と紐づくアプリ内ユーザー情報・会員状態を管理する |
+| user_preferences  | ユーザーごとの希望条件を管理する                       |
+| schools           | 園の基本情報・生活負担・時間負担・サポート情報を管理する           |
+| favorites         | ユーザーがお気に入り登録した園を管理する                   |
+| subscriptions     | Stripe の課金状態・プレミアム状態を管理する              |
+| compare_histories | 将来拡張用。比較履歴を管理する                        |
+| report_histories  | 将来拡張用。レポート履歴を管理する                      |
 
 ---
 
@@ -66,149 +96,132 @@
 
 ### 4.1 users
 
-Supabase Auth のユーザー情報と、アプリ内で利用するプロフィール・会員状態・希望条件を管理する。
+Supabase Auth のユーザー情報と、アプリ内で利用する会員状態を管理する。
 
 ENKATSUにおける会員登録は、無料のユーザー登録を指す。
-
 会員登録後は一般ユーザーとして扱い、`plan_type` の初期値は `FREE` とする。
 
-MVPでは、Supabase Auth 上のユーザーは存在するがアプリ側 `users` レコードが存在しない場合、`GET /users/me` 実行時にバックエンド側で `users` レコードを自動作成する。
+MVPでは、Supabase Auth 上のユーザーは存在するがアプリ側 `users` レコードが存在しない場合、`GET /api/v1/users/me` 実行時にバックエンド側で `users` レコードを自動作成する。
 
-| カラム名                         | 型            | NULL | デフォルト | 説明                               |
-| ---------------------------- | ------------ | ---- | ----- | -------------------------------- |
-| id                           | uuid         | NO   | -     | 主キー（Supabase Auth User ID）       |
-| email                        | varchar(255) | NO   | -     | メールアドレス                          |
-| name                         | varchar(100) | YES  | -     | 表示名                              |
-| avatar_url                   | text         | YES  | -     | アバター画像URL                        |
-| postal_code                  | varchar(7)   | YES  | -     | 郵便番号。DB上はNULL許可だが、プロフィール編集画面では必須 |
-| address                      | varchar(255) | YES  | -     | 住所。DB上はNULL許可だが、プロフィール編集画面では必須   |
-| plan_type                    | varchar(20)  | NO   | FREE  | 表示用の会員種別（FREE / PAID）            |
-| preferred_meal_type          | varchar(50)  | YES  | -     | 希望条件：給食・弁当                       |
-| preferred_item_burden        | varchar(20)  | YES  | -     | 希望条件：持ち物負担                       |
-| preferred_diaper_support     | varchar(50)  | YES  | -     | 希望条件：おむつ対応                       |
-| preferred_futon_support      | varchar(50)  | YES  | -     | 希望条件：布団対応                        |
-| preferred_extended_care      | boolean      | NO   | false | 希望条件：延長保育を利用したい                  |
-| preferred_weekday_events     | varchar(20)  | YES  | -     | 希望条件：平日行事の少なさ                    |
-| preferred_parent_association | varchar(20)  | YES  | -     | 希望条件：保護者会の少なさ                    |
-| created_at                   | timestamp    | NO   | now() | 作成日時                             |
-| updated_at                   | timestamp    | NO   | now() | 更新日時                             |
+| カラム名             | 型               | NULL | デフォルト  | 説明                    |
+| ---------------- | --------------- | ---- | ------ | --------------------- |
+| id               | uuid            | NO   | uuid() | アプリ内ユーザーID            |
+| supabase_user_id | uuid            | YES  | -      | Supabase Auth User ID |
+| email            | varchar(255)    | NO   | -      | メールアドレス               |
+| plan_type        | membership_type | NO   | FREE   | 表示用の会員種別（FREE / PAID） |
+| created_at       | timestamp       | NO   | now()  | 作成日時                  |
+| updated_at       | timestamp       | NO   | now()  | 更新日時                  |
 
 #### users レコード自動作成時の初期値
 
-| カラム名                    | 初期値                    |
-| ----------------------- | ---------------------- |
-| id                      | Supabase Auth User ID  |
-| email                   | Supabase Auth のメールアドレス |
-| plan_type               | FREE                   |
-| preferred_extended_care | false                  |
-| created_at              | 作成日時                   |
-| updated_at              | 作成日時                   |
+| カラム名             | 初期値                    |
+| ---------------- | ---------------------- |
+| id               | UUIDを自動生成              |
+| supabase_user_id | Supabase Auth User ID  |
+| email            | Supabase Auth のメールアドレス |
+| plan_type        | FREE                   |
+| created_at       | 作成日時                   |
+| updated_at       | 作成日時                   |
 
-`name`、`postal_code`、`address`、各希望条件は、会員登録直後は未設定でもよい。
+#### users のリレーション
 
-プロフィール編集画面から更新する場合は、`name`、`postal_code`、`address` を必須入力とする。
+| 関連テーブル            | 関係       | 説明                |
+| ----------------- | -------- | ----------------- |
+| user_preferences  | 1 : 0..1 | ユーザーごとの希望条件を保持する  |
+| favorites         | 1 : 多    | ユーザーのお気に入り園を保持する  |
+| subscriptions     | 1 : 0..1 | ユーザーの課金状態を保持する    |
+| compare_histories | 1 : 多    | 将来拡張用の比較履歴を保持する   |
+| report_histories  | 1 : 多    | 将来拡張用のレポート履歴を保持する |
 
 ---
 
-### 4.2 schools
+### 4.2 user_preferences
+
+ユーザーごとの希望条件を保存するテーブル。
+
+プロフィール編集画面で保存された希望条件を保持し、比較APIの `matchHighlights` 判定や、おすすめ順ロジックで利用する。
+
+| カラム名                               | 型            | NULL | デフォルト  | 説明            |
+| ---------------------------------- | ------------ | ---- | ------ | ------------- |
+| id                                 | uuid         | NO   | uuid() | 希望条件ID        |
+| user_id                            | uuid         | NO   | -      | users.id を参照  |
+| preferred_meal_type                | meal_type    | YES  | -      | 希望する給食・弁当区分   |
+| preferred_item_burden_level        | burden_level | YES  | -      | 希望する持ち物負担レベル  |
+| preferred_diaper_support           | varchar(50)  | YES  | -      | 希望するおむつ対応     |
+| preferred_futon_support            | varchar(50)  | YES  | -      | 希望する布団対応      |
+| preferred_extended_care            | varchar(50)  | YES  | -      | 希望する延長保育条件    |
+| preferred_weekday_events_level     | burden_level | YES  | -      | 希望する平日行事負担レベル |
+| preferred_parent_association_level | burden_level | YES  | -      | 希望する保護者会負担レベル |
+| created_at                         | timestamp    | NO   | now()  | 作成日時          |
+| updated_at                         | timestamp    | NO   | now()  | 更新日時          |
+
+#### user_preferences のリレーション
+
+| 元テーブル            | 関連テーブル | 関係    | 説明                 |
+| ---------------- | ------ | ----- | ------------------ |
+| user_preferences | users  | 多 : 1 | 希望条件は必ず1人のユーザーに紐づく |
+
+#### 備考
+
+* `user_id` は UNIQUE 制約を持つため、1ユーザーにつき希望条件は1件のみ保存する
+* 希望条件が未設定の場合、APIでは `preference: null` を返す
+* 希望条件は `PATCH /api/v1/users/me/preferences` で保存・更新する
+* `upsert` を利用し、未作成の場合は作成、作成済みの場合は更新する
+* 比較APIの `matchHighlights` およびおすすめ順ロジックで参照する
+
+---
+
+### 4.3 schools
 
 園（保育園・こども園等）の基本情報・生活負担・時間負担・サポート情報を管理する。
 
 MVP では seed データとして登録し、管理画面からの CRUD は対象外とする。
 
-| カラム名                         | 型            | NULL | デフォルト         | 説明                           |
-| ---------------------------- | ------------ | ---- | ------------- | ---------------------------- |
-| id                           | bigint       | NO   | autoincrement | 主キー                          |
-| name                         | varchar(255) | NO   | -             | 園名                           |
-| area                         | varchar(100) | NO   | -             | エリア・市区町村                     |
-| address                      | varchar(255) | NO   | -             | 住所                           |
-| school_type                  | varchar(50)  | NO   | -             | 園種別                          |
-| life_burden_level            | varchar(20)  | NO   | -             | 生活負担（LOW / MEDIUM / HIGH）    |
-| time_burden_level            | varchar(20)  | NO   | -             | 時間負担（LOW / MEDIUM / HIGH）    |
-| meal_type                    | varchar(50)  | NO   | -             | 給食・弁当                        |
-| item_burden_level            | varchar(20)  | NO   | -             | 持ち物負担（LOW / MEDIUM / HIGH）   |
-| item_burden_detail           | varchar(255) | YES  | -             | 持ち物負担の具体的な表示用テキスト            |
-| diaper_support               | varchar(50)  | YES  | -             | おむつ対応                        |
-| futon_support                | varchar(50)  | YES  | -             | 布団対応                         |
-| extended_care_hours          | varchar(50)  | YES  | -             | 延長保育利用時間                     |
-| extended_care_usage          | varchar(50)  | YES  | -             | 延長保育利用者の目安・多さ                |
-| weekday_events_level         | varchar(20)  | NO   | -             | 平日行事の多さ（LOW / MEDIUM / HIGH） |
-| weekday_events               | varchar(255) | YES  | -             | 平日行事の具体的な表示用テキスト             |
-| parent_association_level     | varchar(20)  | NO   | -             | 保護者会の負担（LOW / MEDIUM / HIGH） |
-| parent_association_frequency | varchar(255) | YES  | -             | 保護者会頻度の表示用テキスト               |
-| contact_book_type            | varchar(50)  | YES  | -             | 連絡帳                          |
-| absence_contact_method       | varchar(50)  | YES  | -             | 欠席連絡方法                       |
-| lessons                      | varchar(255) | YES  | -             | 園内習い事。ない場合は NULL             |
-| allergy_support              | varchar(255) | YES  | -             | アレルギー対応。ない場合は NULL           |
-| description                  | text         | YES  | -             | 園の特徴・補足説明                    |
-| created_at                   | timestamp    | NO   | now()         | 作成日時                         |
-| updated_at                   | timestamp    | NO   | now()         | 更新日時                         |
-
-#### 表示用テキストカラムについて
-
-園詳細API・比較APIでは、画面表示でそのまま使いやすいように、以下の表示用テキストカラムを利用する。
-
-| カラム名                         | 用途                   |
-| ---------------------------- | -------------------- |
-| item_burden_detail           | 持ち物負担の具体的な説明として利用する  |
-| weekday_events               | 平日行事の頻度・内容の説明として利用する |
-| parent_association_frequency | 保護者会頻度の説明として利用する     |
-
-比較APIでは、比較画面でそのまま表示しやすいように、`item_burden_level` / `weekday_events_level` / `parent_association_level` ではなく、上記の表示用テキストカラムを返す。
-
-#### lessons / allergy_support の NULL 運用
-
-`lessons` と `allergy_support` は、条件検索で「あり / なし」を判定するため、以下のルールで運用する。
-
-| カラム             | ありの場合              | なしの場合 |
-| --------------- | ------------------ | ----- |
-| lessons         | 園内習い事の内容を文字列で登録する  | NULL  |
-| allergy_support | アレルギー対応内容を文字列で登録する | NULL  |
-
-条件検索では、以下のように扱う。
-
-| 検索条件      | DB上の判定                        |
-| --------- | ----------------------------- |
-| 園内習い事あり   | `lessons IS NOT NULL`         |
-| アレルギー対応あり | `allergy_support IS NOT NULL` |
+| カラム名                         | 型            | NULL | デフォルト         | 説明            |
+| ---------------------------- | ------------ | ---- | ------------- | ------------- |
+| id                           | bigint       | NO   | autoincrement | 主キー           |
+| name                         | varchar(255) | NO   | -             | 園名            |
+| area                         | varchar(100) | NO   | -             | エリア・市区町村      |
+| address                      | varchar(255) | NO   | -             | 住所            |
+| phone_number                 | varchar(20)  | YES  | -             | 電話番号          |
+| image_url                    | varchar(255) | YES  | -             | 園画像URL        |
+| school_type                  | school_type  | NO   | -             | 園種別           |
+| life_burden_level            | burden_level | NO   | -             | 生活負担          |
+| time_burden_level            | burden_level | NO   | -             | 時間負担          |
+| meal_type                    | meal_type    | NO   | -             | 給食・弁当         |
+| item_burden_level            | burden_level | NO   | -             | 持ち物負担         |
+| item_burden_detail           | varchar(255) | YES  | -             | 持ち物負担の補足説明    |
+| diaper_support               | varchar(50)  | YES  | -             | おむつ対応         |
+| futon_support                | varchar(50)  | YES  | -             | 布団対応          |
+| extended_care_hours          | varchar(50)  | YES  | -             | 延長保育利用時間      |
+| extended_care_usage          | varchar(50)  | NO   | -             | 延長保育利用者の目安・多さ |
+| weekday_events_level         | burden_level | NO   | -             | 平日行事の多さ       |
+| weekday_events               | varchar(100) | YES  | -             | 平日行事の補足説明     |
+| parent_association_level     | burden_level | NO   | -             | 保護者会の負担       |
+| parent_association_frequency | varchar(100) | YES  | -             | 保護者会頻度        |
+| contact_book_type            | contact_type | YES  | -             | 連絡帳           |
+| absence_contact_method       | contact_type | YES  | -             | 欠席連絡方法        |
+| lessons                      | varchar(255) | YES  | -             | 園内習い事         |
+| allergy_support              | varchar(255) | YES  | -             | アレルギー対応       |
+| description                  | text         | YES  | -             | 園の特徴・補足説明     |
+| created_at                   | timestamp    | NO   | now()         | 作成日時          |
+| updated_at                   | timestamp    | NO   | now()         | 更新日時          |
 
 ---
 
-### 4.3 favorites
+### 4.4 favorites
 
 ユーザーがお気に入り登録した園を管理する。
 
 一般ユーザーは5件まで、プレミアムユーザーは無制限で登録できる。
-
 お気に入り登録上限は DB 制約ではなく、API 側で制御する。
 
-| カラム名       | 型         | NULL | デフォルト         | 説明         |
-| ---------- | --------- | ---- | ------------- | ---------- |
-| id         | bigint    | NO   | autoincrement | 主キー        |
-| user_id    | uuid      | NO   | -             | users.id   |
-| school_id  | bigint    | NO   | -             | schools.id |
-| created_at | timestamp | NO   | now()         | 作成日時       |
-
----
-
-### 4.4 compare_lists
-
-ユーザーが比較対象として選択した園を保存するためのテーブル。
-
-ただし、MVPでは比較対象の保存APIは実装しない。
-
-比較対象は `/mypage/favorites` 画面上で選択し、`GET /api/v1/schools/compare?ids=1,2` のように school_id をクエリで渡して比較情報を取得する。
-
-そのため、`compare_lists` はMVPではAPIから利用しない。
-
-ただし、後続で比較リスト保存機能を拡張できるように、将来拡張用としてテーブルのみ作成する。
-
-| カラム名       | 型         | NULL | デフォルト         | 説明         |
-| ---------- | --------- | ---- | ------------- | ---------- |
-| id         | bigint    | NO   | autoincrement | 主キー        |
-| user_id    | uuid      | NO   | -             | users.id   |
-| school_id  | bigint    | NO   | -             | schools.id |
-| created_at | timestamp | NO   | now()         | 作成日時       |
+| カラム名       | 型         | NULL | デフォルト         | 説明             |
+| ---------- | --------- | ---- | ------------- | -------------- |
+| id         | bigint    | NO   | autoincrement | 主キー            |
+| user_id    | uuid      | NO   | -             | users.id を参照   |
+| school_id  | bigint    | NO   | -             | schools.id を参照 |
+| created_at | timestamp | NO   | now()         | 作成日時           |
 
 ---
 
@@ -217,19 +230,51 @@ MVP では seed データとして登録し、管理画面からの CRUD は対�
 ユーザーのプレミアム課金状態を管理する。
 
 プレミアム判定は `subscriptions.status = ACTIVE` を正とする。
-
 `users.plan_type` は画面表示や簡易的な会員種別表示のための補助情報として扱う。
 
-| カラム名                   | 型            | NULL | デフォルト         | 説明                           |
-| ---------------------- | ------------ | ---- | ------------- | ---------------------------- |
-| id                     | bigint       | NO   | autoincrement | 主キー                          |
-| user_id                | uuid         | NO   | -             | users.id                     |
-| stripe_customer_id     | varchar(255) | YES  | -             | Stripe 顧客ID                  |
-| stripe_subscription_id | varchar(255) | YES  | -             | Stripe Subscription ID       |
-| status                 | varchar(50)  | NO   | -             | ACTIVE / CANCELED / PAST_DUE |
-| current_period_end     | timestamp    | YES  | -             | 現在の契約期間終了日時                  |
-| created_at             | timestamp    | NO   | now()         | 作成日時                         |
-| updated_at             | timestamp    | NO   | now()         | 更新日時                         |
+| カラム名                   | 型                   | NULL | デフォルト         | 説明                          |
+| ---------------------- | ------------------- | ---- | ------------- | --------------------------- |
+| id                     | bigint              | NO   | autoincrement | 主キー                         |
+| user_id                | uuid                | NO   | -             | users.id を参照                |
+| stripe_customer_id     | varchar(255)        | YES  | -             | Stripe 顧客ID                 |
+| stripe_subscription_id | varchar(255)        | YES  | -             | Stripe Subscription ID      |
+| current_period_end     | timestamp           | YES  | -             | 現在の契約期間終了日時                 |
+| status                 | subscription_status | NO   | ACTIVE        | ACTIVE / CANCELED / EXPIRED |
+| started_at             | timestamp           | NO   | now()         | 開始日時                        |
+| ended_at               | timestamp           | YES  | -             | 終了日時                        |
+| created_at             | timestamp           | NO   | now()         | 作成日時                        |
+| updated_at             | timestamp           | NO   | now()         | 更新日時                        |
+
+---
+
+### 4.6 compare_histories
+
+ユーザーの比較履歴を管理するためのテーブル。
+
+MVPでは比較履歴保存は行わないが、将来拡張用としてテーブルを保持する。
+
+| カラム名       | 型         | NULL | デフォルト         | 説明           |
+| ---------- | --------- | ---- | ------------- | ------------ |
+| id         | bigint    | NO   | autoincrement | 主キー          |
+| user_id    | uuid      | NO   | -             | users.id を参照 |
+| school_ids | bigint[]  | NO   | -             | 比較対象の園ID配列   |
+| created_at | timestamp | NO   | now()         | 作成日時         |
+
+---
+
+### 4.7 report_histories
+
+ユーザーのレポート履歴を管理するためのテーブル。
+
+MVPではAIレポート生成結果の保存は行わないが、将来拡張用としてテーブルを保持する。
+
+| カラム名       | 型            | NULL | デフォルト         | 説明           |
+| ---------- | ------------ | ---- | ------------- | ------------ |
+| id         | bigint       | NO   | autoincrement | 主キー          |
+| user_id    | uuid         | NO   | -             | users.id を参照 |
+| school_id  | bigint       | YES  | -             | schools.id   |
+| title      | varchar(255) | YES  | -             | レポートタイトル     |
+| created_at | timestamp    | NO   | now()         | 作成日時         |
 
 ---
 
@@ -238,53 +283,60 @@ MVP では seed データとして登録し、管理画面からの CRUD は対�
 ### 5.1 users
 
 * 主キー：`id`
+* `supabase_user_id` にユニーク制約を設定する
 * `email` にユニーク制約を設定する
 
 ```sql
+UNIQUE(supabase_user_id)
 UNIQUE(email)
 ```
 
 ---
 
-### 5.2 schools
+### 5.2 user_preferences
 
 * 主キー：`id`
-* 検索で利用する `area` にインデックスを設定する
-* 園名・住所検索で利用する `name`、`address` にインデックスを設定する
-* 条件検索で利用する項目は、必要に応じて後続でインデックス追加を検討する
+* `user_id` は `users.id` を参照する
+* `user_id` にユニーク制約を設定する
+* `users` が削除された場合、紐づく `user_preferences` も削除する
 
 ```sql
-INDEX(area)
-INDEX(name)
-INDEX(address)
+UNIQUE(user_id)
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 ```
-
-条件検索で利用する主なカラムは以下。
-
-* `meal_type`
-* `diaper_support`
-* `futon_support`
-* `extended_care_usage`
-* `weekday_events_level`
-* `parent_association_level`
-* `lessons`
-* `allergy_support`
-
-MVPでは seed データ件数が少ないため、上記へのインデックス追加は必須ではない。
-
-データ件数が増えた場合に追加を検討する。
 
 ---
 
-### 5.3 favorites
+### 5.3 schools
+
+* 主キー：`id`
+* 検索で利用する `area` にインデックスを設定する
+* 検索・絞り込みで利用する `school_type`、`life_burden_level`、`time_burden_level`、`meal_type` にインデックスを設定する
+
+```sql
+INDEX(area)
+INDEX(school_type)
+INDEX(life_burden_level)
+INDEX(time_burden_level)
+INDEX(meal_type)
+```
+
+---
+
+### 5.4 favorites
 
 * 主キー：`id`
 * `user_id` は `users.id` を参照する
 * `school_id` は `schools.id` を参照する
 * 同じユーザーが同じ園を重複してお気に入り登録できないように複合ユニーク制約を設定する
+* `users` または `schools` が削除された場合、紐づく `favorites` も削除する
 
 ```sql
 UNIQUE(user_id, school_id)
+INDEX(user_id)
+INDEX(school_id)
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+FOREIGN KEY(school_id) REFERENCES schools(id) ON DELETE CASCADE
 ```
 
 お気に入り登録件数は DB 制約ではなく API 側で制御する。
@@ -295,40 +347,54 @@ UNIQUE(user_id, school_id)
 
 ---
 
-### 5.4 compare_lists
-
-* 主キー：`id`
-* `user_id` は `users.id` を参照する
-* `school_id` は `schools.id` を参照する
-* 同じユーザーが同じ園を比較対象に重複登録できないように複合ユニーク制約を設定する
-
-```sql
-UNIQUE(user_id, school_id)
-```
-
-MVPでは `compare_lists` はAPIから利用しない。
-
-ただし、将来拡張用としてテーブルのみ作成する。
-
-MVPの比較対象の最大件数制御は、比較取得API側で行う。
-
-* 一般ユーザー：最大2園
-* プレミアムユーザー：最大3園
-
-後続で比較リスト保存機能を実装する場合は、`compare_lists` への登録時にも上記の最大件数をAPI側で制御する。
-
----
-
 ### 5.5 subscriptions
 
 * 主キー：`id`
 * `user_id` は `users.id` を参照する
-* `stripe_customer_id` にユニーク制約を設定する
+* `user_id` にユニーク制約を設定する
 * `stripe_subscription_id` にユニーク制約を設定する
+* `users` が削除された場合、紐づく `subscriptions` も削除する
 
 ```sql
-UNIQUE(stripe_customer_id)
+UNIQUE(user_id)
 UNIQUE(stripe_subscription_id)
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+```
+
+---
+
+### 5.6 compare_histories
+
+* 主キー：`id`
+* `user_id` は `users.id` を参照する
+* `user_id` にインデックスを設定する
+* `users` が削除された場合、紐づく `compare_histories` も削除する
+
+```sql
+INDEX(user_id)
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+```
+
+MVPでは比較履歴保存は行わない。
+比較対象の最大件数制御は、比較取得API側で行う。
+
+* 一般ユーザー：最大2園
+* プレミアムユーザー：最大3園
+
+---
+
+### 5.7 report_histories
+
+* 主キー：`id`
+* `user_id` は `users.id` を参照する
+* `user_id` にインデックスを設定する
+* `school_id` にインデックスを設定する
+* `users` が削除された場合、紐づく `report_histories` も削除する
+
+```sql
+INDEX(user_id)
+INDEX(school_id)
+FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 ```
 
 ---
@@ -337,17 +403,18 @@ UNIQUE(stripe_subscription_id)
 
 * 園情報は MVP では seed データとして登録する
 * お気に入りはユーザーごとに DB 保存する
-* MVP では比較対象は DB 保存しない
+* ユーザー希望条件は `user_preferences` に保存する
+* 1ユーザーにつき希望条件は0件または1件とする
+* 希望条件が未設定の場合、APIでは `preference: null` を返す
+* MVP では比較履歴は DB 保存しない
 * `/mypage/favorites` 画面で選択した school_id を `/compare` に渡し、比較情報を取得する
-* `compare_lists` はMVPではAPIから利用しないが、将来拡張用としてテーブルのみ作成する
 * お気に入りの重複登録は DB 側の複合ユニーク制約で防止する
 * お気に入り登録上限は API 側で制御する
 * 比較数の上限は比較取得API側で制御する
-* 未ログインユーザーは `favorites`、`compare_lists`、`users` 更新系 API を利用できない
+* 未ログインユーザーは `favorites`、`users` 更新系 API、`user_preferences` 更新系 API を利用できない
 * 一般ユーザーがプレミアム限定情報を取得しようとした場合は、バックエンド側でも認可チェックを行う
 * ユーザー退会機能は MVP 対象外とする
-* 会員登録後、Supabase Auth 上のユーザーは存在するが `users` レコードが存在しない場合は、`GET /users/me` 実行時に一般ユーザーとして自動作成する
-* `lessons` / `allergy_support` は「あり / なし」の判定に使用するため、なしの場合は空文字ではなく NULL として管理する
+* 会員登録後、Supabase Auth 上のユーザーは存在するが `users` レコードが存在しない場合は、`GET /api/v1/users/me` 実行時に一般ユーザーとして自動作成する
 
 ---
 
@@ -369,34 +436,35 @@ RedisはDBテーブルではないが、園データ取得時のパフォーマ�
 
 ### 8.1 キャッシュ対象
 
-| 対象     | 内容                              |
-| ------ | ------------------------------- |
-| 園一覧    | 全件または検索条件に一致する園一覧               |
-| 検索結果   | キーワード・条件検索の結果                   |
-| おすすめ表示 | ユーザー情報やお気に入り傾向をもとにしたおすすめ表示の元データ |
+| 対象     | 内容                           |
+| ------ | ---------------------------- |
+| 園一覧    | 全件またはページング済みの園一覧             |
+| 検索結果   | キーワード・条件検索の結果                |
+| おすすめ表示 | ユーザー住所・希望条件をもとにしたおすすめ表示の元データ |
 
 ### 8.2 キャッシュ対象外
 
 以下のようなログインユーザーごとに変わる情報は、キャッシュ対象から分けて扱う。
 
-| 対象外             | 理由             |
-| --------------- | -------------- |
-| `isFavorited`   | ユーザーごとに異なるため   |
-| `favoriteCount` | ユーザーごとに異なるため   |
-| `favoriteLimit` | ユーザー区分ごとに異なるため |
-| `isPremium`     | 課金状態により変わるため   |
-| サポート情報の閲覧可否     | 会員区分により変わるため   |
+| 対象外               | 理由               |
+| ----------------- | ---------------- |
+| `isFavorited`     | ユーザーごとに異なるため     |
+| `favoriteCount`   | ユーザーごとに異なるため     |
+| `favoriteLimit`   | ユーザー区分ごとに異なるため   |
+| `isPremium`       | 課金状態により変わるため     |
+| `preference`      | ユーザーごとに異なるため     |
+| `matchHighlights` | ユーザー希望条件により変わるため |
+| サポート情報の閲覧可否       | 会員区分により変わるため     |
 
 ### 8.3 キャッシュキー方針
 
-検索条件・並び順をもとにキャッシュキーを作成する。
+検索条件・並び順・ページング条件をもとにキャッシュキーを作成する。
 
 例：
 
 ```txt
-schools:list:keyword=sakura:mealType=SCHOOL_LUNCH:sort=id_asc
-schools:list:diaperSupport=true:futonSupport=true:extendedCareUsage=true
-schools:recommended:userId=<user_id>
+schools:list:keyword=sakura:mealType=school_lunch:sort=createdAtDesc:limit=20:offset=0
+schools:recommended:area=渋谷区:preferences=mealType_school_lunch_item_low
 ```
 
 ### 8.4 キャッシュ削除方針
@@ -408,29 +476,18 @@ MVPでは園情報は seed データで管理するため、頻繁な更新は�
 * seed データを更新した場合
 * 園データの内容を変更した場合
 * 開発中にキャッシュの不整合が発生した場合
+* ユーザー希望条件を更新し、おすすめ表示に不整合が発生する場合
 
 TTLはMVPでは任意とする。
-
 設定する場合は、短時間のTTLから開始する。
 
 ---
 
 ## 9. Enum 定義
 
-Prisma では以下の enum 定義を使用する。
+Prisma では以下の enum を定義する。
 
 ```prisma
-enum MembershipType {
-  FREE
-  PAID
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELED
-  PAST_DUE
-}
-
 enum BurdenLevel {
   LOW
   MEDIUM
@@ -449,35 +506,24 @@ enum MealType {
   BOTH
 }
 
-enum ContactBookType {
-  APP
-  PAPER
-  BOTH
-}
-
-enum AbsenceContactMethod {
+enum ContactType {
   APP
   PHONE
-  BOTH
+  PAPER
+  OTHER
+}
+
+enum MembershipType {
+  FREE
+  PAID
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELED
+  EXPIRED
 }
 ```
-
-MVPでは、以下の項目は自由記述のテキストとして扱う。
-
-```txt
-diaper_support
-futon_support
-extended_care_hours
-extended_care_usage
-item_burden_detail
-weekday_events
-parent_association_frequency
-lessons
-allergy_support
-description
-```
-
-ただし、条件検索で使う値については、seed データ内で表記ゆれが出ないように運用ルールを定める。
 
 ---
 
@@ -495,6 +541,9 @@ description
 * 請求履歴一覧
 * 管理画面 CRUD 用の監査ログ
 * 実在園データの大量登録
+* 比較リスト保存
+* 比較履歴保存
+* 比較チャート保存
 
 ---
 
@@ -502,59 +551,32 @@ description
 
 MVP では `schools` に園データを seed で登録する。
 
-#32 で検索・比較確認用に seed データを20件へ拡充している。
-
 seed データには、画面表示・検索・比較に必要な以下の情報を含める。
 
 * 園名
 * エリア
 * 住所
+* 電話番号
 * 園種別
+* 園画像URL
 * 生活負担
 * 時間負担
 * 給食・弁当
 * 持ち物負担
-* 持ち物負担の表示用テキスト
+* 持ち物負担詳細
 * おむつ対応
 * 布団対応
 * 延長保育利用時間
 * 延長保育利用者の目安
-* 平日行事の多さ
-* 平日行事の表示用テキスト
-* 保護者会の負担
-* 保護者会頻度の表示用テキスト
+* 平日行事
+* 平日行事詳細
+* 保護者会
+* 保護者会頻度
 * 連絡帳
 * 欠席連絡方法
 * 園内習い事
 * アレルギー対応
 * 園の特徴・補足説明
-
-### 11.1 条件検索で使用する seed データの基準
-
-MVPの条件検索では、以下の値を検索基準として使用する。
-
-| 検索条件       | DB上の値・判定                         |
-| ---------- | -------------------------------- |
-| 毎日給食       | `meal_type = SCHOOL_LUNCH`       |
-| おむつ園処理あり   | `diaper_support = "園で廃棄"`        |
-| 布団負担少なめ    | `futon_support = "園で管理"`         |
-| 保護者会少なめ    | `parent_association_level = LOW` |
-| 延長保育利用者が多い | `extended_care_usage = "20人以上"`  |
-| 園内習い事あり    | `lessons IS NOT NULL`            |
-| アレルギー対応あり  | `allergy_support IS NOT NULL`    |
-| 平日行事少なめ    | `weekday_events_level = LOW`     |
-
-### 11.2 seed データ登録時の注意
-
-* `lessons` は、園内習い事がある場合のみ内容を登録する
-* 園内習い事がない場合、`lessons` は NULL とする
-* `lessons` には、年間行事・季節イベント・制作活動などは含めない
-* `allergy_support` は、アレルギー対応がある場合のみ内容を登録する
-* アレルギー対応がない場合、`allergy_support` は NULL とする
-* `extended_care_usage` は、検索基準に合わせて `"20人以上"` / `"10〜20人程度"` / `"10人未満"` のように分類する
-* `diaper_support` は、検索条件の「おむつ園処理あり」に該当する場合は `"園で廃棄"` と登録する
-* `futon_support` は、検索条件の「布団負担少なめ」に該当する場合は `"園で管理"` と登録する
-* 表示用テキストカラムは、比較画面・園詳細画面でそのまま読める文章として登録する
 
 ---
 
@@ -562,42 +584,51 @@ MVPの条件検索では、以下の値を検索基準として使用する。
 
 ### 12.1 users
 
-* `id` は Supabase Auth User ID を使用するため、アプリ側でUUIDを自動採番しない
+* `id` はアプリ内ユーザーIDとして UUID を使用する
+* `supabase_user_id` は Supabase Auth User ID と紐づける
+* `supabase_user_id` はユニークにする
 * `email` はユニークにする
 * `plan_type` の初期値は `FREE` とする
-* `postal_code`、`address` はDB上はNULL許可とする
-* プロフィール編集画面では `postal_code`、`address` を必須入力として扱う
+* ユーザー希望条件は `users` ではなく `user_preferences` に分離する
 
-### 12.2 schools
+### 12.2 user_preferences
 
-* `schools.id` は `bigint` とし、APIレスポンスでは文字列に変換して返す
-* Enum値は Prisma Enum として管理する
-* `item_burden_detail` / `weekday_events` / `parent_association_frequency` は、画面表示用のテキストカラムとして扱う
-* `lessons` / `allergy_support` は NULL 許可とする
-* `lessons` / `allergy_support` は、条件検索で `IS NOT NULL` 判定に使用するため、なしの場合は空文字ではなく NULL とする
-* 園情報は seed データで登録する
-* 管理画面 CRUD は MVP 対象外とする
+* `user_id` は `users.id` を参照する
+* `user_id` にユニーク制約を設定し、1ユーザーにつき1件のみ保持する
+* `users` 削除時は、紐づく `user_preferences` も削除する
+* 希望条件未設定時はレコードなしとし、APIでは `preference: null` を返す
+* 保存・更新は `PATCH /api/v1/users/me/preferences` で行う
+* 後続の比較API・おすすめ順ロジックで参照する
 
-### 12.3 favorites
+### 12.3 schools
+
+* 園情報は seed データで管理する
+* 検索対象となる `area`、`school_type`、`life_burden_level`、`time_burden_level`、`meal_type` にはインデックスを設定する
+* 管理画面からのCRUDはMVP対象外とする
+
+### 12.4 favorites
 
 * `user_id` と `school_id` に複合ユニーク制約を設定する
 * お気に入り登録上限はDB制約ではなくAPI側で制御する
 
-### 12.4 compare_lists
-
-* MVPではAPIから利用しない
-* ただし、将来拡張用としてテーブルのみ作成する
-* `user_id` と `school_id` に複合ユニーク制約を設定する
-* 後続で比較リスト保存機能を実装する場合、一般ユーザー2園・プレミアムユーザー3園の制限をAPI側で追加する
-
 ### 12.5 subscriptions
 
 * プレミアム判定は `status = ACTIVE` を正とする
-* `stripe_customer_id` と `stripe_subscription_id` はユニークにする
+* `user_id` と `stripe_subscription_id` はユニークにする
 * Stripe Webhookで `status` と `current_period_end` を更新する
 * 必要に応じて `users.plan_type` も同期する
 
-### 12.6 Redis
+### 12.6 compare_histories
+
+* MVPでは比較履歴保存は行わない
+* 将来拡張用としてテーブルを保持する
+
+### 12.7 report_histories
+
+* MVPではAIレポート生成結果の保存は行わない
+* 将来拡張用としてテーブルを保持する
+
+### 12.8 Redis
 
 * RedisはPrisma schemaには定義しない
 * Docker Compose で Redis サービスを追加する
@@ -612,4 +643,4 @@ MVPの条件検索では、以下の値を検索基準として使用する。
 | ----- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | v0.1  | 2026/06/22 | 画面設計書 v0.5 を最新版として優先し、一般ユーザーのお気に入り上限・プロフィール希望条件・Stripe 解約フローに合わせて修正                                                                                                                                                   |
 | v0.2  | 2026/06/23 | 画面設計書 v0.7 を最新版として優先する記載に修正。`GET /users/me` 実行時の `users` レコード自動作成方針を追加。`compare_lists` はMVPではAPIから利用しないが将来拡張用としてテーブルのみ作成する方針に統一。RedisキャッシュをMVP必須として追加。DB上は `postal_code`、`address` をNULL許可とし、プロフィール編集画面では必須入力とする方針を明記 |
-| v0.3  | 2026/06/25 | seedデータ拡充・条件検索基準・表示用テキストカラムに合わせて修正。`item_burden_detail` / `weekday_events` / `parent_association_frequency` を追加し、`lessons` / `allergy_support` の NULL 運用と条件検索で使用する値の基準を追記                                             |
+| v0.3  | 2026/06/24 | ユーザー希望条件を `users` から分離し、`user_preferences` テーブルとして追加。`users` と `user_preferences` の 1対0..1 リレーションを追加。現在のPrisma schemaに合わせて `compare_histories`、`report_histories`、Enum定義、学校情報カラムを整理                                   |
