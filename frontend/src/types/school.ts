@@ -58,15 +58,14 @@ export type SchoolDetail = SchoolSummary & {
 export type SearchFilters = {
   keyword?: string
   area?: string
-  mealType?: MealType
-  diaperSupport?: DiaperSupport
-  futonSupport?: FutonSupport
-  extendedCareTime?: string
-  weekdayEventsLevel?: BurdenLevel
-  parentAssociationLevel?: BurdenLevel
+  mealType?: 'SCHOOL_LUNCH' | 'LUNCH_BOX' | 'BOTH'
+  diaperSupport?: string
+  futonSupport?: string
+  weekdayEventsLevel?: 'LOW' | 'MEDIUM' | 'HIGH'
+  parentAssociationLevel?: 'LOW' | 'MEDIUM' | 'HIGH'
   lessons?: boolean
   allergySupport?: boolean
-  sort?: 'recommended' | 'createdAtDesc'
+  sort?: 'recommended' | 'id_asc'
   limit?: number
   offset?: number
 }

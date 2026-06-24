@@ -2,97 +2,46 @@
 // src/app/mypage/favorites/page.tsx
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useState } from 'react'
 import { useAuth } from '@/lib/hooks/useAuth'
-import { getFavorites, removeFavorite } from '@/lib/api/favorites'
+import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
-import { supabase } from '@/lib/supabase'
-
-type FavoriteSchool = {
-  id: number
-  school: {
-    id: number
-    name: string
-    area: string
-    address: string
-    phoneNumber: string | null
-    imageUrl: string | null
-    schoolType: string
-    tags?: string[]
-  }
-  createdAt: string
-}
 
 export default function FavoritesPage() {
   const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
   const router = useRouter()
-  const [favorites, setFavorites] = useState<FavoriteSchool[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [toast, setToast] = useState<{
     message: string
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
+  const { favorites, removeFavorite, isLoading } = useFavorites(isLoggedIn)
+
   const isPremium = appUser?.isPremium ?? false
   const maxCompare = isPremium ? 3 : 2
   const maxFavorites = isPremium ? null : 5
 
-  // 🌟【修正1】fetchFavorites の定義を useEffect よりも上に移動
-  // 🌟【修正2】無限ループや依存配列のエラーを防ぐため、useCallback でラップ
-  const fetchFavorites = useCallback(async () => {
-    try {
-      setIsLoading(true)
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-      if (!accessToken) return
-
-      const result = await getFavorites(accessToken)
-      setFavorites(result.data)
-    } catch (e) {
-      console.error(e) // 🌟【修正3】未使用だったエラーオブジェクト e をログ出力して警告を解消
-      setToast({ message: 'お気に入りの取得に失敗しました', type: 'error' })
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  // 🌟【修正4】同期的なsetStateによる連続レンダリングを防ぐため、setTimeout(..., 0) で非同期実行
   useEffect(() => {
     if (isAuthLoading) return
     if (!isLoggedIn) {
       router.push('/login')
-      return
     }
-
-    const timer = setTimeout(() => {
-      fetchFavorites()
-    }, 0)
-
-    return () => clearTimeout(timer)
-  }, [isLoggedIn, isAuthLoading, router, fetchFavorites]) // 🌟【修正5】不足していた依存配列（router, fetchFavorites）を追加
+  }, [isLoggedIn, isAuthLoading, router])
 
   const handleRemoveFavorite = async (schoolId: number) => {
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const accessToken = session?.access_token
-      if (!accessToken) return
-
-      await removeFavorite(schoolId, accessToken)
-      setFavorites((prev) => prev.filter((f) => f.school.id !== schoolId))
+      await removeFavorite(schoolId)
       setSelectedIds((prev) => prev.filter((id) => id !== schoolId))
       setToast({ message: 'お気に入りを解除しました', type: 'success' })
     } catch (e) {
-      console.error(e) // 🌟 未使用エラーオブジェクトの警告解消
+      console.error(e)
       setToast({ message: 'お気に入りの解除に失敗しました', type: 'error' })
     }
   }
@@ -139,7 +88,6 @@ export default function FavoritesPage() {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <h1 className="font-bold text-gray-800 text-xl">お気に入りの園</h1>
-        {/* 比較するボタン */}
         <button
           onClick={handleCompare}
           disabled={selectedIds.length < 2}

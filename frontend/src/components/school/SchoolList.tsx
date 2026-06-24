@@ -6,12 +6,10 @@ import { useState, useEffect, useCallback } from 'react'
 import SchoolCard from './SchoolCard'
 import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
-// import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getSchools } from '@/lib/api/schools'
-import { addFavorite, removeFavorite } from '@/lib/api/favorites'
+import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolSummary } from '@/types/school'
-import { supabase } from '@/lib/supabase'
 import Loading from '@/components/common/Loading'
 
 export default function SchoolList() {
@@ -24,27 +22,25 @@ export default function SchoolList() {
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  // 🌟【修正1】fetchSchools を useEffect の外に出して useCallback で囲む（再生成を防ぎ、依存配列を整理するため）
+  const { isFavorited, addFavorite, removeFavorite } = useFavorites(isLoggedIn)
+
   const fetchSchools = useCallback(async () => {
-    // 認証状態が確定してから取得する
     if (isAuthLoading) return
 
     try {
       setIsLoading(true)
-      // ログイン済みはおすすめ順・未ログインは通常順
       const result = await getSchools(
         isLoggedIn ? { sort: 'recommended' } : undefined
       )
       setSchools(result.data)
     } catch (e) {
-      console.error(e) // 🌟【修正2】定義されていたが使われていなかった 'e' をログ出力に活用して警告を解消
+      console.error(e)
       setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
     } finally {
       setIsLoading(false)
     }
   }, [isLoggedIn, isAuthLoading])
 
-  // 🌟【修正3】useEffect は fetchSchools の呼び出しと、連続 setState 防止のラップのみに
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSchools()
@@ -56,18 +52,11 @@ export default function SchoolList() {
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    const accessToken = session?.access_token
-    if (!accessToken) return
-
-    const school = schools.find((s) => s.id === schoolId)
-    if (!school) return
+    const currentlyFavorited = isFavorited(schoolId)
 
     // 一般ユーザーの上限チェック
     if (
-      !school.isFavorited &&
+      !currentlyFavorited &&
       appUser?.isPremium === false &&
       (appUser?.favoriteCount ?? 0) >= 5
     ) {
@@ -79,19 +68,11 @@ export default function SchoolList() {
     }
 
     try {
-      if (school.isFavorited) {
-        await removeFavorite(schoolId, accessToken)
-        setSchools((prev) =>
-          prev.map((s) =>
-            s.id === schoolId ? { ...s, isFavorited: false } : s
-          )
-        )
+      if (currentlyFavorited) {
+        await removeFavorite(schoolId)
         setToast({ message: 'お気に入りを解除しました', type: 'success' })
       } else {
-        await addFavorite(schoolId, accessToken)
-        setSchools((prev) =>
-          prev.map((s) => (s.id === schoolId ? { ...s, isFavorited: true } : s))
-        )
+        await addFavorite(schoolId)
         setToast({ message: 'お気に入りに追加しました', type: 'success' })
       }
     } catch (e: unknown) {
@@ -140,7 +121,6 @@ export default function SchoolList() {
           onClose={() => setToast(null)}
         />
       )}
-      {/* 見出し：ログイン状態で切り替え */}
       <h2 className="font-bold text-gray-800 text-base">
         {isLoggedIn ? 'おすすめの園' : '園の一覧'}
       </h2>
@@ -148,7 +128,10 @@ export default function SchoolList() {
         {schools.map((school) => (
           <SchoolCard
             key={school.id}
-            school={school}
+            school={{
+              ...school,
+              isFavorited: isFavorited(school.id),
+            }}
             isLoggedIn={isLoggedIn}
             onToggleFavorite={handleToggleFavorite}
           />

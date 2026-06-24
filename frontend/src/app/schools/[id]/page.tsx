@@ -1,6 +1,5 @@
 // src/app/schools/[id]/page.tsx
 // 園詳細画面。生活負担・時間負担・サポート情報・お気に入りを表示する
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -11,8 +10,8 @@ import { supabase } from '@/lib/supabase'
 import Modal from '@/components/common/Modal'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import Toast from '@/components/common/Toast'
+import { useFavorites } from '@/lib/hooks/useFavorites'
 
-// APIレスポンスの型
 type SupportInfo = {
   isLocked: boolean
   contactBookType: string | null
@@ -45,7 +44,6 @@ type SchoolDetail = {
   isFavorited: boolean
 }
 
-// Enum の日本語変換
 const mealTypeLabel: Record<string, string> = {
   SCHOOL_LUNCH: '毎日給食あり',
   LUNCH_BOX_REQUIRED: '弁当あり',
@@ -82,26 +80,27 @@ const absenceContactLabel: Record<string, string> = {
 export default function SchoolDetailPage() {
   const { id } = useParams()
   const router = useRouter()
-  const { supabaseUser, isLoading: authLoading } = useAuth()
+  const { supabaseUser, isLoggedIn, isLoading: authLoading } = useAuth()
 
   const [school, setSchool] = useState<SchoolDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isFavorited, setIsFavorited] = useState(false)
   const [favoriteLoading, setFavoriteLoading] = useState(false)
 
-  // モーダル制御
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
 
-  // Toast制御
   const [toast, setToast] = useState<{
     message: string
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  // 園詳細取得
+  const { isFavorited, addFavorite, removeFavorite, initializeFavorite } =
+    useFavorites(isLoggedIn)
+  const schoolId = Number(id)
+  const currentlyFavorited = isFavorited(schoolId)
+
   useEffect(() => {
     const fetchSchool = async () => {
       try {
@@ -131,7 +130,7 @@ export default function SchoolDetailPage() {
 
         const { data } = await res.json()
         setSchool(data)
-        setIsFavorited(data.isFavorited ?? false)
+        initializeFavorite(Number(id), data.isFavorited) // 追加
       } catch {
         setError('データの取得に失敗しました')
       } finally {
@@ -142,9 +141,8 @@ export default function SchoolDetailPage() {
     if (!authLoading) {
       fetchSchool()
     }
-  }, [id, supabaseUser, authLoading, router])
+  }, [id, supabaseUser, authLoading, router, initializeFavorite])
 
-  // お気に入り登録・解除
   const handleFavorite = async () => {
     if (!supabaseUser) {
       setShowLoginModal(true)
@@ -154,58 +152,27 @@ export default function SchoolDetailPage() {
     setFavoriteLoading(true)
 
     try {
-      const { data } = await supabase.auth.getSession()
-      if (!data.session) return
-
-      const token = data.session.access_token
-
-      if (isFavorited) {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me/favorites/${id}`,
-          {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        )
-        if (res.ok) {
-          setIsFavorited(false)
-          setToast({ message: 'お気に入りを解除しました', type: 'success' })
-        } else {
-          setToast({ message: '解除に失敗しました', type: 'error' })
-        }
+      if (currentlyFavorited) {
+        await removeFavorite(schoolId)
+        setToast({ message: 'お気に入りを解除しました', type: 'success' })
       } else {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me/favorites`,
-          {
-            method: 'POST',
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ schoolId: Number(id) }),
-          }
-        )
-
-        if (res.ok) {
-          setIsFavorited(true)
-          setToast({ message: 'お気に入りに追加しました', type: 'success' })
-        } else if (res.status === 409) {
-          setToast({ message: 'すでにお気に入り登録済みです', type: 'warning' })
-        } else {
-          const body = await res.json()
-          if (body.error?.code === 'FAVORITE_LIMIT_EXCEEDED') {
-            setToast({
-              message: 'お気に入りは5件まで。プレミアムで無制限に',
-              type: 'warning',
-            })
-            setTimeout(() => router.push('/plans'), 2000)
-          } else {
-            setToast({ message: '登録に失敗しました', type: 'error' })
-          }
-        }
+        await addFavorite(schoolId)
+        setToast({ message: 'お気に入りに追加しました', type: 'success' })
       }
-    } catch {
-      setToast({ message: 'エラーが発生しました', type: 'error' })
+    } catch (e: unknown) {
+      const code = e instanceof Error ? e.message : ''
+      if (code === 'FAVORITE_LIMIT_EXCEEDED') {
+        setToast({
+          message: 'お気に入りは5件まで。プレミアムで無制限に',
+          type: 'warning',
+        })
+        setTimeout(() => router.push('/plans'), 2000)
+      } else if (code === 'ALREADY_FAVORITED') {
+        // 追加
+        setToast({ message: 'すでにお気に入り登録済みです', type: 'warning' })
+      } else {
+        setToast({ message: 'エラーが発生しました', type: 'error' })
+      }
     } finally {
       setFavoriteLoading(false)
     }
@@ -231,7 +198,6 @@ export default function SchoolDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto pb-10">
-      {/* Toast */}
       {toast && (
         <Toast
           message={toast.message}
@@ -240,7 +206,6 @@ export default function SchoolDetailPage() {
         />
       )}
 
-      {/* 戻るボタン */}
       <div className="px-4 pt-4">
         <button
           onClick={() => router.back()}
@@ -250,7 +215,6 @@ export default function SchoolDetailPage() {
         </button>
       </div>
 
-      {/* 画像 */}
       <div className="w-full h-48 bg-gray-100 overflow-hidden relative mt-2">
         {school.imageUrl ? (
           <Image
@@ -267,7 +231,6 @@ export default function SchoolDetailPage() {
       </div>
 
       <div className="px-4 mt-4">
-        {/* 基本情報 */}
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-800">{school.name}</h1>
@@ -280,8 +243,6 @@ export default function SchoolDetailPage() {
             <p className="text-sm text-gray-500">
               {schoolTypeLabel[school.schoolType] ?? school.schoolType}
             </p>
-
-            {/* タグ */}
             {school.tags && school.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {school.tags.map((tag) => (
@@ -301,13 +262,15 @@ export default function SchoolDetailPage() {
             onClick={handleFavorite}
             disabled={favoriteLoading}
             className="p-2 flex-shrink-0"
-            aria-label={isFavorited ? 'お気に入り解除' : 'お気に入り登録'}
+            aria-label={
+              currentlyFavorited ? 'お気に入り解除' : 'お気に入り登録'
+            }
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
-              fill={isFavorited ? '#8BC34A' : 'none'}
-              stroke={isFavorited ? '#8BC34A' : '#ccc'}
+              fill={currentlyFavorited ? '#FFCFCF' : 'none'}
+              stroke={currentlyFavorited ? '#FFCFCF' : '#ccc'}
               strokeWidth={2}
               className="w-8 h-8"
             >
@@ -320,7 +283,6 @@ export default function SchoolDetailPage() {
           </button>
         </div>
 
-        {/* 毎日の準備 */}
         <section className="mt-6">
           <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
             <Image
@@ -346,7 +308,6 @@ export default function SchoolDetailPage() {
           </div>
         </section>
 
-        {/* 仕事との両立 */}
         <section className="mt-6">
           <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
             <Image
@@ -385,7 +346,6 @@ export default function SchoolDetailPage() {
           </div>
         </section>
 
-        {/* サポート情報 */}
         <section className="mt-6">
           <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
             <Image
@@ -399,7 +359,6 @@ export default function SchoolDetailPage() {
 
           {school.supportInfo.isLocked ? (
             <div className="relative">
-              {/* ロック表示（ぼかし） */}
               <div className="flex flex-col gap-2 select-none">
                 {['連絡帳', '欠席連絡方法', '園内習い事', 'アレルギー対応'].map(
                   (item) => (
@@ -415,8 +374,6 @@ export default function SchoolDetailPage() {
                   )
                 )}
               </div>
-
-              {/* オーバーレイ */}
               <button
                 className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-lg"
                 onClick={() => {
@@ -478,7 +435,6 @@ export default function SchoolDetailPage() {
           )}
         </section>
 
-        {/* 園の特徴 */}
         <section className="mt-6">
           <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
             <Image
@@ -499,7 +455,6 @@ export default function SchoolDetailPage() {
         </section>
       </div>
 
-      {/* ログイン誘導モーダル */}
       <Modal
         isOpen={showLoginModal}
         onClose={() => setShowLoginModal(false)}
@@ -516,7 +471,6 @@ export default function SchoolDetailPage() {
         </button>
       </Modal>
 
-      {/* 会員登録誘導モーダル（未登録ユーザー向け） */}
       <Modal
         isOpen={showRegisterModal}
         onClose={() => setShowRegisterModal(false)}
@@ -533,7 +487,6 @@ export default function SchoolDetailPage() {
         </button>
       </Modal>
 
-      {/* プレミアム誘導モーダル（一般ユーザー向け） */}
       <Modal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
@@ -553,7 +506,6 @@ export default function SchoolDetailPage() {
   )
 }
 
-// 詳細行コンポーネント
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center py-1 border-b border-gray-100">
