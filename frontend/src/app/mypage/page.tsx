@@ -197,12 +197,12 @@ export default function MyPage() {
         {isPremium ? (
           <div className="flex flex-col gap-2">
             <PlanItem icon="icon16.png" text="3つの園を同時比較" />
-            <PlanItem icon="icon13.png" text="お気に入りを無制限に保存" />
+            <PlanItem icon="icon17.png" text="お気に入りを無制限に保存" />
             <PlanItem icon="icon18.png" text="サポート情報を閲覧可能" />
           </div>
         ) : (
           <div className="flex flex-col gap-2">
-            <PlanItem icon="icon16.png" text="2つの園を同時比較" />
+            <PlanItem icon="icon12.png" text="2つの園を同時比較" />
             <PlanItem icon="icon13.png" text="5件までお気に入り機能の追加" />
             <PlanItem icon="icon14.png" text="マイページから希望条件の登録" />
           </div>
@@ -220,7 +220,7 @@ export default function MyPage() {
             下記の機能に変更になります
           </p>
           <div className="flex flex-col gap-2 mb-4">
-            <PlanItem icon="icon16.png" text="2つの園を同時比較" />
+            <PlanItem icon="icon12.png" text="2つの園を同時比較" />
             <PlanItem icon="icon13.png" text="5件までお気に入り機能の追加" />
             <PlanItem icon="icon14.png" text="マイページから希望条件の登録" />
           </div>
@@ -249,7 +249,7 @@ export default function MyPage() {
           </div>
           <div className="flex flex-col gap-2 mb-4">
             <PlanItem icon="icon16.png" text="3つの園を同時比較" />
-            <PlanItem icon="icon13.png" text="お気に入りを無制限に保存" />
+            <PlanItem icon="icon17.png" text="お気に入りを無制限に保存" />
             <PlanItem icon="icon18.png" text="サポート情報を閲覧可能" />
           </div>
           <div className="text-center mb-3">

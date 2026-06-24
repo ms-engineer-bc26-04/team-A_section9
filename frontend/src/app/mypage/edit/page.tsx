@@ -178,7 +178,7 @@ export default function MyPageEditPage() {
         </label>
         <input
           type="text"
-          placeholder="例) 園活 太郎"
+          placeholder="例) 園活 みずえ"
           value={userName}
           onChange={(e) => setUserName(e.target.value)}
           className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm"
