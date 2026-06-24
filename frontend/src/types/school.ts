@@ -24,7 +24,7 @@ export type SchoolSummary = {
   schoolType: SchoolType
   lifeBurdenLevel: BurdenLevel
   timeBurdenLevel: BurdenLevel
-  tags: string[]
+  tags?: string[]
   isFavorited: boolean
 }
 

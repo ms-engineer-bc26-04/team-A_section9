@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { prisma } from '../lib/prisma'
 
 export type AuthenticatedRequest = Request & {
   authUser?: SupabaseUser
@@ -38,6 +39,19 @@ export const authenticateSupabaseUser = async (
         },
       })
     }
+    await prisma.user.upsert({
+      where: {
+        supabaseUserId: user.id,
+      },
+      update: {
+        email: user.email ?? '',
+      },
+      create: {
+        supabaseUserId: user.id,
+        email: user.email ?? '',
+        planType: 'FREE',
+      },
+    })
 
     req.authUser = user
     next()

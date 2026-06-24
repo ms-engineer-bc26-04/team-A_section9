@@ -1,14 +1,142 @@
 import type { RequestHandler } from 'express'
-import { getSchoolById, getSchools } from '../services/schoolService'
+import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
+import { getOrCreateCurrentUser } from '../services/userService'
+import {
+  getFavoritedSchoolIds,
+  getSchoolById,
+  getSchools,
+} from '../services/schoolService'
 import {
   schoolIdParamsSchema,
   schoolSearchQuerySchema,
 } from '../validators/schoolValidator'
 
-const toSerializableSchool = (school: Record<string, unknown>) => {
+const SCHOOL_TYPE_TAGS: Record<string, string> = {
+  NURSERY: '保育園',
+  KINDERGARTEN: '幼稚園',
+  CERTIFIED_CHILDCARE_CENTER: 'こども園',
+}
+
+const MEAL_TYPE_TAGS: Record<string, string> = {
+  SCHOOL_LUNCH: '毎日給食',
+  LUNCH_BOX: '毎日弁当',
+  BOTH: '給食・弁当',
+}
+
+const SUPPORT_FIELDS = {
+  contactBookType: null,
+  absenceContactMethod: null,
+  lessons: null,
+  allergySupport: null,
+}
+
+const getSchoolTags = (school: Record<string, unknown>) => {
+  const tags: string[] = []
+
+  if (
+    typeof school.schoolType === 'string' &&
+    SCHOOL_TYPE_TAGS[school.schoolType]
+  ) {
+    tags.push(SCHOOL_TYPE_TAGS[school.schoolType])
+  }
+
+  if (typeof school.mealType === 'string' && MEAL_TYPE_TAGS[school.mealType]) {
+    tags.push(MEAL_TYPE_TAGS[school.mealType])
+  }
+
+  if (typeof school.diaperSupport === 'string') {
+    if (school.diaperSupport.includes('園で廃棄')) {
+      tags.push('おむつ園処理')
+    } else if (school.diaperSupport.includes('サブスク')) {
+      tags.push('おむつサブスク')
+    } else if (school.diaperSupport.includes('持ち帰り')) {
+      tags.push('おむつ持ち帰り')
+    }
+  }
+
+  return tags
+}
+
+const isPremiumUser = (
+  user: Awaited<ReturnType<typeof getOrCreateCurrentUser>> | null
+) => {
+  if (!user) {
+    return false
+  }
+
+  return user.subscription?.status === 'ACTIVE' || user.planType === 'PAID'
+}
+
+const toSchoolListItem = (
+  school: Record<string, unknown>,
+  isFavorited = false
+) => {
   return {
-    ...school,
     id: school.id?.toString(),
+    name: school.name,
+    area: school.area,
+    address: school.address,
+    schoolType: school.schoolType,
+    lifeBurdenLevel: school.lifeBurdenLevel,
+    timeBurdenLevel: school.timeBurdenLevel,
+    mealType: school.mealType,
+    itemBurdenLevel: school.itemBurdenLevel,
+    diaperSupport: school.diaperSupport,
+    futonSupport: school.futonSupport,
+    extendedCareHours: school.extendedCareHours,
+    extendedCareUsage: school.extendedCareUsage,
+    weekdayEventsLevel: school.weekdayEventsLevel,
+    parentAssociationLevel: school.parentAssociationLevel,
+    tags: getSchoolTags(school),
+    isFavorited,
+  }
+}
+
+const toSupportInfo = (
+  school: Record<string, unknown>,
+  canViewSupportInfo: boolean
+) => {
+  if (!canViewSupportInfo) {
+    return {
+      isLocked: true,
+      ...SUPPORT_FIELDS,
+    }
+  }
+
+  return {
+    isLocked: false,
+    contactBookType: school.contactBookType,
+    absenceContactMethod: school.absenceContactMethod,
+    lessons: school.lessons,
+    allergySupport: school.allergySupport,
+  }
+}
+
+const toSchoolDetail = (
+  school: Record<string, unknown>,
+  isFavorited = false,
+  canViewSupportInfo = false
+) => {
+  return {
+    id: school.id?.toString(),
+    name: school.name,
+    area: school.area,
+    address: school.address,
+    schoolType: school.schoolType,
+    lifeBurdenLevel: school.lifeBurdenLevel,
+    timeBurdenLevel: school.timeBurdenLevel,
+    mealType: school.mealType,
+    itemBurdenLevel: school.itemBurdenLevel,
+    diaperSupport: school.diaperSupport,
+    futonSupport: school.futonSupport,
+    extendedCareHours: school.extendedCareHours,
+    extendedCareUsage: school.extendedCareUsage,
+    weekdayEventsLevel: school.weekdayEventsLevel,
+    parentAssociationLevel: school.parentAssociationLevel,
+    description: school.description,
+    tags: getSchoolTags(school),
+    isFavorited,
+    supportInfo: toSupportInfo(school, canViewSupportInfo),
   }
 }
 
@@ -26,6 +154,14 @@ const getValidationErrorMessage = (error: unknown) => {
   return '入力内容に誤りがあります'
 }
 
+const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
+  if (!req.authUser) {
+    return null
+  }
+
+  return getOrCreateCurrentUser(req.authUser)
+}
+
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
     const parsedQuery = schoolSearchQuerySchema.safeParse(req.query)
@@ -41,9 +177,24 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
     }
 
     const schools = await getSchools(parsedQuery.data)
+    const user = await getCurrentUserIfAuthenticated(
+      req as AuthenticatedRequest
+    )
+
+    const favoritedSchoolIds = user
+      ? await getFavoritedSchoolIds(
+          user.id,
+          schools.map((school) => school.id)
+        )
+      : new Set<string>()
 
     res.json({
-      data: schools.map((school) => toSerializableSchool(school)),
+      data: schools.map((school) =>
+        toSchoolListItem(school, favoritedSchoolIds.has(school.id.toString()))
+      ),
+      meta: {
+        count: schools.length,
+      },
     })
   } catch (error) {
     console.error(error)
@@ -85,8 +236,20 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
       return
     }
 
+    const user = await getCurrentUserIfAuthenticated(
+      req as AuthenticatedRequest
+    )
+
+    const favoritedSchoolIds = user
+      ? await getFavoritedSchoolIds(user.id, [school.id])
+      : new Set<string>()
+
     res.json({
-      data: toSerializableSchool(school),
+      data: toSchoolDetail(
+        school,
+        favoritedSchoolIds.has(school.id.toString()),
+        isPremiumUser(user)
+      ),
     })
   } catch (error) {
     console.error(error)
