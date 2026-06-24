@@ -6,16 +6,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import SchoolCard from './SchoolCard'
-// 🌟【修正1】未使用だった EmptyState のインポートを削除して警告を解消
 import Toast from '@/components/common/Toast'
 import Modal from '@/components/common/Modal'
 import Button from '@/components/common/Button'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getSchools } from '@/lib/api/schools'
-import { addFavorite, removeFavorite, getFavorites } from '@/lib/api/favorites'
+import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolSummary, SearchFilters } from '@/types/school'
-import { supabase } from '@/lib/supabase'
 
 type Props = {
   searchParams: { [key: string]: string | string[] | undefined }
@@ -33,68 +31,30 @@ export default function SearchSchoolList({ searchParams }: Props) {
   } | null>(null)
   const router = useRouter()
 
-  // 🌟【修正2】各クエリパラメータを個別に変数に展開（useEffect/useCallbackの依存配列に安全に入れるため）
-  const keyword = searchParams.keyword
-  const area = searchParams.area
-  const mealType = searchParams.mealType
-  const diaperSupport = searchParams.diaperSupport
-  const futonSupport = searchParams.futonSupport
-  const weekdayEventsLevel = searchParams.weekdayEventsLevel
-  const parentAssociationLevel = searchParams.parentAssociationLevel
-  const lessons = searchParams.lessons
-  const allergySupport = searchParams.allergySupport
+  const { isFavorited, addFavorite, removeFavorite } = useFavorites(isLoggedIn)
 
-  // 🌟【修正3】fetchSchools を useCallback で囲み、Linterに要求された個別パラメータをすべて網羅
+  //
   const fetchSchools = useCallback(async () => {
     if (isAuthLoading) return
 
     try {
       setIsLoading(true)
 
-      // クエリパラメータをSearchFiltersに変換
       const filters: SearchFilters = {}
-      if (keyword) filters.keyword = String(keyword)
-      if (area) filters.area = String(area)
-      if (mealType) filters.mealType = mealType as SearchFilters['mealType']
-      if (diaperSupport)
-        filters.diaperSupport = diaperSupport as SearchFilters['diaperSupport']
-      if (futonSupport)
-        filters.futonSupport = futonSupport as SearchFilters['futonSupport']
-      if (weekdayEventsLevel)
-        filters.weekdayEventsLevel =
-          weekdayEventsLevel as SearchFilters['weekdayEventsLevel']
-      if (parentAssociationLevel)
-        filters.parentAssociationLevel =
-          parentAssociationLevel as SearchFilters['parentAssociationLevel']
-      if (lessons) filters.lessons = lessons === 'true'
-      if (allergySupport) filters.allergySupport = allergySupport === 'true'
+      if (searchParams.keyword) filters.keyword = String(searchParams.keyword)
+      if (searchParams.area) filters.area = String(searchParams.area)
+      if (searchParams.hasLunch === 'true') filters.mealType = 'SCHOOL_LUNCH'
+      if (searchParams.diaperDisposal === 'true')
+        filters.diaperSupport = '園で廃棄'
+      if (searchParams.noBedding === 'true') filters.futonSupport = '園で管理'
+      if (searchParams.noWeekdayEvents === 'true')
+        filters.weekdayEventsLevel = 'LOW'
+      if (searchParams.noPTA === 'true') filters.parentAssociationLevel = 'LOW'
+      if (searchParams.hasClub === 'true') filters.lessons = true
+      if (searchParams.allergySupport === 'true') filters.allergySupport = true
 
       const result = await getSchools(filters)
-
-      // ログイン済みの場合はお気に入り状態を取得して反映
-      if (isLoggedIn) {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession()
-        const accessToken = session?.access_token
-
-        if (accessToken) {
-          const favResult = await getFavorites(accessToken)
-          const favSchoolIds = new Set(
-            favResult.data.map((f: { school: { id: number } }) => f.school.id)
-          )
-          setSchools(
-            result.data.map((school) => ({
-              ...school,
-              isFavorited: favSchoolIds.has(school.id),
-            }))
-          )
-        } else {
-          setSchools(result.data)
-        }
-      } else {
-        setSchools(result.data)
-      }
+      setSchools(result.data)
     } catch (e) {
       console.error(e)
       setError('園一覧の取得に失敗しました。時間をおいて再度お試しください。')
@@ -102,20 +62,18 @@ export default function SearchSchoolList({ searchParams }: Props) {
       setIsLoading(false)
     }
   }, [
-    isLoggedIn,
     isAuthLoading,
-    keyword,
-    area,
-    mealType,
-    diaperSupport,
-    futonSupport,
-    weekdayEventsLevel,
-    parentAssociationLevel,
-    lessons,
-    allergySupport,
+    searchParams.keyword,
+    searchParams.area,
+    searchParams.hasLunch,
+    searchParams.diaperDisposal,
+    searchParams.noBedding,
+    searchParams.noWeekdayEvents,
+    searchParams.noPTA,
+    searchParams.hasClub,
+    searchParams.allergySupport,
   ])
 
-  // 🌟【修正4】useEffect 内での連続 setState 警告を回避するため非同期ラップ
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSchools()
@@ -127,18 +85,11 @@ export default function SearchSchoolList({ searchParams }: Props) {
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
 
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-    const accessToken = session?.access_token
-    if (!accessToken) return
-
-    const school = schools.find((s) => s.id === schoolId)
-    if (!school) return
+    const currentlyFavorited = isFavorited(schoolId)
 
     // 一般ユーザーの上限チェック
     if (
-      !school.isFavorited &&
+      !currentlyFavorited &&
       appUser?.isPremium === false &&
       (appUser?.favoriteCount ?? 0) >= 5
     ) {
@@ -147,19 +98,11 @@ export default function SearchSchoolList({ searchParams }: Props) {
     }
 
     try {
-      if (school.isFavorited) {
-        await removeFavorite(schoolId, accessToken)
-        setSchools((prev) =>
-          prev.map((s) =>
-            s.id === schoolId ? { ...s, isFavorited: false } : s
-          )
-        )
+      if (currentlyFavorited) {
+        await removeFavorite(schoolId)
         setToast({ message: 'お気に入りを解除しました', type: 'success' })
       } else {
-        await addFavorite(schoolId, accessToken)
-        setSchools((prev) =>
-          prev.map((s) => (s.id === schoolId ? { ...s, isFavorited: true } : s))
-        )
+        await addFavorite(schoolId)
         setToast({ message: 'お気に入りに追加しました', type: 'success' })
       }
     } catch (e: unknown) {
@@ -261,7 +204,10 @@ export default function SearchSchoolList({ searchParams }: Props) {
           {schools.map((school) => (
             <SchoolCard
               key={school.id}
-              school={school}
+              school={{
+                ...school,
+                isFavorited: isFavorited(school.id),
+              }}
               isLoggedIn={isLoggedIn}
               onToggleFavorite={handleToggleFavorite}
             />
