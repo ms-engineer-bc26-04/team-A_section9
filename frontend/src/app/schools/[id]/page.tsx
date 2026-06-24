@@ -194,7 +194,7 @@ export default function SchoolDetailPage() {
     }
   }
 
-  // サポート情報のロック判定（APIにisFavorited以外のサポート情報がある場合はアンロック）
+  // サポート情報のロック判定
   const isSupportLocked = !school?.contactBookType
 
   if (isLoading || authLoading) {
@@ -294,8 +294,14 @@ export default function SchoolDetailPage() {
 
         {/* 毎日の準備 */}
         <section className="mt-6">
-          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            🏠 毎日の準備
+          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
+            <Image
+              src="/images/icon5.png"
+              alt="毎日の準備"
+              width={24}
+              height={24}
+            />
+            毎日の準備
           </h2>
           <div className="flex flex-col gap-2">
             <DetailRow
@@ -319,8 +325,14 @@ export default function SchoolDetailPage() {
 
         {/* 仕事との両立 */}
         <section className="mt-6">
-          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            ⏰ 仕事との両立
+          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
+            <Image
+              src="/images/icon6.png"
+              alt="仕事との両立"
+              width={24}
+              height={24}
+            />
+            仕事との両立
           </h2>
           <div className="flex flex-col gap-2">
             {school.extendedCareHours && (
@@ -352,8 +364,14 @@ export default function SchoolDetailPage() {
 
         {/* サポート情報 */}
         <section className="mt-6">
-          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            🤝 サポート情報
+          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
+            <Image
+              src="/images/icon7.png"
+              alt="サポート情報"
+              width={24}
+              height={24}
+            />
+            サポート情報
           </h2>
 
           {isSupportLocked ? (
@@ -381,7 +399,13 @@ export default function SchoolDetailPage() {
                   }
                 }}
               >
-                <span className="text-2xl mb-1">🔒</span>
+                <Image
+                  src="/images/icon19.png"
+                  alt="ロック"
+                  width={40}
+                  height={40}
+                  className="mb-1"
+                />
                 <span className="text-sm font-bold text-gray-600">
                   プレミアムユーザーに登録すれば閲覧可能
                 </span>
@@ -414,8 +438,14 @@ export default function SchoolDetailPage() {
         {/* 園の特徴 */}
         {school.description && (
           <section className="mt-6">
-            <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3">
-              🌟 園の特徴
+            <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
+              <Image
+                src="/images/icon8.png"
+                alt="園の特徴"
+                width={24}
+                height={24}
+              />
+              園の特徴
             </h2>
             <p className="text-sm text-gray-600 leading-relaxed">
               {school.description}
