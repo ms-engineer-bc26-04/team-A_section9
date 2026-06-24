@@ -66,6 +66,7 @@ model User {
 
   favorites        Favorite[]
   subscription     Subscription?
+  preference       UserPreference?
   compareHistories CompareHistory[]
   reportHistories  ReportHistory[]
 
@@ -147,6 +148,24 @@ model Subscription {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("subscriptions")
+}
+
+model UserPreference {
+  id                              String       @id @default(uuid()) @db.Uuid
+  userId                          String       @unique @map("user_id") @db.Uuid
+  preferredMealType               MealType?    @map("preferred_meal_type")
+  preferredItemBurdenLevel        BurdenLevel? @map("preferred_item_burden_level")
+  preferredDiaperSupport          String?      @map("preferred_diaper_support") @db.VarChar(50)
+  preferredFutonSupport           String?      @map("preferred_futon_support") @db.VarChar(50)
+  preferredExtendedCare           String?      @map("preferred_extended_care") @db.VarChar(50)
+  preferredWeekdayEventsLevel     BurdenLevel? @map("preferred_weekday_events_level")
+  preferredParentAssociationLevel BurdenLevel? @map("preferred_parent_association_level")
+  createdAt                       DateTime     @default(now()) @map("created_at")
+  updatedAt                       DateTime     @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }
 
 model CompareHistory {
