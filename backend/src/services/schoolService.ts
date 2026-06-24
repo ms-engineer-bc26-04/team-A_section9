@@ -22,22 +22,41 @@ const buildSchoolWhere = (
         : {},
       query.area ? { area: { contains: query.area, mode: 'insensitive' } } : {},
       query.mealType ? { mealType: query.mealType } : {},
-      query.diaperSupport
+
+      // おむつ園処理あり
+      // フロントから diaperSupport=true が送られてきた場合は、
+      // "true" という文字列の部分一致検索ではなく、
+      // seed定義に合わせて diaperSupport が「園で廃棄」の園を取得する
+      query.diaperSupport === 'true'
         ? {
-            diaperSupport: {
-              contains: query.diaperSupport,
-              mode: 'insensitive',
-            },
+            diaperSupport: '園で廃棄',
           }
-        : {},
-      query.futonSupport
+        : query.diaperSupport
+          ? {
+              diaperSupport: {
+                contains: query.diaperSupport,
+                mode: 'insensitive',
+              },
+            }
+          : {},
+
+      // 布団負担少なめ
+      // フロントから futonSupport=true が送られてきた場合は、
+      // "true" という文字列の部分一致検索ではなく、
+      // seed定義に合わせて futonSupport が「園で管理」の園を取得する
+      query.futonSupport === 'true'
         ? {
-            futonSupport: {
-              contains: query.futonSupport,
-              mode: 'insensitive',
-            },
+            futonSupport: '園で管理',
           }
-        : {},
+        : query.futonSupport
+          ? {
+              futonSupport: {
+                contains: query.futonSupport,
+                mode: 'insensitive',
+              },
+            }
+          : {},
+
       query.extendedCareHours
         ? {
             extendedCareHours: {
@@ -46,14 +65,24 @@ const buildSchoolWhere = (
             },
           }
         : {},
-      query.extendedCareUsage
+
+      // 延長保育利用者が多い
+      // フロントから extendedCareUsage=true が送られてきた場合は、
+      // "true" という文字列の部分一致検索ではなく、
+      // seed定義に合わせて extendedCareUsage が「20人以上」の園を取得する
+      query.extendedCareUsage === 'true'
         ? {
-            extendedCareUsage: {
-              contains: query.extendedCareUsage,
-              mode: 'insensitive',
-            },
+            extendedCareUsage: '20人以上',
           }
-        : {},
+        : query.extendedCareUsage
+          ? {
+              extendedCareUsage: {
+                contains: query.extendedCareUsage,
+                mode: 'insensitive',
+              },
+            }
+          : {},
+
       query.itemBurdenLevel ? { itemBurdenLevel: query.itemBurdenLevel } : {},
       query.weekdayEventsLevel
         ? { weekdayEventsLevel: query.weekdayEventsLevel }
