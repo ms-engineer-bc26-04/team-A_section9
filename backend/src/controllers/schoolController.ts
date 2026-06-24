@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
 import { getOrCreateCurrentUser } from '../services/userService'
 import {
   getFavoritedSchoolIds,
+  getRecommendedSchools,
   getSchoolById,
   getSchools,
 } from '../services/schoolService'
@@ -176,10 +177,14 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
       return
     }
 
-    const schools = await getSchools(parsedQuery.data)
     const user = await getCurrentUserIfAuthenticated(
-      req as AuthenticatedRequest
-    )
+  req as AuthenticatedRequest
+)
+
+const schools =
+  parsedQuery.data.sort === 'recommended' && user
+    ? await getRecommendedSchools(parsedQuery.data, user.id)
+    : await getSchools(parsedQuery.data)
 
     const favoritedSchoolIds = user
       ? await getFavoritedSchoolIds(
