@@ -12,7 +12,15 @@ import Modal from '@/components/common/Modal'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import Toast from '@/components/common/Toast'
 
-// APIレスポンスの型（フラット構造）
+// APIレスポンスの型
+type SupportInfo = {
+  isLocked: boolean
+  contactBookType: string | null
+  absenceContactMethod: string | null
+  lessons: string | null
+  allergySupport: string | null
+}
+
 type SchoolDetail = {
   id: string
   name: string
@@ -22,37 +30,34 @@ type SchoolDetail = {
   imageUrl: string | null
   schoolType: string
   description: string | null
-  // 生活負担
   lifeBurdenLevel: string
   mealType: string
   itemBurdenLevel: string
   diaperSupport: string | null
   futonSupport: string | null
-  // 時間負担
   timeBurdenLevel: string
   extendedCareHours: string | null
   extendedCareUsage: string
   weekdayEventsLevel: string
   parentAssociationLevel: string
-  // サポート情報
-  contactBookType: string | null
-  absenceContactMethod: string | null
-  lessons: string | null
-  allergySupport: string | null
-  // お気に入り
+  tags: string[]
+  supportInfo: SupportInfo
   isFavorited: boolean
 }
 
-// Enum の日本語変換（大文字キー対応）
+// Enum の日本語変換
 const mealTypeLabel: Record<string, string> = {
   SCHOOL_LUNCH: '毎日給食あり',
   LUNCH_BOX_REQUIRED: '弁当あり',
+  LUNCH_BOX: '弁当あり',
   MIXED: '給食・弁当併用',
+  BOTH: '給食・弁当併用',
 }
 
 const burdenLabel: Record<string, string> = {
   LOW: '少ない',
   MIDDLE: '普通',
+  MEDIUM: '普通',
   HIGH: '多い',
 }
 
@@ -60,6 +65,18 @@ const schoolTypeLabel: Record<string, string> = {
   NURSERY: '保育園',
   CERTIFIED_CHILDCARE_CENTER: '認定こども園',
   SMALL_SCALE_NURSERY: '小規模保育',
+}
+
+const contactBookLabel: Record<string, string> = {
+  APP: 'アプリ',
+  PAPER: '手書き',
+  BOTH: 'アプリ・手書き併用',
+}
+
+const absenceContactLabel: Record<string, string> = {
+  APP: 'アプリ',
+  PHONE: '電話',
+  BOTH: 'アプリ・電話',
 }
 
 export default function SchoolDetailPage() {
@@ -194,9 +211,6 @@ export default function SchoolDetailPage() {
     }
   }
 
-  // サポート情報のロック判定
-  const isSupportLocked = !school?.contactBookType
-
   if (isLoading || authLoading) {
     return (
       <div className="p-4 flex flex-col gap-4">
@@ -255,7 +269,7 @@ export default function SchoolDetailPage() {
       <div className="px-4 mt-4">
         {/* 基本情報 */}
         <div className="flex items-start justify-between">
-          <div>
+          <div className="flex-1">
             <h1 className="text-xl font-bold text-gray-800">{school.name}</h1>
             <p className="text-sm text-gray-500 mt-1">{school.address}</p>
             {school.phoneNumber && (
@@ -266,13 +280,27 @@ export default function SchoolDetailPage() {
             <p className="text-sm text-gray-500">
               {schoolTypeLabel[school.schoolType] ?? school.schoolType}
             </p>
+
+            {/* タグ */}
+            {school.tags && school.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {school.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* お気に入りボタン */}
           <button
             onClick={handleFavorite}
             disabled={favoriteLoading}
-            className="p-2"
+            className="p-2 flex-shrink-0"
             aria-label={isFavorited ? 'お気に入り解除' : 'お気に入り登録'}
           >
             <svg
@@ -308,12 +336,7 @@ export default function SchoolDetailPage() {
               label="給食・弁当"
               value={mealTypeLabel[school.mealType] ?? school.mealType}
             />
-            <DetailRow
-              label="持ち物負担"
-              value={
-                burdenLabel[school.itemBurdenLevel] ?? school.itemBurdenLevel
-              }
-            />
+            <DetailRow label="持ち物" value={school.itemBurdenLevel} />
             {school.diaperSupport && (
               <DetailRow label="おむつ対応" value={school.diaperSupport} />
             )}
@@ -374,15 +397,20 @@ export default function SchoolDetailPage() {
             サポート情報
           </h2>
 
-          {isSupportLocked ? (
+          {school.supportInfo.isLocked ? (
             <div className="relative">
-              {/* ロック表示 */}
-              <div className="flex flex-col gap-2 blur-sm pointer-events-none">
+              {/* ロック表示（ぼかし） */}
+              <div className="flex flex-col gap-2 select-none">
                 {['連絡帳', '欠席連絡方法', '園内習い事', 'アレルギー対応'].map(
                   (item) => (
-                    <div key={item} className="flex justify-between py-1">
-                      <span className="text-sm text-gray-600">{item}</span>
-                      <span className="text-sm text-gray-300">▓▓▓▓▓▓</span>
+                    <div
+                      key={item}
+                      className="flex justify-between items-center py-1 border-b border-gray-100"
+                    >
+                      <span className="text-sm text-gray-500">{item}</span>
+                      <span className="text-sm text-gray-200 blur-sm">
+                        ▓▓▓▓▓▓
+                      </span>
                     </div>
                   )
                 )}
@@ -390,7 +418,7 @@ export default function SchoolDetailPage() {
 
               {/* オーバーレイ */}
               <button
-                className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 rounded-lg"
+                className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-lg"
                 onClick={() => {
                   if (!supabaseUser) {
                     setShowRegisterModal(true)
@@ -404,31 +432,46 @@ export default function SchoolDetailPage() {
                   alt="ロック"
                   width={40}
                   height={40}
-                  className="mb-1"
+                  className="mb-2"
                 />
-                <span className="text-sm font-bold text-gray-600">
-                  プレミアムユーザーに登録すれば閲覧可能
+                <span className="text-sm font-bold text-gray-600 text-center">
+                  プレミアムユーザーに
+                  <br />
+                  登録すれば閲覧可能
                 </span>
               </button>
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {school.contactBookType && (
-                <DetailRow label="連絡帳" value={school.contactBookType} />
-              )}
-              {school.absenceContactMethod && (
+              {school.supportInfo.contactBookType && (
                 <DetailRow
-                  label="欠席連絡方法"
-                  value={school.absenceContactMethod}
+                  label="連絡帳"
+                  value={
+                    contactBookLabel[school.supportInfo.contactBookType] ??
+                    school.supportInfo.contactBookType
+                  }
                 />
               )}
-              {school.lessons && (
-                <DetailRow label="園内習い事" value={school.lessons} />
+              {school.supportInfo.absenceContactMethod && (
+                <DetailRow
+                  label="欠席連絡方法"
+                  value={
+                    absenceContactLabel[
+                      school.supportInfo.absenceContactMethod
+                    ] ?? school.supportInfo.absenceContactMethod
+                  }
+                />
               )}
-              {school.allergySupport && (
+              {school.supportInfo.lessons && (
+                <DetailRow
+                  label="園内習い事"
+                  value={school.supportInfo.lessons}
+                />
+              )}
+              {school.supportInfo.allergySupport && (
                 <DetailRow
                   label="アレルギー対応"
-                  value={school.allergySupport}
+                  value={school.supportInfo.allergySupport}
                 />
               )}
             </div>
@@ -436,22 +479,24 @@ export default function SchoolDetailPage() {
         </section>
 
         {/* 園の特徴 */}
-        {school.description && (
-          <section className="mt-6">
-            <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
-              <Image
-                src="/images/icon8.png"
-                alt="園の特徴"
-                width={24}
-                height={24}
-              />
-              園の特徴
-            </h2>
+        <section className="mt-6">
+          <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
+            <Image
+              src="/images/icon8.png"
+              alt="園の特徴"
+              width={24}
+              height={24}
+            />
+            園の特徴
+          </h2>
+          {school.description ? (
             <p className="text-sm text-gray-600 leading-relaxed">
               {school.description}
             </p>
-          </section>
-        )}
+          ) : (
+            <p className="text-sm text-gray-400">情報がありません</p>
+          )}
+        </section>
       </div>
 
       {/* ログイン誘導モーダル */}
