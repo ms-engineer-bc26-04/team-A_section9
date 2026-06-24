@@ -128,12 +128,24 @@ const toSchoolDetail = (
     timeBurdenLevel: school.timeBurdenLevel,
     mealType: school.mealType,
     itemBurdenLevel: school.itemBurdenLevel,
+
+    // 園詳細画面では、持ち物負担の表示用テキストも返す
+    itemBurdenDetail: school.itemBurdenDetail,
+
     diaperSupport: school.diaperSupport,
     futonSupport: school.futonSupport,
     extendedCareHours: school.extendedCareHours,
     extendedCareUsage: school.extendedCareUsage,
     weekdayEventsLevel: school.weekdayEventsLevel,
+
+    // 園詳細画面では、平日行事の表示用テキストも返す
+    weekdayEvents: school.weekdayEvents,
+
     parentAssociationLevel: school.parentAssociationLevel,
+
+    // 園詳細画面では、保護者会頻度の表示用テキストも返す
+    parentAssociationFrequency: school.parentAssociationFrequency,
+
     description: school.description,
     tags: getSchoolTags(school),
     isFavorited,
