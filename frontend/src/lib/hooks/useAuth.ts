@@ -72,7 +72,7 @@ export const useAuth = (): AuthState => {
     }
   }, [fetchAppUser])
 
-  const isPremium = appUser?.subscriptionStatus === 'ACTIVE' ?? false
+  const isPremium = appUser?.subscriptionStatus === 'ACTIVE'
 
   return {
     supabaseUser,

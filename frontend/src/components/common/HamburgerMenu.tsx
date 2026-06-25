@@ -14,7 +14,7 @@ type HamburgerMenuProps = {
 }
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const { supabaseUser, appUser, isPremium, isLoading } = useAuth()
+  const { supabaseUser, isPremium, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
