@@ -1,4 +1,9 @@
-import type { MembershipType, School, Subscription } from '@prisma/client'
+import type {
+  MembershipType,
+  School,
+  Subscription,
+  UserPreference,
+} from '@prisma/client'
 import { prisma } from '../lib/prisma'
 
 const FREE_COMPARE_LIMIT = 2
@@ -8,7 +13,22 @@ type UserForCompare = {
   id: string
   planType: MembershipType
   subscription: Subscription | null
+  preference: UserPreference | null
 }
+
+type MatchHighlight = {
+  mealType: boolean
+  itemBurdenLevel: boolean
+  diaperSupport: boolean
+  futonSupport: boolean
+  extendedCare: boolean
+  lessons: boolean
+  allergySupport: boolean
+  weekdayEventsLevel: boolean
+  parentAssociationLevel: boolean
+}
+
+type MatchHighlights = Record<string, MatchHighlight>
 
 export class CompareServiceError extends Error {
   constructor(
@@ -26,6 +46,92 @@ const isPremiumUser = (user: UserForCompare) => {
 
 const getCompareLimit = (user: UserForCompare) => {
   return isPremiumUser(user) ? PREMIUM_COMPARE_LIMIT : FREE_COMPARE_LIMIT
+}
+
+const hasPreference = (preference: UserPreference | null) => {
+  if (!preference) {
+    return false
+  }
+
+  return Boolean(
+    preference.preferredMealType ||
+      preference.preferredItemBurdenLevel ||
+      preference.preferredDiaperSupport ||
+      preference.preferredFutonSupport ||
+      preference.preferredExtendedCare ||
+      preference.preferredLessons !== null ||
+      preference.preferredAllergySupport !== null ||
+      preference.preferredWeekdayEventsLevel ||
+      preference.preferredParentAssociationLevel
+  )
+}
+
+// #60対応：希望条件と園情報の一致結果を、API設計書に合わせて boolean map で返す
+const getMatchHighlight = (
+  school: School,
+  preference: UserPreference
+): MatchHighlight => {
+  return {
+    mealType: Boolean(
+      preference.preferredMealType &&
+        preference.preferredMealType === school.mealType
+    ),
+    itemBurdenLevel: Boolean(
+      preference.preferredItemBurdenLevel &&
+        preference.preferredItemBurdenLevel === school.itemBurdenLevel
+    ),
+    diaperSupport: Boolean(
+      preference.preferredDiaperSupport &&
+        preference.preferredDiaperSupport === school.diaperSupport
+    ),
+    futonSupport: Boolean(
+      preference.preferredFutonSupport &&
+        preference.preferredFutonSupport === school.futonSupport
+    ),
+    extendedCare: Boolean(
+      preference.preferredExtendedCare &&
+        preference.preferredExtendedCare === school.extendedCareUsage
+    ),
+    lessons: Boolean(
+      preference.preferredLessons === true && school.lessons !== null
+    ),
+    allergySupport: Boolean(
+      preference.preferredAllergySupport === true &&
+        school.allergySupport !== null
+    ),
+    weekdayEventsLevel: Boolean(
+      preference.preferredWeekdayEventsLevel &&
+        preference.preferredWeekdayEventsLevel === school.weekdayEventsLevel
+    ),
+    parentAssociationLevel: Boolean(
+      preference.preferredParentAssociationLevel &&
+        preference.preferredParentAssociationLevel ===
+          school.parentAssociationLevel
+    ),
+  }
+}
+
+// #60対応：プレミアムユーザーのみ matchHighlights を返す
+// 一般ユーザー、または希望条件未設定の場合は null を返す
+const buildMatchHighlights = (
+  schools: School[],
+  user: UserForCompare
+): MatchHighlights | null => {
+  if (!isPremiumUser(user) || !hasPreference(user.preference)) {
+    return null
+  }
+
+  const preference = user.preference
+
+  if (!preference) {
+    return null
+  }
+
+  return schools.reduce<MatchHighlights>((highlights, school) => {
+    highlights[school.id.toString()] = getMatchHighlight(school, preference)
+
+    return highlights
+  }, {})
 }
 
 const toCompareSchool = (school: School) => {
@@ -66,6 +172,15 @@ export const getComparedSchools = async (
   const compareLimit = getCompareLimit(user)
 
   if (schoolIds.length > compareLimit) {
+    // #60対応：一般ユーザーがプレミアム枠の3園比較を使おうとした場合は FORBIDDEN を返す
+    if (!isPremiumUser(user) && schoolIds.length <= PREMIUM_COMPARE_LIMIT) {
+      throw new CompareServiceError(
+        403,
+        'FORBIDDEN',
+        'この機能を利用する権限がありません'
+      )
+    }
+
     const message = isPremiumUser(user)
       ? 'プレミアムユーザーは3園まで比較できます'
       : '一般ユーザーは2園まで比較できます'
@@ -102,6 +217,6 @@ export const getComparedSchools = async (
 
   return {
     schools: sortedSchools.map((school) => toCompareSchool(school)),
-    matchHighlights: null,
+    matchHighlights: buildMatchHighlights(sortedSchools, user),
   }
 }
