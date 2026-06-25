@@ -23,10 +23,6 @@ const buildSchoolWhere = (
       query.area ? { area: { contains: query.area, mode: 'insensitive' } } : {},
       query.mealType ? { mealType: query.mealType } : {},
 
-      // おむつ園処理あり
-      // フロントから diaperSupport=true が送られてきた場合は、
-      // "true" という文字列の部分一致検索ではなく、
-      // seed定義に合わせて diaperSupport が「園で廃棄」の園を取得する
       query.diaperSupport === 'true'
         ? {
             diaperSupport: '園で廃棄',
@@ -40,10 +36,6 @@ const buildSchoolWhere = (
             }
           : {},
 
-      // 布団負担少なめ
-      // フロントから futonSupport=true が送られてきた場合は、
-      // "true" という文字列の部分一致検索ではなく、
-      // seed定義に合わせて futonSupport が「園で管理」の園を取得する
       query.futonSupport === 'true'
         ? {
             futonSupport: '園で管理',
@@ -66,10 +58,6 @@ const buildSchoolWhere = (
           }
         : {},
 
-      // 延長保育利用者が多い
-      // フロントから extendedCareUsage=true が送られてきた場合は、
-      // "true" という文字列の部分一致検索ではなく、
-      // seed定義に合わせて extendedCareUsage が「20人以上」の園を取得する
       query.extendedCareUsage === 'true'
         ? {
             extendedCareUsage: '20人以上',
@@ -91,10 +79,6 @@ const buildSchoolWhere = (
         ? { parentAssociationLevel: query.parentAssociationLevel }
         : {},
 
-      // 園内習い事あり
-      // フロントから lessons=true が送られてきた場合は、
-      // "true" という文字列の部分一致検索ではなく、
-      // lessons が null ではない園を取得する
       query.lessons === 'true'
         ? {
             lessons: {
@@ -103,10 +87,6 @@ const buildSchoolWhere = (
           }
         : {},
 
-      // アレルギー対応あり
-      // フロントから allergySupport=true が送られてきた場合は、
-      // "true" という文字列の部分一致検索ではなく、
-      // allergySupport が null ではない園を取得する
       query.allergySupport === 'true'
         ? {
             allergySupport: {
@@ -129,77 +109,139 @@ export const getSchools = async (query: SchoolSearchQuery) => {
 
 type SchoolForRecommendation = Awaited<ReturnType<typeof getSchools>>[number]
 
-const calculateRecommendedScore = (
-  school: SchoolForRecommendation,
-  favoriteSchools: SchoolForRecommendation[]
-) => {
-  return favoriteSchools.reduce((score, favoriteSchool) => {
-    let nextScore = score
+// #66対応：ユーザー住所・希望条件をおすすめ順ロジックで使うため、
+// preference を含めた User 型を定義
+type UserForRecommendation = Prisma.UserGetPayload<{
+  include: {
+    preference: true
+  }
+}>
 
-    if (school.area === favoriteSchool.area) {
-      nextScore += 4
-    }
+// #66対応：希望条件が1つでも設定されているか判定する
+const hasPreference = (user: UserForRecommendation) => {
+  const preference = user.preference
 
-    if (school.schoolType === favoriteSchool.schoolType) {
-      nextScore += 2
-    }
+  if (!preference) {
+    return false
+  }
 
-    if (school.mealType === favoriteSchool.mealType) {
-      nextScore += 2
-    }
-
-    if (school.lifeBurdenLevel === favoriteSchool.lifeBurdenLevel) {
-      nextScore += 1
-    }
-
-    if (school.timeBurdenLevel === favoriteSchool.timeBurdenLevel) {
-      nextScore += 1
-    }
-
-    if (school.itemBurdenLevel === favoriteSchool.itemBurdenLevel) {
-      nextScore += 1
-    }
-
-    if (school.weekdayEventsLevel === favoriteSchool.weekdayEventsLevel) {
-      nextScore += 1
-    }
-
-    if (
-      school.parentAssociationLevel === favoriteSchool.parentAssociationLevel
-    ) {
-      nextScore += 1
-    }
-
-    return nextScore
-  }, 0)
+  return Boolean(
+    preference.preferredMealType ||
+    preference.preferredItemBurdenLevel ||
+    preference.preferredDiaperSupport ||
+    preference.preferredFutonSupport ||
+    preference.preferredExtendedCare ||
+    preference.preferredLessons !== null ||
+    preference.preferredAllergySupport !== null ||
+    preference.preferredWeekdayEventsLevel ||
+    preference.preferredParentAssociationLevel
+  )
 }
 
+// #66対応：お気に入り済み園ベースではなく、
+// ユーザー住所・希望条件との一致度でおすすめスコアを計算する
+const calculateRecommendedScore = (
+  school: SchoolForRecommendation,
+  user: UserForRecommendation
+) => {
+  let score = 0
+  const preference = user.preference
+
+  if (user.address && user.address.includes(school.area)) {
+    score += 10
+  }
+
+  if (
+    preference?.preferredMealType &&
+    preference.preferredMealType === school.mealType
+  ) {
+    score += 3
+  }
+
+  if (
+    preference?.preferredItemBurdenLevel &&
+    preference.preferredItemBurdenLevel === school.itemBurdenLevel
+  ) {
+    score += 2
+  }
+
+  if (
+    preference?.preferredDiaperSupport &&
+    preference.preferredDiaperSupport === school.diaperSupport
+  ) {
+    score += 2
+  }
+
+  if (
+    preference?.preferredFutonSupport &&
+    preference.preferredFutonSupport === school.futonSupport
+  ) {
+    score += 2
+  }
+
+  if (
+    preference?.preferredExtendedCare &&
+    preference.preferredExtendedCare === school.extendedCareUsage
+  ) {
+    score += 2
+  }
+
+  if (
+    preference?.preferredWeekdayEventsLevel &&
+    preference.preferredWeekdayEventsLevel === school.weekdayEventsLevel
+  ) {
+    score += 2
+  }
+
+  if (
+    preference?.preferredParentAssociationLevel &&
+    preference.preferredParentAssociationLevel === school.parentAssociationLevel
+  ) {
+    score += 2
+  }
+
+  if (preference?.preferredLessons === true && school.lessons !== null) {
+    score += 1
+  }
+
+  if (
+    preference?.preferredAllergySupport === true &&
+    school.allergySupport !== null
+  ) {
+    score += 1
+  }
+
+  return score
+}
+
+// #66対応：sort=recommended のとき、
+// ログインユーザーの住所・希望条件をもとに園一覧を並び替える
 export const getRecommendedSchools = async (
   query: SchoolSearchQuery,
   userId: string
 ) => {
   const schools = await getSchools(query)
 
-  const favoriteSchools = await prisma.school.findMany({
+  const user = await prisma.user.findUnique({
     where: {
-      favorites: {
-        some: {
-          userId,
-        },
-      },
+      id: userId,
     },
-    orderBy: {
-      id: 'asc',
+    include: {
+      preference: true,
     },
   })
 
-  if (favoriteSchools.length === 0) {
+  if (!user) {
+    return schools
+  }
+
+  if (!user.address && !hasPreference(user)) {
     return schools
   }
 
   return [...schools].sort((a, b) => {
-    const scoreA = calculateRecommendedScore(a, favoriteSchools)
-    const scoreB = calculateRecommendedScore(b, favoriteSchools)
+    const scoreA = calculateRecommendedScore(a, user)
+    const scoreB = calculateRecommendedScore(b, user)
 
     if (scoreA !== scoreB) {
       return scoreB - scoreA
@@ -221,10 +263,6 @@ export const getFavoritedSchoolIds = async (
   userId: string,
   schoolIds: bigint[]
 ) => {
-  if (schoolIds.length === 0) {
-    return new Set<string>()
-  }
-
   const favorites = await prisma.favorite.findMany({
     where: {
       userId,
