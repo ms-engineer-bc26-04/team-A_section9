@@ -1,6 +1,9 @@
 import type { Response, NextFunction } from 'express'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
-import { getOrCreateCurrentUser } from '../services/userService'
+import {
+  getOrCreateCurrentUser,
+  upsertUserPreference,
+} from '../services/userService'
 
 export const getMe = async (
   req: AuthenticatedRequest,
@@ -25,6 +28,57 @@ export const getMe = async (
         email: user.email,
         membershipType: user.planType,
         subscriptionStatus: user.subscription?.status ?? null,
+        preference: user.preference
+          ? {
+              preferredMealType: user.preference.preferredMealType,
+              preferredItemBurdenLevel:
+                user.preference.preferredItemBurdenLevel,
+              preferredDiaperSupport: user.preference.preferredDiaperSupport,
+              preferredFutonSupport: user.preference.preferredFutonSupport,
+              preferredExtendedCare: user.preference.preferredExtendedCare,
+              preferredWeekdayEventsLevel:
+                user.preference.preferredWeekdayEventsLevel,
+              preferredParentAssociationLevel:
+                user.preference.preferredParentAssociationLevel,
+            }
+          : null,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const updateMyPreference = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.authUser) {
+      return res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'ログインが必要です',
+        },
+      })
+    }
+
+    const user = await getOrCreateCurrentUser(req.authUser)
+    const preference = await upsertUserPreference(user.id, req.body)
+
+    return res.status(200).json({
+      data: {
+        preference: {
+          preferredMealType: preference.preferredMealType,
+          preferredItemBurdenLevel: preference.preferredItemBurdenLevel,
+          preferredDiaperSupport: preference.preferredDiaperSupport,
+          preferredFutonSupport: preference.preferredFutonSupport,
+          preferredExtendedCare: preference.preferredExtendedCare,
+          preferredWeekdayEventsLevel: preference.preferredWeekdayEventsLevel,
+          preferredParentAssociationLevel:
+            preference.preferredParentAssociationLevel,
+        },
       },
     })
   } catch (error) {

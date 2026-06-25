@@ -17,6 +17,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         },
         include: {
           subscription: true,
+          preference: true,
         },
       })
 
@@ -30,6 +31,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         },
         include: {
           subscription: true,
+          preference: true,
         },
       })
 
@@ -50,6 +52,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
           },
           include: {
             subscription: true,
+            preference: true,
           },
         })
       }
@@ -62,6 +65,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         },
         include: {
           subscription: true,
+          preference: true,
         },
       })
     })
@@ -76,6 +80,7 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
         },
         include: {
           subscription: true,
+          preference: true,
         },
       })
 
@@ -86,4 +91,46 @@ export const getOrCreateCurrentUser = async (authUser: SupabaseUser) => {
 
     throw error
   }
+}
+
+type UserPreferenceInput = {
+  preferredMealType?: 'SCHOOL_LUNCH' | 'LUNCH_BOX' | 'BOTH' | null
+  preferredItemBurdenLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null
+  preferredDiaperSupport?: string | null
+  preferredFutonSupport?: string | null
+  preferredExtendedCare?: string | null
+  preferredWeekdayEventsLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null
+  preferredParentAssociationLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null
+}
+
+export const upsertUserPreference = async (
+  userId: string,
+  input: UserPreferenceInput
+) => {
+  return await prisma.userPreference.upsert({
+    where: {
+      userId,
+    },
+    update: {
+      preferredMealType: input.preferredMealType ?? null,
+      preferredItemBurdenLevel: input.preferredItemBurdenLevel ?? null,
+      preferredDiaperSupport: input.preferredDiaperSupport ?? null,
+      preferredFutonSupport: input.preferredFutonSupport ?? null,
+      preferredExtendedCare: input.preferredExtendedCare ?? null,
+      preferredWeekdayEventsLevel: input.preferredWeekdayEventsLevel ?? null,
+      preferredParentAssociationLevel:
+        input.preferredParentAssociationLevel ?? null,
+    },
+    create: {
+      userId,
+      preferredMealType: input.preferredMealType ?? null,
+      preferredItemBurdenLevel: input.preferredItemBurdenLevel ?? null,
+      preferredDiaperSupport: input.preferredDiaperSupport ?? null,
+      preferredFutonSupport: input.preferredFutonSupport ?? null,
+      preferredExtendedCare: input.preferredExtendedCare ?? null,
+      preferredWeekdayEventsLevel: input.preferredWeekdayEventsLevel ?? null,
+      preferredParentAssociationLevel:
+        input.preferredParentAssociationLevel ?? null,
+    },
+  })
 }
