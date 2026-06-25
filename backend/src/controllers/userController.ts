@@ -1,4 +1,4 @@
-import type { Response, NextFunction } from 'express'
+import type { NextFunction, Response } from 'express'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
 import {
   getOrCreateCurrentUser,
@@ -11,18 +11,21 @@ export const getMe = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.authUser) {
-      return res.status(401).json({
+    const authUser = req.authUser
+
+    if (!authUser) {
+      res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
           message: 'ログインが必要です',
         },
       })
+      return
     }
 
-    const user = await getOrCreateCurrentUser(req.authUser)
+    const user = await getOrCreateCurrentUser(authUser)
 
-    return res.status(200).json({
+    res.status(200).json({
       data: {
         id: user.id,
         email: user.email,
@@ -36,6 +39,8 @@ export const getMe = async (
               preferredDiaperSupport: user.preference.preferredDiaperSupport,
               preferredFutonSupport: user.preference.preferredFutonSupport,
               preferredExtendedCare: user.preference.preferredExtendedCare,
+              preferredLessons: user.preference.preferredLessons,
+              preferredAllergySupport: user.preference.preferredAllergySupport,
               preferredWeekdayEventsLevel:
                 user.preference.preferredWeekdayEventsLevel,
               preferredParentAssociationLevel:
@@ -55,19 +60,22 @@ export const updateMyPreference = async (
   next: NextFunction
 ) => {
   try {
-    if (!req.authUser) {
-      return res.status(401).json({
+    const authUser = req.authUser
+
+    if (!authUser) {
+      res.status(401).json({
         error: {
           code: 'UNAUTHORIZED',
           message: 'ログインが必要です',
         },
       })
+      return
     }
 
-    const user = await getOrCreateCurrentUser(req.authUser)
+    const user = await getOrCreateCurrentUser(authUser)
     const preference = await upsertUserPreference(user.id, req.body)
 
-    return res.status(200).json({
+    res.status(200).json({
       data: {
         preference: {
           preferredMealType: preference.preferredMealType,
@@ -75,6 +83,8 @@ export const updateMyPreference = async (
           preferredDiaperSupport: preference.preferredDiaperSupport,
           preferredFutonSupport: preference.preferredFutonSupport,
           preferredExtendedCare: preference.preferredExtendedCare,
+          preferredLessons: preference.preferredLessons,
+          preferredAllergySupport: preference.preferredAllergySupport,
           preferredWeekdayEventsLevel: preference.preferredWeekdayEventsLevel,
           preferredParentAssociationLevel:
             preference.preferredParentAssociationLevel,

@@ -99,6 +99,8 @@ type UserPreferenceInput = {
   preferredDiaperSupport?: string | null
   preferredFutonSupport?: string | null
   preferredExtendedCare?: string | null
+  preferredLessons?: boolean | null
+  preferredAllergySupport?: boolean | null
   preferredWeekdayEventsLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null
   preferredParentAssociationLevel?: 'LOW' | 'MEDIUM' | 'HIGH' | null
 }
@@ -117,6 +119,8 @@ export const upsertUserPreference = async (
       preferredDiaperSupport: input.preferredDiaperSupport ?? null,
       preferredFutonSupport: input.preferredFutonSupport ?? null,
       preferredExtendedCare: input.preferredExtendedCare ?? null,
+      preferredLessons: input.preferredLessons ?? null,
+      preferredAllergySupport: input.preferredAllergySupport ?? null,
       preferredWeekdayEventsLevel: input.preferredWeekdayEventsLevel ?? null,
       preferredParentAssociationLevel:
         input.preferredParentAssociationLevel ?? null,
@@ -128,6 +132,8 @@ export const upsertUserPreference = async (
       preferredDiaperSupport: input.preferredDiaperSupport ?? null,
       preferredFutonSupport: input.preferredFutonSupport ?? null,
       preferredExtendedCare: input.preferredExtendedCare ?? null,
+      preferredLessons: input.preferredLessons ?? null,
+      preferredAllergySupport: input.preferredAllergySupport ?? null,
       preferredWeekdayEventsLevel: input.preferredWeekdayEventsLevel ?? null,
       preferredParentAssociationLevel:
         input.preferredParentAssociationLevel ?? null,
