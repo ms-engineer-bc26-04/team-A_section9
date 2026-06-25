@@ -158,6 +158,8 @@ model UserPreference {
   preferredDiaperSupport          String?      @map("preferred_diaper_support") @db.VarChar(50)
   preferredFutonSupport           String?      @map("preferred_futon_support") @db.VarChar(50)
   preferredExtendedCare           String?      @map("preferred_extended_care") @db.VarChar(50)
+  preferredLessons        Boolean? @map("preferred_lessons")
+  preferredAllergySupport Boolean? @map("preferred_allergy_support")
   preferredWeekdayEventsLevel     BurdenLevel? @map("preferred_weekday_events_level")
   preferredParentAssociationLevel BurdenLevel? @map("preferred_parent_association_level")
   createdAt                       DateTime     @default(now()) @map("created_at")

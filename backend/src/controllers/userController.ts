@@ -1,26 +1,25 @@
-import type { Response, NextFunction } from 'express'
-import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
+import type { Request, Response } from 'express'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 import {
   getOrCreateCurrentUser,
   upsertUserPreference,
 } from '../services/userService'
 
-export const getMe = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-) => {
+type AuthenticatedRequest = Request & {
+  authUser?: SupabaseUser
+}
+
+export const getMe = async (req: AuthenticatedRequest, res: Response) => {
   try {
-    if (!req.authUser) {
+    const authUser = req.authUser
+
+    if (!authUser) {
       return res.status(401).json({
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'ログインが必要です',
-        },
+        message: '認証が必要です',
       })
     }
 
-    const user = await getOrCreateCurrentUser(req.authUser)
+    const user = await getOrCreateCurrentUser(authUser)
 
     return res.status(200).json({
       data: {
@@ -36,6 +35,8 @@ export const getMe = async (
               preferredDiaperSupport: user.preference.preferredDiaperSupport,
               preferredFutonSupport: user.preference.preferredFutonSupport,
               preferredExtendedCare: user.preference.preferredExtendedCare,
+              preferredLessons: user.preference.preferredLessons,
+              preferredAllergySupport: user.preference.preferredAllergySupport,
               preferredWeekdayEventsLevel:
                 user.preference.preferredWeekdayEventsLevel,
               preferredParentAssociationLevel:
@@ -45,26 +46,28 @@ export const getMe = async (
       },
     })
   } catch (error) {
-    next(error)
+    console.error(error)
+
+    return res.status(500).json({
+      message: 'ユーザー情報の取得に失敗しました',
+    })
   }
 }
 
 export const updateMyPreference = async (
   req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
+  res: Response
 ) => {
   try {
-    if (!req.authUser) {
+    const authUser = req.authUser
+
+    if (!authUser) {
       return res.status(401).json({
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'ログインが必要です',
-        },
+        message: '認証が必要です',
       })
     }
 
-    const user = await getOrCreateCurrentUser(req.authUser)
+    const user = await getOrCreateCurrentUser(authUser)
     const preference = await upsertUserPreference(user.id, req.body)
 
     return res.status(200).json({
@@ -75,6 +78,8 @@ export const updateMyPreference = async (
           preferredDiaperSupport: preference.preferredDiaperSupport,
           preferredFutonSupport: preference.preferredFutonSupport,
           preferredExtendedCare: preference.preferredExtendedCare,
+          preferredLessons: preference.preferredLessons,
+          preferredAllergySupport: preference.preferredAllergySupport,
           preferredWeekdayEventsLevel: preference.preferredWeekdayEventsLevel,
           preferredParentAssociationLevel:
             preference.preferredParentAssociationLevel,
@@ -82,6 +87,10 @@ export const updateMyPreference = async (
       },
     })
   } catch (error) {
-    next(error)
+    console.error(error)
+
+    return res.status(500).json({
+      message: '希望条件の更新に失敗しました',
+    })
   }
 }
