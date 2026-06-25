@@ -27,6 +27,7 @@
 * 管理画面 CRUD は MVP 対象外
 * お気に入りは一般ユーザーも利用可能とし、一般ユーザーは最大5件、プレミアムユーザーは無制限とする
 * 比較は一般ユーザーは2園、プレミアムユーザーは3園までとする
+* プロフィール編集画面で登録するお名前・郵便番号・住所は、`users` テーブルで管理する
 * プロフィール編集画面で登録するユーザー希望条件は、`user_preferences` テーブルで管理する
 * ユーザー希望条件は、園一覧検索条件と揃えて8項目で扱う
 * ユーザー希望条件は、ホーム画面のおすすめ表示とプレミアム比較画面の一致表示に利用する
@@ -83,7 +84,7 @@ erDiagram
 
 | テーブル名 | 役割 |
 | --- | --- |
-| users | Supabase Auth と紐づくアプリ内ユーザー情報・会員状態を管理する |
+| users | Supabase Auth と紐づくアプリ内ユーザー情報・プロフィール情報・会員状態を管理する |
 | user_preferences | ユーザーごとの希望条件を管理する |
 | schools | 園の基本情報・生活負担・時間負担・サポート情報を管理する |
 | favorites | ユーザーがお気に入り登録した園を管理する |
@@ -97,18 +98,24 @@ erDiagram
 
 ### 4.1 users
 
-Supabase Auth のユーザー情報と、アプリ内で利用する会員状態を管理する。
+Supabase Auth のユーザー情報、アプリ内で利用するプロフィール情報、会員状態を管理する。
 
 ENKATSUにおける会員登録は、無料のユーザー登録を指す。
 会員登録後は一般ユーザーとして扱い、`plan_type` の初期値は `FREE` とする。
 
 MVPでは、Supabase Auth 上のユーザーは存在するがアプリ側 `users` レコードが存在しない場合、`GET /api/v1/users/me` 実行時にバックエンド側で `users` レコードを自動作成する。
 
+プロフィール編集画面で入力するお名前・郵便番号・住所は、`PUT /api/v1/users/me` で保存・更新する。
+郵便番号はハイフンなし7桁で保存する。
+
 | カラム名 | 型 | NULL | デフォルト | 説明 |
 | --- | --- | --- | --- | --- |
 | id | uuid | NO | uuid() | アプリ内ユーザーID |
 | supabase_user_id | uuid | YES | - | Supabase Auth User ID |
 | email | varchar(255) | NO | - | メールアドレス |
+| name | varchar(100) | YES | - | ユーザーの表示名・お名前 |
+| postal_code | varchar(7) | YES | - | ユーザー住所の郵便番号。ハイフンなし7桁 |
+| address | varchar(255) | YES | - | ユーザー住所 |
 | plan_type | membership_type | NO | FREE | 表示用の会員種別（FREE / PAID） |
 | created_at | timestamp | NO | now() | 作成日時 |
 | updated_at | timestamp | NO | now() | 更新日時 |
@@ -120,6 +127,9 @@ MVPでは、Supabase Auth 上のユーザーは存在するがアプリ側 `user
 | id | UUIDを自動生成 |
 | supabase_user_id | Supabase Auth User ID |
 | email | Supabase Auth のメールアドレス |
+| name | null |
+| postal_code | null |
+| address | null |
 | plan_type | FREE |
 | created_at | 作成日時 |
 | updated_at | 作成日時 |
@@ -303,6 +313,7 @@ MVPではAIレポート生成結果の保存は行わないが、将来拡張用
 * 主キー：`id`
 * `supabase_user_id` にユニーク制約を設定する
 * `email` にユニーク制約を設定する
+* `name`、`postal_code`、`address` にはユニーク制約・インデックスは設定しない
 
 ```sql
 UNIQUE(supabase_user_id)
@@ -421,6 +432,12 @@ FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
 
 * 園情報は MVP では seed データとして登録する
 * お気に入りはユーザーごとに DB 保存する
+* ユーザーのプロフィール情報は `users` に保存する
+* プロフィール情報として、お名前・郵便番号・住所を保持する
+* 郵便番号はハイフンなし7桁で保存する
+* 郵便番号から住所を取得する処理は `GET /api/v1/address/search?zipcode=1234567` で行う
+* 住所検索APIは住所自動入力用であり、DB保存は行わない
+* お名前・郵便番号・住所の保存は `PUT /api/v1/users/me` で行う
 * ユーザー希望条件は `user_preferences` に保存する
 * ユーザー希望条件は、園一覧検索条件と揃えて8項目で扱う
 * 1ユーザーにつき希望条件は0件または1件とする
@@ -607,6 +624,12 @@ seed データには、画面表示・検索・比較に必要な以下の情報
 * `supabase_user_id` は Supabase Auth User ID と紐づける
 * `supabase_user_id` はユニークにする
 * `email` はユニークにする
+* `name` はユーザーの表示名・お名前として保持する
+* `postal_code` はユーザー住所の郵便番号として保持する
+* `postal_code` はハイフンなし7桁で保存する
+* `address` はユーザー住所として保持する
+* `name` / `postal_code` / `address` は nullable とし、未登録時は null とする
+* プロフィール情報の保存・更新は `PUT /api/v1/users/me` で行う
 * `plan_type` の初期値は `FREE` とする
 * ユーザー希望条件は `users` ではなく `user_preferences` に分離する
 
@@ -666,3 +689,4 @@ seed データには、画面表示・検索・比較に必要な以下の情報
 | v0.2 | 2026/06/23 | 画面設計書 v0.7 を最新版として優先する記載に修正。`GET /users/me` 実行時の `users` レコード自動作成方針を追加。`compare_lists` はMVPではAPIから利用しないが将来拡張用としてテーブルのみ作成する方針に統一。RedisキャッシュをMVP必須として追加。DB上は `postal_code`、`address` をNULL許可とし、プロフィール編集画面では必須入力とする方針を明記 |
 | v0.3 | 2026/06/24 | ユーザー希望条件を `users` から分離し、`user_preferences` テーブルとして追加。`users` と `user_preferences` の 1対0..1 リレーションを追加。現在のPrisma schemaに合わせて `compare_histories`、`report_histories`、Enum定義、学校情報カラムを整理 |
 | v0.4 | 2026/06/25 | ユーザー希望条件を園一覧検索条件と揃えて8項目で扱う方針に修正。`user_preferences` に `preferred_lessons` / `preferred_allergy_support` を追加 |
+| v0.5 | 2026/06/25 | マイページのプロフィール情報保存API追加に伴い、`users` に `name` / `postal_code` / `address` を追加。プロフィール情報は `PUT /api/v1/users/me` で保存し、郵便番号はハイフンなし7桁で保持する方針を追加 |
