@@ -68,3 +68,165 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
     checkoutUrl: session.url,
   }
 }
+const updateSubscriptionToActive = async (
+  userId: string,
+  stripeCustomerId: string,
+  stripeSubscriptionId: string,
+  currentPeriodEnd?: Date
+) => {
+  await prisma.$transaction([
+    prisma.subscription.upsert({
+      where: {
+        userId,
+      },
+      update: {
+        stripeCustomerId,
+        stripeSubscriptionId,
+        status: 'ACTIVE',
+        currentPeriodEnd,
+        endedAt: null,
+      },
+      create: {
+        userId,
+        stripeCustomerId,
+        stripeSubscriptionId,
+        status: 'ACTIVE',
+        currentPeriodEnd,
+      },
+    }),
+    prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        planType: 'PAID',
+      },
+    }),
+  ])
+}
+const updateSubscriptionToCanceled = async (stripeSubscriptionId: string) => {
+  const subscription = await prisma.subscription.findUnique({
+    where: {
+      stripeSubscriptionId,
+    },
+  })
+
+  if (!subscription) {
+    throw new Error('SUBSCRIPTION_NOT_FOUND')
+  }
+
+  await prisma.$transaction([
+    prisma.subscription.update({
+      where: {
+        stripeSubscriptionId,
+      },
+      data: {
+        status: 'CANCELED',
+        endedAt: new Date(),
+      },
+    }),
+    prisma.user.update({
+      where: {
+        id: subscription.userId,
+      },
+      data: {
+        planType: 'FREE',
+      },
+    }),
+  ])
+}
+const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
+  const subscription = await prisma.subscription.findUnique({
+    where: {
+      stripeSubscriptionId,
+    },
+  })
+
+  if (!subscription) {
+    throw new Error('SUBSCRIPTION_NOT_FOUND')
+  }
+
+  await prisma.$transaction([
+    prisma.subscription.update({
+      where: {
+        stripeSubscriptionId,
+      },
+      data: {
+        status: 'EXPIRED',
+      },
+    }),
+    prisma.user.update({
+      where: {
+        id: subscription.userId,
+      },
+      data: {
+        planType: 'FREE',
+      },
+    }),
+  ])
+}
+
+export const handleStripeWebhookService = async (
+  body: Buffer | string,
+  signature: string | string[] | undefined
+) => {
+  if (!signature || Array.isArray(signature)) {
+    throw new Error('INVALID_SIGNATURE')
+  }
+
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
+
+  if (!webhookSecret) {
+    throw new Error('STRIPE_WEBHOOK_SECRET_NOT_SET')
+  }
+
+  const event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+
+  console.log('Stripe webhook received:', event.type)
+
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session
+
+      const userId = session.client_reference_id
+      const stripeCustomerId = session.customer as string
+      const stripeSubscriptionId = session.subscription as string
+
+      if (!userId || !stripeCustomerId || !stripeSubscriptionId) {
+        throw new Error('CHECKOUT_SESSION_MISSING_REQUIRED_DATA')
+      }
+
+      await updateSubscriptionToActive(
+        userId,
+        stripeCustomerId,
+        stripeSubscriptionId
+      )
+
+      console.log('checkout.session.completed processed')
+      break
+    }
+
+    case 'customer.subscription.updated':
+      console.log('customer.subscription.updated received')
+      break
+
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object as Stripe.Subscription
+
+      await updateSubscriptionToCanceled(subscription.id)
+
+      console.log('customer.subscription.deleted processed')
+      break
+    }
+
+    case 'invoice.payment_failed':
+      console.log('invoice.payment_failed received')
+      break
+
+    default:
+      console.log('Unhandled Stripe event:', event.type)
+      break
+  }
+
+  return event
+}
