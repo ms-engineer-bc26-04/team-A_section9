@@ -140,3 +140,29 @@ export const upsertUserPreference = async (
     },
   })
 }
+
+type UserProfileInput = {
+  name?: string | null
+  postalCode?: string | null
+  address?: string | null
+}
+
+export const updateUserProfile = async (
+  userId: string,
+  input: UserProfileInput
+) => {
+  const normalizedPostalCode = input.postalCode
+    ? input.postalCode.replace('-', '')
+    : null
+
+  return await prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      name: input.name ?? null,
+      postalCode: normalizedPostalCode,
+      address: input.address ?? null,
+    },
+  })
+}
