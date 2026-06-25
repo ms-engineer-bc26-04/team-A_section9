@@ -55,14 +55,14 @@ const hasPreference = (preference: UserPreference | null) => {
 
   return Boolean(
     preference.preferredMealType ||
-      preference.preferredItemBurdenLevel ||
-      preference.preferredDiaperSupport ||
-      preference.preferredFutonSupport ||
-      preference.preferredExtendedCare ||
-      preference.preferredLessons !== null ||
-      preference.preferredAllergySupport !== null ||
-      preference.preferredWeekdayEventsLevel ||
-      preference.preferredParentAssociationLevel
+    preference.preferredItemBurdenLevel ||
+    preference.preferredDiaperSupport ||
+    preference.preferredFutonSupport ||
+    preference.preferredExtendedCare ||
+    preference.preferredLessons !== null ||
+    preference.preferredAllergySupport !== null ||
+    preference.preferredWeekdayEventsLevel ||
+    preference.preferredParentAssociationLevel
   )
 }
 
@@ -74,39 +74,39 @@ const getMatchHighlight = (
   return {
     mealType: Boolean(
       preference.preferredMealType &&
-        preference.preferredMealType === school.mealType
+      preference.preferredMealType === school.mealType
     ),
     itemBurdenLevel: Boolean(
       preference.preferredItemBurdenLevel &&
-        preference.preferredItemBurdenLevel === school.itemBurdenLevel
+      preference.preferredItemBurdenLevel === school.itemBurdenLevel
     ),
     diaperSupport: Boolean(
       preference.preferredDiaperSupport &&
-        preference.preferredDiaperSupport === school.diaperSupport
+      preference.preferredDiaperSupport === school.diaperSupport
     ),
     futonSupport: Boolean(
       preference.preferredFutonSupport &&
-        preference.preferredFutonSupport === school.futonSupport
+      preference.preferredFutonSupport === school.futonSupport
     ),
     extendedCare: Boolean(
       preference.preferredExtendedCare &&
-        preference.preferredExtendedCare === school.extendedCareUsage
+      preference.preferredExtendedCare === school.extendedCareUsage
     ),
     lessons: Boolean(
       preference.preferredLessons === true && school.lessons !== null
     ),
     allergySupport: Boolean(
       preference.preferredAllergySupport === true &&
-        school.allergySupport !== null
+      school.allergySupport !== null
     ),
     weekdayEventsLevel: Boolean(
       preference.preferredWeekdayEventsLevel &&
-        preference.preferredWeekdayEventsLevel === school.weekdayEventsLevel
+      preference.preferredWeekdayEventsLevel === school.weekdayEventsLevel
     ),
     parentAssociationLevel: Boolean(
       preference.preferredParentAssociationLevel &&
-        preference.preferredParentAssociationLevel ===
-          school.parentAssociationLevel
+      preference.preferredParentAssociationLevel ===
+        school.parentAssociationLevel
     ),
   }
 }
