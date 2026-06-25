@@ -1,27 +1,31 @@
-import type { Request, Response } from 'express'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
+import type { NextFunction, Response } from 'express'
+import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
 import {
   getOrCreateCurrentUser,
   upsertUserPreference,
 } from '../services/userService'
 
-type AuthenticatedRequest = Request & {
-  authUser?: SupabaseUser
-}
-
-export const getMe = async (req: AuthenticatedRequest, res: Response) => {
+export const getMe = async (
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const authUser = req.authUser
 
     if (!authUser) {
-      return res.status(401).json({
-        message: '認証が必要です',
+      res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'ログインが必要です',
+        },
       })
+      return
     }
 
     const user = await getOrCreateCurrentUser(authUser)
 
-    return res.status(200).json({
+    res.status(200).json({
       data: {
         id: user.id,
         email: user.email,
@@ -46,31 +50,32 @@ export const getMe = async (req: AuthenticatedRequest, res: Response) => {
       },
     })
   } catch (error) {
-    console.error(error)
-
-    return res.status(500).json({
-      message: 'ユーザー情報の取得に失敗しました',
-    })
+    next(error)
   }
 }
 
 export const updateMyPreference = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ) => {
   try {
     const authUser = req.authUser
 
     if (!authUser) {
-      return res.status(401).json({
-        message: '認証が必要です',
+      res.status(401).json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'ログインが必要です',
+        },
       })
+      return
     }
 
     const user = await getOrCreateCurrentUser(authUser)
     const preference = await upsertUserPreference(user.id, req.body)
 
-    return res.status(200).json({
+    res.status(200).json({
       data: {
         preference: {
           preferredMealType: preference.preferredMealType,
@@ -87,10 +92,6 @@ export const updateMyPreference = async (
       },
     })
   } catch (error) {
-    console.error(error)
-
-    return res.status(500).json({
-      message: '希望条件の更新に失敗しました',
-    })
+    next(error)
   }
 }
