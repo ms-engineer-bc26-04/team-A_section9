@@ -165,7 +165,59 @@ const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
     }),
   ])
 }
+const getCurrentPeriodEnd = (subscription: Stripe.Subscription) => {
+  const currentPeriodEnd = (
+    subscription as Stripe.Subscription & { current_period_end?: number }
+  ).current_period_end
 
+  return currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined
+}
+
+const syncSubscriptionStatus = async (
+  stripeSubscription: Stripe.Subscription
+) => {
+  const stripeSubscriptionId = stripeSubscription.id
+  const currentPeriodEnd = getCurrentPeriodEnd(stripeSubscription)
+
+  const status =
+    stripeSubscription.status === 'active' ||
+    stripeSubscription.status === 'trialing'
+      ? 'ACTIVE'
+      : stripeSubscription.status === 'canceled'
+        ? 'CANCELED'
+        : 'EXPIRED'
+
+  const subscription = await prisma.subscription.findUnique({
+    where: {
+      stripeSubscriptionId,
+    },
+  })
+
+  if (!subscription) {
+    throw new Error('SUBSCRIPTION_NOT_FOUND')
+  }
+
+  await prisma.$transaction([
+    prisma.subscription.update({
+      where: {
+        stripeSubscriptionId,
+      },
+      data: {
+        status,
+        currentPeriodEnd,
+        endedAt: status === 'CANCELED' ? new Date() : null,
+      },
+    }),
+    prisma.user.update({
+      where: {
+        id: subscription.userId,
+      },
+      data: {
+        planType: status === 'ACTIVE' ? 'PAID' : 'FREE',
+      },
+    }),
+  ])
+}
 export const handleStripeWebhookService = async (
   body: Buffer | string,
   signature: string | string[] | undefined
@@ -206,9 +258,14 @@ export const handleStripeWebhookService = async (
       break
     }
 
-    case 'customer.subscription.updated':
-      console.log('customer.subscription.updated received')
+    case 'customer.subscription.updated': {
+      const subscription = event.data.object as Stripe.Subscription
+
+      await syncSubscriptionStatus(subscription)
+
+      console.log('customer.subscription.updated processed')
       break
+    }
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
@@ -218,7 +275,32 @@ export const handleStripeWebhookService = async (
       console.log('customer.subscription.deleted processed')
       break
     }
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object as Stripe.Invoice & {
+        subscription?: string
+        parent?: {
+          subscription_details?: {
+            subscription?: string
+          }
+        }
+      }
 
+      const stripeSubscriptionId =
+        invoice.subscription ??
+        invoice.parent?.subscription_details?.subscription
+
+      if (!stripeSubscriptionId) {
+        throw new Error('INVOICE_MISSING_SUBSCRIPTION_ID')
+      }
+
+      const subscription =
+        await stripe.subscriptions.retrieve(stripeSubscriptionId)
+
+      await syncSubscriptionStatus(subscription)
+
+      console.log('invoice.payment_succeeded processed')
+      break
+    }
     case 'invoice.payment_failed':
       console.log('invoice.payment_failed received')
       break
