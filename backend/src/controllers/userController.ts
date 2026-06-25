@@ -5,6 +5,24 @@ import {
   updateUserProfile,
   upsertUserPreference,
 } from '../services/userService'
+import {
+  userPreferenceBodySchema,
+  userProfileBodySchema,
+} from '../validators/userValidator'
+
+const getValidationErrorMessage = (error: unknown) => {
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'issues' in error &&
+    Array.isArray(error.issues) &&
+    error.issues[0]?.message
+  ) {
+    return error.issues[0].message
+  }
+
+  return '入力内容に誤りがあります'
+}
 
 export const getMe = async (
   req: AuthenticatedRequest,
@@ -78,59 +96,14 @@ export const updateMe = async (
       return
     }
 
-    const { name, postalCode, address } = req.body
+    // #22対応：プロフィール更新リクエストをZodでバリデーションする
+    const parsedBody = userProfileBodySchema.safeParse(req.body)
 
-    const normalizedPostalCode =
-      typeof postalCode === 'string' ? postalCode.replace('-', '') : postalCode
-
-    if (typeof name !== 'string' || name.trim().length === 0) {
-      res.status(400).json({
+    if (!parsedBody.success) {
+      res.status(422).json({
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'お名前を入力してください',
-        },
-      })
-      return
-    }
-
-    if (name.trim().length > 100) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'お名前は100文字以内で入力してください',
-        },
-      })
-      return
-    }
-
-    if (
-      typeof normalizedPostalCode !== 'string' ||
-      !/^\d{7}$/.test(normalizedPostalCode)
-    ) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: '郵便番号は7桁の数字で入力してください',
-        },
-      })
-      return
-    }
-
-    if (typeof address !== 'string' || address.trim().length === 0) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: '住所を入力してください',
-        },
-      })
-      return
-    }
-
-    if (address.trim().length > 255) {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: '住所は255文字以内で入力してください',
+          message: getValidationErrorMessage(parsedBody.error),
         },
       })
       return
@@ -138,11 +111,7 @@ export const updateMe = async (
 
     const user = await getOrCreateCurrentUser(authUser)
 
-    const updatedUser = await updateUserProfile(user.id, {
-      name: name.trim(),
-      postalCode: normalizedPostalCode,
-      address: address.trim(),
-    })
+    const updatedUser = await updateUserProfile(user.id, parsedBody.data)
 
     res.status(200).json({
       data: {
@@ -177,8 +146,21 @@ export const updateMyPreference = async (
       return
     }
 
+    // #22対応：希望条件更新リクエストをZodでバリデーションする
+    const parsedBody = userPreferenceBodySchema.safeParse(req.body)
+
+    if (!parsedBody.success) {
+      res.status(422).json({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: getValidationErrorMessage(parsedBody.error),
+        },
+      })
+      return
+    }
+
     const user = await getOrCreateCurrentUser(authUser)
-    const preference = await upsertUserPreference(user.id, req.body)
+    const preference = await upsertUserPreference(user.id, parsedBody.data)
 
     res.status(200).json({
       data: {
