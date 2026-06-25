@@ -14,7 +14,7 @@ type HamburgerMenuProps = {
 }
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const { supabaseUser, appUser, isLoading } = useAuth()
+  const { supabaseUser, isPremium, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -27,14 +27,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
   return (
     <>
-      {/* オーバーレイ */}
       <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
-
-      {/* メニュー本体 */}
       <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col rounded-bl-3xl overflow-hidden">
-        {/* ブロック1: アカウントエリア */}
         <div className="bg-gradient-to-b from-[#f2f8ee] to-white rounded-bl-[40px] flex flex-col">
-          {/* ヘッダー帯 */}
           <div className="bg-[#a0cd83] h-14 px-6 flex items-center justify-between rounded-bl-[30px]">
             <p className="text-white font-extrabold text-base tracking-wider">
               アカウント
@@ -50,13 +45,11 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
             </button>
           </div>
 
-          {/* ローディング中 */}
           {isLoading ? (
             <div className="px-6 py-5 flex justify-center">
               <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
           ) : !supabaseUser ? (
-            /* 未ログイン：登録・ログインボタン */
             <div className="px-6 py-5 flex gap-3">
               <button
                 onClick={() => {
@@ -78,26 +71,23 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               </button>
             </div>
           ) : (
-            /* ログイン済み：ユーザー情報 */
             <div className="px-6 pt-4 pb-6 flex flex-col gap-2">
               <p className="text-gray-600 text-base">
-                {appUser?.isPremium ? 'プレミアム会員' : '一般会員'}
+                {isPremium ? 'プレミアム会員' : '一般会員'}
               </p>
               <p className="font-bold text-gray-800 text-2xl">
-                {appUser?.name ?? supabaseUser.email} さん
+                {supabaseUser.email} さん
               </p>
             </div>
           )}
         </div>
 
-        {/* ブロック2: マイ機能エリア */}
         <div className="bg-gradient-to-b from-[#f2f8ee] to-white rounded-bl-[50px] pb-4 flex flex-col mt-[-1px]">
           <div className="bg-[#a0cd83] h-14 px-6 flex items-center rounded-bl-[30px]">
             <p className="text-white font-extrabold text-base tracking-wider">
               マイ機能
             </p>
           </div>
-
           <div className="px-6 pt-4 flex flex-col gap-1">
             <MenuItem href="/" label="ホーム" onClick={onClose} enabled bold />
             <MenuItem
@@ -119,8 +109,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               enabled
               bold
             />
-
-            {/* ログアウトボタン */}
             {!isLoading && supabaseUser && (
               <div className="mt-4">
                 <button
@@ -134,7 +122,6 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
           </div>
         </div>
 
-        {/* ブロック3: 下部ロゴエリア */}
         <div className="bg-white px-6 py-4 flex justify-center mt-[-1px]">
           <Image
             src="/images/logo2.png"
@@ -148,6 +135,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
     </>
   )
 }
+
 type MenuItemProps = {
   href: string
   label: string
