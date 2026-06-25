@@ -13,31 +13,29 @@ export default function MyPageEditPage() {
   const router = useRouter()
   const { supabaseUser, appUser, isLoading: authLoading } = useAuth()
 
-  const [userName, setUserName] = useState(appUser?.name ?? '')
-  const [postalCode, setPostalCode] = useState(appUser?.postalCode ?? '')
-  const [address, setAddress] = useState(appUser?.address ?? '')
+  const prefs = appUser?.preference
+
+  const [userName, setUserName] = useState('')
+  const [postalCode, setPostalCode] = useState('')
+  const [address, setAddress] = useState('')
   const [hasLunch, setHasLunch] = useState(
-    appUser?.preferences?.mealType === 'school_lunch'
+    prefs?.preferredMealType === 'SCHOOL_LUNCH'
   )
   const [diaperDisposal, setDiaperDisposal] = useState(
-    appUser?.preferences?.diaperSupport === 'disposed_by_school'
+    !!prefs?.preferredDiaperSupport
   )
-  const [noBedding, setNoBedding] = useState(
-    appUser?.preferences?.futonSupport === 'rental'
-  )
+  const [noBedding, setNoBedding] = useState(!!prefs?.preferredFutonSupport)
   const [extendedCare, setExtendedCare] = useState(
-    appUser?.preferences?.extendedCare ?? false
+    !!prefs?.preferredExtendedCare
   )
   const [noWeekdayEvents, setNoWeekdayEvents] = useState(
-    appUser?.preferences?.weekdayEventsLevel === 'low'
+    prefs?.preferredWeekdayEventsLevel === 'LOW'
   )
   const [noPTA, setNoPTA] = useState(
-    appUser?.preferences?.parentAssociationLevel === 'low'
+    prefs?.preferredParentAssociationLevel === 'LOW'
   )
-  const [hasClub, setHasClub] = useState(!!appUser?.preferences?.lessons)
-  const [allergySupport, setAllergySupport] = useState(
-    !!appUser?.preferences?.allergySupport
-  )
+  const [hasClub, setHasClub] = useState(false)
+  const [allergySupport, setAllergySupport] = useState(false)
 
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{
@@ -99,34 +97,54 @@ export default function MyPageEditPage() {
       const { data } = await supabase.auth.getSession()
       if (!data.session) return
 
-      const res = await fetch(
+      const token = data.session.access_token
+
+      // 希望条件を保存
+      const prefsRes = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me/preferences`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            preferredMealType: hasLunch ? 'SCHOOL_LUNCH' : null,
+            preferredDiaperSupport: diaperDisposal ? '園で廃棄' : null,
+            preferredFutonSupport: noBedding ? '園で管理' : null,
+            preferredExtendedCare: extendedCare ? '20人以上' : null, // ← 変更
+            preferredWeekdayEventsLevel: noWeekdayEvents ? 'LOW' : null,
+            preferredParentAssociationLevel: noPTA ? 'LOW' : null,
+            // preferredLessons と preferredAllergySupport はバックエンド未対応のため一旦外す
+          }),
+        }
+      )
+
+      if (!prefsRes.ok) {
+        setToast({ message: '希望条件の保存に失敗しました', type: 'error' })
+        return
+      }
+
+      // お名前・郵便番号・住所を保存
+      // ※のっちさんのAPIが確定したらURLとmethodを修正する
+      const profileRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`,
         {
           method: 'PUT',
           headers: {
-            Authorization: `Bearer ${data.session.access_token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             name: userName,
             postalCode,
             address,
-            preferences: {
-              mealType: hasLunch ? 'school_lunch' : null,
-              diaperSupport: diaperDisposal ? 'disposed_by_school' : null,
-              futonSupport: noBedding ? 'rental' : null,
-              extendedCare,
-              weekdayEventsLevel: noWeekdayEvents ? 'low' : null,
-              parentAssociationLevel: noPTA ? 'low' : null,
-              lessons: hasClub ? true : null,
-              allergySupport: allergySupport ? true : null,
-            },
           }),
         }
       )
 
-      if (!res.ok) {
-        setToast({ message: '保存に失敗しました', type: 'error' })
+      if (!profileRes.ok) {
+        setToast({ message: 'プロフィールの保存に失敗しました', type: 'error' })
         return
       }
 
@@ -233,12 +251,12 @@ export default function MyPageEditPage() {
               onChange={setHasLunch}
             />
             <CheckItem
-              label="おむつ廃棄"
+              label="おむつ園処理あり"
               checked={diaperDisposal}
               onChange={setDiaperDisposal}
             />
             <CheckItem
-              label="布団持参なし"
+              label="布団負担少なめ"
               checked={noBedding}
               onChange={setNoBedding}
             />
@@ -252,17 +270,17 @@ export default function MyPageEditPage() {
           </h3>
           <div className="flex flex-col gap-3">
             <CheckItem
-              label="延長保育の利用時間〜19時まで"
+              label="延長保育利用者が多い"
               checked={extendedCare}
               onChange={setExtendedCare}
             />
             <CheckItem
-              label="平日行事なし"
+              label="平日行事少なめ"
               checked={noWeekdayEvents}
               onChange={setNoWeekdayEvents}
             />
             <CheckItem
-              label="保護者会なし"
+              label="保護者会少なめ"
               checked={noPTA}
               onChange={setNoPTA}
             />

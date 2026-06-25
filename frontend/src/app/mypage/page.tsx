@@ -111,7 +111,7 @@ export default function MyPage() {
 
   if (!supabaseUser || !appUser) return null
 
-  const isPremium = appUser.isPremium ?? false
+  const isPremium = appUser.subscriptionStatus === 'ACTIVE'
 
   return (
     <div className="max-w-2xl mx-auto pb-10 px-4">
@@ -146,9 +146,7 @@ export default function MyPage() {
           />
         </div>
         <div>
-          <p className="text-white font-bold text-lg">
-            {appUser.name ?? 'ゲスト'}さん
-          </p>
+          <p className="text-white font-bold text-lg">{appUser.email}</p>
           <p className="text-white/80 text-sm">
             {isPremium ? 'プレミアムユーザー' : '会員ユーザー'}
           </p>
