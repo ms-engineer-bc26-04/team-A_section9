@@ -13,7 +13,7 @@ import { SchoolSummary } from '@/types/school'
 import Loading from '@/components/common/Loading'
 
 export default function SchoolList() {
-  const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
+  const { isLoggedIn, isLoading: isAuthLoading } = useAuth()
   const [schools, setSchools] = useState<SchoolSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -49,23 +49,11 @@ export default function SchoolList() {
     return () => clearTimeout(timer)
   }, [fetchSchools])
 
+  //
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
 
     const currentlyFavorited = isFavorited(schoolId)
-
-    // 一般ユーザーの上限チェック
-    if (
-      !currentlyFavorited &&
-      appUser?.isPremium === false &&
-      (appUser?.favoriteCount ?? 0) >= 5
-    ) {
-      setToast({
-        message: 'お気に入りは5件まで登録できます。プレミアムで無制限に',
-        type: 'warning',
-      })
-      return
-    }
 
     try {
       if (currentlyFavorited) {

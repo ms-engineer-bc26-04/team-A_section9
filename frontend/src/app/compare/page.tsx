@@ -15,7 +15,7 @@ import CompareTable, {
 import CompareSchoolHeader from '@/components/compare/CompareSchoolHeader'
 
 export default function ComparePage() {
-  const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
+  const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [schools, setSchools] = useState<CompareSchool[]>([])
@@ -24,7 +24,6 @@ export default function ComparePage() {
   const [error, setError] = useState<string | null>(null)
 
   const idsParam = searchParams.get('ids')
-  const isPremium = appUser?.isPremium ?? false
 
   const fetchCompare = useCallback(
     async (ids: string | null) => {

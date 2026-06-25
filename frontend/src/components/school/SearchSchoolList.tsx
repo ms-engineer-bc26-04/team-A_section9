@@ -20,7 +20,7 @@ type Props = {
 }
 
 export default function SearchSchoolList({ searchParams }: Props) {
-  const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
+  const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
   const [schools, setSchools] = useState<SchoolSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +33,6 @@ export default function SearchSchoolList({ searchParams }: Props) {
 
   const { isFavorited, addFavorite, removeFavorite } = useFavorites(isLoggedIn)
 
-  //
   const fetchSchools = useCallback(async () => {
     if (isAuthLoading) return
 
@@ -73,7 +72,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
     searchParams.noPTA,
     searchParams.hasClub,
     searchParams.allergySupport,
-    searchParams.extendedCareUsage, // 追加
+    searchParams.extendedCareUsage,
   ])
 
   useEffect(() => {
@@ -89,16 +88,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
 
     const currentlyFavorited = isFavorited(schoolId)
 
-    // 一般ユーザーの上限チェック
-    if (
-      !currentlyFavorited &&
-      appUser?.isPremium === false &&
-      (appUser?.favoriteCount ?? 0) >= 5
-    ) {
-      setIsLimitModalOpen(true)
-      return
-    }
-
+    // 一般ユーザーの上限チェックはバックエンドのエラーで検知する
     try {
       if (currentlyFavorited) {
         await removeFavorite(schoolId)
@@ -110,7 +100,11 @@ export default function SearchSchoolList({ searchParams }: Props) {
     } catch (e: unknown) {
       const code = e instanceof Error ? e.message : ''
       if (code === 'FAVORITE_LIMIT_EXCEEDED') {
-        setIsLimitModalOpen(true)
+        if (isPremium) {
+          setToast({ message: 'お気に入りの更新に失敗しました', type: 'error' })
+        } else {
+          setIsLimitModalOpen(true)
+        }
       } else {
         setToast({ message: 'お気に入りの更新に失敗しました', type: 'error' })
       }
@@ -133,7 +127,6 @@ export default function SearchSchoolList({ searchParams }: Props) {
 
   return (
     <>
-      {/* 上限モーダル */}
       <Modal
         isOpen={isLimitModalOpen}
         onClose={() => setIsLimitModalOpen(false)}
@@ -172,7 +165,6 @@ export default function SearchSchoolList({ searchParams }: Props) {
         />
       )}
 
-      {/* 件数表示 */}
       <p className="text-gray-500 text-sm">
         {schools.length}件の園が見つかりました
       </p>
@@ -192,7 +184,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
             <p className="font-bold text-gray-800 text-base">
               条件に合う園が
               <br />
-              見見つかりませんでした
+              見つかりませんでした
             </p>
             <p className="text-gray-400 text-sm">
               検索条件を変更して

@@ -7,10 +7,11 @@ import { supabase } from '@/lib/supabase'
 import { User } from '@/types/user'
 
 type AuthState = {
-  supabaseUser: SupabaseUser | null // Supabase Auth のユーザー
-  appUser: User | null // アプリ側のユーザー情報
-  isLoading: boolean // 読み込み中かどうか
-  isLoggedIn: boolean // ログイン済みかどうか
+  supabaseUser: SupabaseUser | null
+  appUser: User | null
+  isLoading: boolean
+  isLoggedIn: boolean
+  isPremium: boolean
 }
 
 export const useAuth = (): AuthState => {
@@ -18,7 +19,6 @@ export const useAuth = (): AuthState => {
   const [appUser, setAppUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // バックエンドからアプリ側ユーザー情報を取得する
   const fetchAppUser = useCallback(async (accessToken: string) => {
     try {
       const res = await fetch(
@@ -40,7 +40,6 @@ export const useAuth = (): AuthState => {
   }, [])
 
   useEffect(() => {
-    // 現在のログイン状態を取得する
     const getSession = async () => {
       const {
         data: { session },
@@ -55,7 +54,6 @@ export const useAuth = (): AuthState => {
 
     getSession()
 
-    // ログイン状態の変更を検知する
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -74,10 +72,13 @@ export const useAuth = (): AuthState => {
     }
   }, [fetchAppUser])
 
+  const isPremium = appUser?.subscriptionStatus === 'ACTIVE'
+
   return {
     supabaseUser,
     appUser,
     isLoading,
     isLoggedIn: !!supabaseUser,
+    isPremium,
   }
 }

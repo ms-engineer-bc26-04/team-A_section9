@@ -14,7 +14,7 @@ import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
 
 export default function FavoritesPage() {
-  const { isLoggedIn, isLoading: isAuthLoading, appUser } = useAuth()
+  const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
   const router = useRouter()
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [toast, setToast] = useState<{
@@ -24,7 +24,6 @@ export default function FavoritesPage() {
 
   const { favorites, removeFavorite, isLoading } = useFavorites(isLoggedIn)
 
-  const isPremium = appUser?.isPremium ?? false
   const maxCompare = isPremium ? 3 : 2
   const maxFavorites = isPremium ? null : 5
 
