@@ -2,6 +2,13 @@
 // src/components/compare/CompareTable.tsx
 import Image from 'next/image'
 
+type SupportInfo = {
+  contactBookType: string | null
+  absenceContactMethod: string | null
+  lessons: string | null
+  allergySupport: string | null
+}
+
 type CompareSchool = {
   id: string
   name: string
@@ -19,6 +26,7 @@ type CompareSchool = {
     weekdayEvents: string
     parentAssociationFrequency: string
   }
+  supportInfo?: SupportInfo | null
 }
 
 type MatchHighlights = {
@@ -36,6 +44,7 @@ type MatchHighlights = {
 const mealTypeLabel: Record<string, string> = {
   SCHOOL_LUNCH: '毎日給食あり',
   LUNCH_BOX_REQUIRED: '弁当あり',
+  BOTH: '給食・弁当併用',
   MIXED: '給食・弁当併用',
 }
 const diaperLabel: Record<string, string> = {
@@ -47,6 +56,16 @@ const futonLabel: Record<string, string> = {
   RENTAL: 'レンタルあり',
   TAKE_HOME_WEEKLY: '毎週持ち帰り',
   MANAGED_BY_SCHOOL: '園で管理',
+}
+const contactBookLabel: Record<string, string> = {
+  APP: 'アプリ',
+  PAPER: '手書き',
+  BOTH: 'アプリ・手書き併用',
+}
+const absenceContactLabel: Record<string, string> = {
+  APP: 'アプリ',
+  PHONE: '電話',
+  BOTH: 'アプリ・電話',
 }
 
 type CompareTableProps = {
@@ -149,6 +168,67 @@ export default function CompareTable({
           isLast
         />
       </div>
+
+      {/* サポート情報セクション（プレミアムのみ） */}
+      {isPremium && (
+        <>
+          <SectionHeader icon="/images/icons/icon7.png" label="サポート情報" />
+          <div className="border border-gray-300 rounded-xl overflow-hidden mb-6">
+            <CompareRow
+              label="連絡帳"
+              schools={schools}
+              getValue={(s) =>
+                s.supportInfo?.contactBookType
+                  ? (contactBookLabel[s.supportInfo.contactBookType] ??
+                    s.supportInfo.contactBookType)
+                  : '未対応'
+              }
+              highlightKey={null}
+              matchHighlights={matchHighlights}
+              isPremium={isPremium}
+            />
+            <CompareRow
+              label="欠席連絡"
+              schools={schools}
+              getValue={(s) =>
+                s.supportInfo?.absenceContactMethod
+                  ? (absenceContactLabel[s.supportInfo.absenceContactMethod] ??
+                    s.supportInfo.absenceContactMethod)
+                  : '未対応'
+              }
+              highlightKey={null}
+              matchHighlights={matchHighlights}
+              isPremium={isPremium}
+            />
+            <CompareRow
+              label="習い事"
+              schools={schools}
+              getValue={(s) => s.supportInfo?.lessons ?? 'なし'}
+              highlightKey={null}
+              matchHighlights={matchHighlights}
+              isPremium={isPremium}
+            />
+            <CompareRow
+              label={`アレルギー\n対応`}
+              schools={schools}
+              getValue={(s) => s.supportInfo?.allergySupport ?? 'なし'}
+              highlightKey={null}
+              matchHighlights={matchHighlights}
+              isPremium={isPremium}
+              isLast
+            />
+          </div>
+        </>
+      )}
+
+      {/* 希望条件との一致（プレミアムかつmatchHighlightsがある場合） */}
+      {isPremium && matchHighlights && (
+        <div className="bg-[#f2f8ee] rounded-xl p-4 mb-6">
+          <p className="text-xs text-gray-500 text-center">
+            ✨ 色付きの項目はあなたの希望条件と一致しています
+          </p>
+        </div>
+      )}
     </>
   )
 }
