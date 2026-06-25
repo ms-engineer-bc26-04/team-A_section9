@@ -60,14 +60,20 @@ export default function MyPageEditPage() {
     setPostalCode(value)
     if (value.length === 7) {
       try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        if (!sessionData.session) return
+
         const res = await fetch(
-          `https://zipcloud.ibsrio.com/api/search?zipcode=${value}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/address/search?zipcode=${value}`,
+          {
+            headers: {
+              Authorization: `Bearer ${sessionData.session.access_token}`,
+            },
+          }
         )
-        const data = await res.json()
-        if (data.results && data.results.length > 0) {
-          const result = data.results[0]
-          setAddress(`${result.address1}${result.address2}${result.address3}`)
-        }
+        if (!res.ok) return
+        const { data } = await res.json()
+        setAddress(data.address)
       } catch {
         // 自動入力失敗時は何もしない
       }
@@ -112,10 +118,11 @@ export default function MyPageEditPage() {
             preferredMealType: hasLunch ? 'SCHOOL_LUNCH' : null,
             preferredDiaperSupport: diaperDisposal ? '園で廃棄' : null,
             preferredFutonSupport: noBedding ? '園で管理' : null,
-            preferredExtendedCare: extendedCare ? '20人以上' : null, // ← 変更
+            preferredExtendedCare: extendedCare ? '20人以上' : null,
             preferredWeekdayEventsLevel: noWeekdayEvents ? 'LOW' : null,
             preferredParentAssociationLevel: noPTA ? 'LOW' : null,
-            // preferredLessons と preferredAllergySupport はバックエンド未対応のため一旦外す
+            preferredLessons: hasClub ? true : null, // ← 追加
+            preferredAllergySupport: allergySupport ? true : null, // ← 追加
           }),
         }
       )
