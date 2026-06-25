@@ -2,7 +2,6 @@
 // src/lib/api/schools.ts
 import { SchoolSummary, SchoolDetail, SearchFilters } from '@/types/school'
 
-// サーバーコンポーネントからはINTERNAL_API_URL、ブラウザからはNEXT_PUBLIC_API_URLを使う
 const getApiUrl = () => {
   if (typeof window === 'undefined') {
     return process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL
@@ -18,8 +17,10 @@ export async function getSchools(
   if (filters?.keyword) params.set('keyword', filters.keyword)
   if (filters?.area) params.set('area', filters.area)
   if (filters?.mealType) params.set('mealType', filters.mealType)
-  if (filters?.diaperSupport) params.set('diaperSupport', filters.diaperSupport)
-  if (filters?.futonSupport) params.set('futonSupport', filters.futonSupport)
+  if (filters?.diaperSupport !== undefined)
+    params.set('diaperSupport', String(filters.diaperSupport))
+  if (filters?.futonSupport !== undefined)
+    params.set('futonSupport', String(filters.futonSupport))
   if (filters?.weekdayEventsLevel)
     params.set('weekdayEventsLevel', filters.weekdayEventsLevel)
   if (filters?.parentAssociationLevel)
@@ -32,6 +33,8 @@ export async function getSchools(
   if (filters?.limit !== undefined) params.set('limit', String(filters.limit))
   if (filters?.offset !== undefined)
     params.set('offset', String(filters.offset))
+  if (filters?.extendedCareUsage !== undefined)
+    params.set('extendedCareUsage', String(filters.extendedCareUsage))
 
   const res = await fetch(
     `${getApiUrl()}/api/v1/schools?${params.toString()}`,

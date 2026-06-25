@@ -82,7 +82,7 @@ export default function HomePage() {
         </div>
 
         {/* 背景イラスト（木・家）：全幅表示 */}
-        <div className="mt-4 h-20 md:h-32 relative -mx-4 w-screen">
+        <div className="mt-4 h-32 md:h-48 relative -mx-4 w-screen">
           <Image
             src="/images/tree.png"
             alt=""
