@@ -301,9 +301,29 @@ export const handleStripeWebhookService = async (
       console.log('invoice.payment_succeeded processed')
       break
     }
-    case 'invoice.payment_failed':
-      console.log('invoice.payment_failed received')
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice & {
+        subscription?: string
+        parent?: {
+          subscription_details?: {
+            subscription?: string
+          }
+        }
+      }
+
+      const stripeSubscriptionId =
+        invoice.subscription ??
+        invoice.parent?.subscription_details?.subscription
+
+      if (!stripeSubscriptionId) {
+        throw new Error('INVOICE_MISSING_SUBSCRIPTION_ID')
+      }
+
+      await updateSubscriptionToExpired(stripeSubscriptionId)
+
+      console.log('invoice.payment_failed processed')
       break
+    }
 
     default:
       console.log('Unhandled Stripe event:', event.type)
