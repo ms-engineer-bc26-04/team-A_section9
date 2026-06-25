@@ -18,9 +18,6 @@ const rateLimitMax = process.env.NODE_ENV === 'production' ? 100 : 1000
 app.use(helmet())
 app.use(cors({ origin: process.env.FRONTEND_URL }))
 
-// 変更前: 15分間に100回まで
-// app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
-
 // 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
 // 不要に 429 にならないよう上限を緩める
 app.use(
@@ -29,6 +26,9 @@ app.use(
     max: rateLimitMax,
   })
 )
+
+// Stripe Webhook は署名検証のため raw body を受け取る
+app.use('/api/v1/payment/webhook', express.raw({ type: 'application/json' }))
 
 app.use(express.json())
 app.use(pinoHttp())
