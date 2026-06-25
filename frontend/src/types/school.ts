@@ -59,8 +59,8 @@ export type SearchFilters = {
   keyword?: string
   area?: string
   mealType?: 'SCHOOL_LUNCH' | 'LUNCH_BOX' | 'BOTH'
-  diaperSupport?: string
-  futonSupport?: string
+  diaperSupport?: boolean // 変更
+  futonSupport?: boolean // 変更
   weekdayEventsLevel?: 'LOW' | 'MEDIUM' | 'HIGH'
   parentAssociationLevel?: 'LOW' | 'MEDIUM' | 'HIGH'
   lessons?: boolean
@@ -68,4 +68,5 @@ export type SearchFilters = {
   sort?: 'recommended' | 'id_asc'
   limit?: number
   offset?: number
+  extendedCareUsage?: boolean // 追加
 }

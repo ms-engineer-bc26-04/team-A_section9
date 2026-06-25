@@ -9,16 +9,12 @@ import Button from '@/components/common/Button'
 const FILTER_OPTIONS = [
   { key: 'hasLunch', label: '毎日給食' },
   { key: 'hasClub', label: '園内習い事あり' },
-  { key: 'diaperDisposal', label: 'おむつ破棄' },
+  { key: 'diaperDisposal', label: 'おむつ園処理あり' },
   { key: 'allergySupport', label: 'アレルギー対応あり' },
-  { key: 'noBedding', label: '布団持参なし' },
-  {
-    key: 'extendedCareUntil19',
-    label: '延長保育の利用時間〜19時まで',
-    full: true,
-  },
-  { key: 'noWeekdayEvents', label: '平日行事なし' },
-  { key: 'noPTA', label: '保護者会なし' },
+  { key: 'noBedding', label: '布団負担少なめ' },
+  { key: 'noWeekdayEvents', label: '平日行事少なめ' },
+  { key: 'noPTA', label: '保護者会少なめ' },
+  { key: 'extendedCareUsage', label: '延長保育利用者が多い' }, // 追加
 ]
 
 type FilterPanelProps = {
@@ -57,7 +53,7 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
       {isOpen && (
         <div className="px-4 pb-4 flex flex-col gap-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {FILTER_OPTIONS.filter((o) => !o.full).map((option) => (
+            {FILTER_OPTIONS.map((option) => (
               <label
                 key={option.key}
                 className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer"
@@ -72,22 +68,6 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
               </label>
             ))}
           </div>
-
-          {/* 全幅項目 */}
-          {FILTER_OPTIONS.filter((o) => o.full).map((option) => (
-            <label
-              key={option.key}
-              className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={!!filters[option.key]}
-                onChange={() => toggleFilter(option.key)}
-                className="w-3.5 h-3.5 accent-primary"
-              />
-              {option.label}
-            </label>
-          ))}
 
           <div className="flex justify-end mt-1">
             <Button variant="primary" size="sm" onClick={handleSearch}>

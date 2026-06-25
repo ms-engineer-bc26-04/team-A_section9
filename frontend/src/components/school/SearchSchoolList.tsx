@@ -44,14 +44,15 @@ export default function SearchSchoolList({ searchParams }: Props) {
       if (searchParams.keyword) filters.keyword = String(searchParams.keyword)
       if (searchParams.area) filters.area = String(searchParams.area)
       if (searchParams.hasLunch === 'true') filters.mealType = 'SCHOOL_LUNCH'
-      if (searchParams.diaperDisposal === 'true')
-        filters.diaperSupport = '園で廃棄'
-      if (searchParams.noBedding === 'true') filters.futonSupport = '園で管理'
+      if (searchParams.diaperDisposal === 'true') filters.diaperSupport = true
+      if (searchParams.noBedding === 'true') filters.futonSupport = true
       if (searchParams.noWeekdayEvents === 'true')
         filters.weekdayEventsLevel = 'LOW'
       if (searchParams.noPTA === 'true') filters.parentAssociationLevel = 'LOW'
       if (searchParams.hasClub === 'true') filters.lessons = true
       if (searchParams.allergySupport === 'true') filters.allergySupport = true
+      if (searchParams.extendedCareUsage === 'true')
+        filters.extendedCareUsage = true
 
       const result = await getSchools(filters)
       setSchools(result.data)
@@ -72,6 +73,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
     searchParams.noPTA,
     searchParams.hasClub,
     searchParams.allergySupport,
+    searchParams.extendedCareUsage, // 追加
   ])
 
   useEffect(() => {
