@@ -8,13 +8,28 @@ import schoolRoutes from './routes/schoolRoutes'
 import userRoutes from './routes/userRoutes'
 import favoriteRoutes from './routes/favoriteRoutes'
 import paymentRoutes from './routes/paymentRoutes'
+import addressRoutes from './routes/addressRoutes'
 
 const app = express()
 const PORT = process.env.PORT || 4000
 
+const rateLimitMax = process.env.NODE_ENV === 'production' ? 100 : 1000
+
 app.use(helmet())
 app.use(cors({ origin: process.env.FRONTEND_URL }))
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
+
+// 変更前: 15分間に100回まで
+// app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
+
+// 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
+// 不要に 429 にならないよう上限を緩める
+app.use(
+  rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: rateLimitMax,
+  })
+)
+
 app.use(express.json())
 app.use(pinoHttp())
 
@@ -26,6 +41,7 @@ app.use('/api/v1/schools', schoolRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/users', favoriteRoutes)
 app.use('/api/v1/payment', paymentRoutes)
+app.use('/api/v1/address', addressRoutes)
 
 connectRedis()
 
