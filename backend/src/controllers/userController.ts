@@ -31,6 +31,8 @@ export const getMe = async (
         email: user.email,
         membershipType: user.planType,
         subscriptionStatus: user.subscription?.status ?? null,
+        // 追加: プレミアム機能の利用期限を返す
+        currentPeriodEnd: user.subscription?.currentPeriodEnd ?? null,
         preference: user.preference
           ? {
               preferredMealType: user.preference.preferredMealType,
