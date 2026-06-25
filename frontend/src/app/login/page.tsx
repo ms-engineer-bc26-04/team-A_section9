@@ -102,13 +102,13 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className="w-full bg-green-500 text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
+          className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
         >
           {isLoading ? 'ログイン中...' : 'ログイン'}
         </button>
 
         {/* パスワードをお忘れの方（表示のみ） */}
-        <p className="text-center text-green-500 text-sm mt-4">
+        <p className="text-center text-[#A0CD83] text-sm mt-4">
           パスワードをお忘れの方
         </p>
 
@@ -120,7 +120,7 @@ export default function LoginPage() {
           アカウントをお持ちでない方
         </p>
         <Link href="/register">
-          <button className="w-full border border-green-500 text-green-500 rounded-full py-3 font-bold text-sm">
+          <button className="w-full border border-[#A0CD83] text-[#A0CD83] rounded-full py-3 font-bold text-sm">
             新規会員登録はこちら
           </button>
         </Link>
