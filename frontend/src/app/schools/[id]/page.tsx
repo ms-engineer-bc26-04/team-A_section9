@@ -385,7 +385,7 @@ export default function SchoolDetailPage() {
                 }}
               >
                 <Image
-                  src="/images/icon19.png"
+                  src="/images/icon9.png"
                   alt="ロック"
                   width={40}
                   height={40}
