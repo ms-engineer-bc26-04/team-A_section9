@@ -1,16 +1,13 @@
 import type { RequestHandler } from 'express'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
-import { getOrCreateCurrentUser } from '../services/userService'
 import {
   getFavoritedSchoolIds,
   getRecommendedSchools,
   getSchoolById,
   getSchools,
 } from '../services/schoolService'
-import {
-  schoolIdParamsSchema,
-  schoolSearchQuerySchema,
-} from '../validators/schoolValidator'
+import { getOrCreateCurrentUser } from '../services/userService'
+import type { SchoolSearchQueryInput } from '../validators/schoolValidator'
 
 const SCHOOL_TYPE_TAGS: Record<string, string> = {
   NURSERY: '保育園',
@@ -129,7 +126,7 @@ const toSchoolDetail = (
     mealType: school.mealType,
     itemBurdenLevel: school.itemBurdenLevel,
 
-    // 園詳細画面では、持ち物負担の表示用テキストも返す
+    // NOTE: 園詳細画面では、持ち物負担の表示用テキストも返す
     itemBurdenDetail: school.itemBurdenDetail,
 
     diaperSupport: school.diaperSupport,
@@ -138,12 +135,12 @@ const toSchoolDetail = (
     extendedCareUsage: school.extendedCareUsage,
     weekdayEventsLevel: school.weekdayEventsLevel,
 
-    // 園詳細画面では、平日行事の表示用テキストも返す
+    // NOTE: 園詳細画面では、平日行事の表示用テキストも返す
     weekdayEvents: school.weekdayEvents,
 
     parentAssociationLevel: school.parentAssociationLevel,
 
-    // 園詳細画面では、保護者会頻度の表示用テキストも返す
+    // NOTE: 園詳細画面では、保護者会頻度の表示用テキストも返す
     parentAssociationFrequency: school.parentAssociationFrequency,
 
     description: school.description,
@@ -151,20 +148,6 @@ const toSchoolDetail = (
     isFavorited,
     supportInfo: toSupportInfo(school, canViewSupportInfo),
   }
-}
-
-const getValidationErrorMessage = (error: unknown) => {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'issues' in error &&
-    Array.isArray(error.issues) &&
-    error.issues[0]?.message
-  ) {
-    return error.issues[0].message
-  }
-
-  return '入力内容に誤りがあります'
 }
 
 const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
@@ -177,26 +160,16 @@ const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
 
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
-    const parsedQuery = schoolSearchQuerySchema.safeParse(req.query)
-
-    if (!parsedQuery.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedQuery.error),
-        },
-      })
-      return
-    }
+    const query = req.query as SchoolSearchQueryInput
 
     const user = await getCurrentUserIfAuthenticated(
       req as AuthenticatedRequest
     )
 
     const schools =
-      parsedQuery.data.sort === 'recommended' && user
-        ? await getRecommendedSchools(parsedQuery.data, user.id)
-        : await getSchools(parsedQuery.data)
+      query.sort === 'recommended' && user
+        ? await getRecommendedSchools(query, user.id)
+        : await getSchools(query)
 
     const favoritedSchoolIds = user
       ? await getFavoritedSchoolIds(
@@ -227,19 +200,7 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
 
 export const getSchoolByIdController: RequestHandler = async (req, res) => {
   try {
-    const parsedParams = schoolIdParamsSchema.safeParse(req.params)
-
-    if (!parsedParams.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedParams.error),
-        },
-      })
-      return
-    }
-
-    const id = BigInt(parsedParams.data.id)
+    const id = BigInt(String(req.params.id))
 
     const school = await getSchoolById(id)
 

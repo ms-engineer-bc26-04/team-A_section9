@@ -1,30 +1,12 @@
-import type { Response, NextFunction } from 'express'
+import type { NextFunction, Response } from 'express'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
-import { getOrCreateCurrentUser } from '../services/userService'
 import {
   addUserFavorite,
   deleteUserFavorite,
   FavoriteServiceError,
   getUserFavorites,
 } from '../services/favoriteService'
-import {
-  favoriteBodySchema,
-  favoriteParamsSchema,
-} from '../validators/favoriteValidator'
-
-const getValidationErrorMessage = (error: unknown) => {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'issues' in error &&
-    Array.isArray(error.issues) &&
-    error.issues[0]?.message
-  ) {
-    return error.issues[0].message
-  }
-
-  return '入力内容に誤りがあります'
-}
+import { getOrCreateCurrentUser } from '../services/userService'
 
 const getCurrentUserOrUnauthorized = async (
   req: AuthenticatedRequest,
@@ -69,18 +51,6 @@ export const addFavorite = async (
   next: NextFunction
 ) => {
   try {
-    const parsedBody = favoriteBodySchema.safeParse(req.body)
-
-    if (!parsedBody.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedBody.error),
-        },
-      })
-      return
-    }
-
     const user = await getCurrentUserOrUnauthorized(req, res)
 
     if (!user) {
@@ -90,7 +60,7 @@ export const addFavorite = async (
     const favorite = await addUserFavorite(
       user.id,
       user.planType,
-      BigInt(parsedBody.data.schoolId)
+      BigInt(req.body.schoolId)
     )
 
     res.status(201).json({
@@ -117,26 +87,13 @@ export const deleteFavorite = async (
   next: NextFunction
 ) => {
   try {
-    const parsedParams = favoriteParamsSchema.safeParse(req.params)
-
-    if (!parsedParams.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedParams.error),
-        },
-      })
-      return
-    }
-
     const user = await getCurrentUserOrUnauthorized(req, res)
 
     if (!user) {
       return
     }
 
-    await deleteUserFavorite(user.id, BigInt(parsedParams.data.schoolId))
-
+    await deleteUserFavorite(user.id, BigInt(String(req.params.schoolId)))
     res.status(200).json({
       data: {
         message: 'お気に入りを解除しました',
