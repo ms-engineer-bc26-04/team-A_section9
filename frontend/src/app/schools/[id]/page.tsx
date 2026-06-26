@@ -32,13 +32,16 @@ type SchoolDetail = {
   lifeBurdenLevel: string
   mealType: string
   itemBurdenLevel: string
+  itemBurdenDetail: string | null
   diaperSupport: string | null
   futonSupport: string | null
   timeBurdenLevel: string
   extendedCareHours: string | null
   extendedCareUsage: string
   weekdayEventsLevel: string
+  weekdayEvents: string | null
   parentAssociationLevel: string
+  parentAssociationFrequency: string | null
   tags: string[]
   supportInfo: SupportInfo
   isFavorited: boolean
@@ -86,6 +89,8 @@ export default function SchoolDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [favoriteLoading, setFavoriteLoading] = useState(false)
+  const [contactMessage, setContactMessage] = useState('')
+  const [isSending, setIsSending] = useState(false)
 
   const [showLoginModal, setShowLoginModal] = useState(false)
   const [showPremiumModal, setShowPremiumModal] = useState(false)
@@ -130,7 +135,7 @@ export default function SchoolDetailPage() {
 
         const { data } = await res.json()
         setSchool(data)
-        initializeFavorite(Number(id), data.isFavorited) // 追加
+        initializeFavorite(Number(id), data.isFavorited)
       } catch {
         setError('データの取得に失敗しました')
       } finally {
@@ -168,7 +173,6 @@ export default function SchoolDetailPage() {
         })
         setTimeout(() => router.push('/plans'), 2000)
       } else if (code === 'ALREADY_FAVORITED') {
-        // 追加
         setToast({ message: 'すでにお気に入り登録済みです', type: 'warning' })
       } else {
         setToast({ message: 'エラーが発生しました', type: 'error' })
@@ -176,6 +180,16 @@ export default function SchoolDetailPage() {
     } finally {
       setFavoriteLoading(false)
     }
+  }
+
+  const handleContact = () => {
+    if (!contactMessage.trim()) return
+    setIsSending(true)
+    setTimeout(() => {
+      setToast({ message: 'お問い合わせを受け付けました', type: 'success' })
+      setContactMessage('')
+      setIsSending(false)
+    }, 500)
   }
 
   if (isLoading || authLoading) {
@@ -257,30 +271,40 @@ export default function SchoolDetailPage() {
             )}
           </div>
 
-          {/* お気に入りボタン */}
-          <button
-            onClick={handleFavorite}
-            disabled={favoriteLoading}
-            className="p-2 flex-shrink-0"
-            aria-label={
-              currentlyFavorited ? 'お気に入り解除' : 'お気に入り登録'
-            }
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill={currentlyFavorited ? '#FFCFCF' : 'none'}
-              stroke={currentlyFavorited ? '#FFCFCF' : '#ccc'}
-              strokeWidth={2}
-              className="w-8 h-8"
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            {/* 見学申込みボタン */}
+            <button
+              onClick={() => router.push(`/schools/${id}/visit`)}
+              className="bg-[#F5A623] text-white text-sm font-bold px-4 py-2 rounded-full"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-              />
-            </svg>
-          </button>
+              見学申込み
+            </button>
+
+            {/* お気に入りボタン */}
+            <button
+              onClick={handleFavorite}
+              disabled={favoriteLoading}
+              className="p-2"
+              aria-label={
+                currentlyFavorited ? 'お気に入り解除' : 'お気に入り登録'
+              }
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill={currentlyFavorited ? '#FFCFCF' : 'none'}
+                stroke={currentlyFavorited ? '#FFCFCF' : '#ccc'}
+                strokeWidth={2}
+                className="w-8 h-8"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <section className="mt-6">
@@ -298,7 +322,14 @@ export default function SchoolDetailPage() {
               label="給食・弁当"
               value={mealTypeLabel[school.mealType] ?? school.mealType}
             />
-            <DetailRow label="持ち物" value={school.itemBurdenLevel} />
+            <DetailRow
+              label="持ち物"
+              value={
+                school.itemBurdenDetail ??
+                burdenLabel[school.itemBurdenLevel] ??
+                school.itemBurdenLevel
+              }
+            />
             {school.diaperSupport && (
               <DetailRow label="おむつ対応" value={school.diaperSupport} />
             )}
@@ -332,6 +363,7 @@ export default function SchoolDetailPage() {
             <DetailRow
               label="平日行事"
               value={
+                school.weekdayEvents ??
                 burdenLabel[school.weekdayEventsLevel] ??
                 school.weekdayEventsLevel
               }
@@ -339,6 +371,7 @@ export default function SchoolDetailPage() {
             <DetailRow
               label="保護者会"
               value={
+                school.parentAssociationFrequency ??
                 burdenLabel[school.parentAssociationLevel] ??
                 school.parentAssociationLevel
               }
@@ -452,6 +485,32 @@ export default function SchoolDetailPage() {
           ) : (
             <p className="text-sm text-gray-400">情報がありません</p>
           )}
+        </section>
+
+        {/* 園へのお問い合わせ */}
+        <section className="mt-6 bg-[#F5F5F0] rounded-xl p-4">
+          <h2 className="font-bold text-base text-gray-800 mb-1">
+            園へのお問い合わせ
+          </h2>
+          <p className="text-xs text-gray-500 mb-3">
+            見学の事や入園に関するご質問など、お気軽にお問い合わせください
+          </p>
+          <label className="block text-sm text-gray-600 mb-1">
+            お問い合わせ内容
+          </label>
+          <textarea
+            value={contactMessage}
+            onChange={(e) => setContactMessage(e.target.value)}
+            placeholder=""
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm h-24 resize-none mb-3"
+          />
+          <button
+            onClick={handleContact}
+            disabled={isSending || !contactMessage.trim()}
+            className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
+          >
+            {isSending ? '送信中...' : '送信する'}
+          </button>
         </section>
       </div>
 
