@@ -13,7 +13,8 @@ import addressRoutes from './routes/addressRoutes'
 const app = express()
 const PORT = process.env.PORT || 4000
 
-const rateLimitMax = process.env.NODE_ENV === 'production' ? 100 : 1000
+const isProduction = process.env.NODE_ENV === 'production'
+const rateLimitMax = isProduction ? 100 : 1000
 
 app.use(helmet())
 app.use(cors({ origin: process.env.FRONTEND_URL }))
@@ -31,7 +32,14 @@ app.use(
 app.use('/api/v1/payment/webhook', express.raw({ type: 'application/json' }))
 
 app.use(express.json())
-app.use(pinoHttp())
+
+// #22対応：環境ごとにログレベルを切り替える
+// 本番環境では info、開発環境では debug として、調査しやすさとログ量のバランスを取る
+app.use(
+  pinoHttp({
+    level: isProduction ? 'info' : 'debug',
+  })
+)
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
