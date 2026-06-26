@@ -23,13 +23,8 @@ export default function FavoritesPage() {
   } | null>(null)
 
   // 修正: APIレスポンス由来の favoriteCount / favoriteLimit を useFavorites から受け取る
-  const {
-    favorites,
-    favoriteCount,
-    favoriteLimit,
-    removeFavorite,
-    isLoading,
-  } = useFavorites(isLoggedIn)
+  const { favorites, favoriteCount, favoriteLimit, removeFavorite, isLoading } =
+    useFavorites(isLoggedIn)
 
   const maxCompare = isPremium ? 3 : 2
 

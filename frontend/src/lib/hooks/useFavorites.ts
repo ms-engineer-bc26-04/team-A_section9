@@ -71,12 +71,7 @@ const favoritesFetcher = async (): Promise<FavoritesResponse> => {
 
 export function useFavorites(isLoggedIn: boolean) {
   // 修正: useSWRの型を FavoritesResponse に変更
-  const {
-    data,
-    mutate,
-    error,
-    isLoading,
-  } = useSWR<FavoritesResponse>(
+  const { data, mutate, error, isLoading } = useSWR<FavoritesResponse>(
     isLoggedIn ? 'favorites' : null,
     favoritesFetcher
   )
