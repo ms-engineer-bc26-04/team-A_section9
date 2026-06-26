@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import {
   createCheckoutSession,
+  createCustomerPortalSession,
   handleStripeWebhook,
 } from '../controllers/paymentController'
 import { authenticateSupabaseUser } from '../middlewares/authMiddleware'
@@ -14,6 +15,14 @@ router.post(
   authenticateSupabaseUser,
   validateRequest({ body: checkoutBodySchema }),
   createCheckoutSession
+)
+
+// NOTE: #114 プレミアムユーザーのプラン管理・解約用
+// リクエストボディは不要。認証済みプレミアムユーザーのみStripe Customer Portal URLを作成する。
+router.post(
+  '/customer-portal',
+  authenticateSupabaseUser,
+  createCustomerPortalSession
 )
 
 router.post('/webhook', handleStripeWebhook)

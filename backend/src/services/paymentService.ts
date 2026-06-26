@@ -83,6 +83,42 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
   }
 }
 
+// NOTE: #114 プレミアムユーザーがStripe Customer Portalへ遷移するためのSession作成処理
+// プレミアム解約・プラン管理はCheckoutではなくCustomer Portalで行う。
+// プレミアム判定は users.planType ではなく subscriptions.status === 'ACTIVE' を正とする。
+export const createCustomerPortalSessionService = async (
+  supabaseUserId: string
+) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      supabaseUserId,
+    },
+    include: {
+      subscription: true,
+    },
+  })
+
+  if (!user) {
+    throw new Error('USER_NOT_FOUND')
+  }
+
+  if (
+    user.subscription?.status !== 'ACTIVE' ||
+    !user.subscription.stripeCustomerId
+  ) {
+    throw new Error('PREMIUM_REQUIRED')
+  }
+
+  const session = await stripe.billingPortal.sessions.create({
+    customer: user.subscription.stripeCustomerId,
+    return_url: `${process.env.FRONTEND_URL}/mypage`,
+  })
+
+  return {
+    portalUrl: session.url,
+  }
+}
+
 const updateSubscriptionToActive = async (
   userId: string,
   stripeCustomerId: string,
@@ -182,8 +218,9 @@ const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
     }),
   ])
 }
-const getCurrentPeriodEnd = (subscription: Stripe.Subscription) => {
-  const subscriptionWithPeriod = subscription as Stripe.Subscription & {
+
+const getCurrentPeriodEnd = (subscription: StripeSubscription) => {
+  const subscriptionWithPeriod = subscription as StripeSubscription & {
     current_period_end?: number
     items?: {
       data?: Array<{
