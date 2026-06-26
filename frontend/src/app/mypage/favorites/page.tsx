@@ -22,10 +22,11 @@ export default function FavoritesPage() {
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  const { favorites, removeFavorite, isLoading } = useFavorites(isLoggedIn)
+  // 修正: APIレスポンス由来の favoriteCount / favoriteLimit を useFavorites から受け取る
+  const { favorites, favoriteCount, favoriteLimit, removeFavorite, isLoading } =
+    useFavorites(isLoggedIn)
 
   const maxCompare = isPremium ? 3 : 2
-  const maxFavorites = isPremium ? null : 5
 
   useEffect(() => {
     if (isAuthLoading) return
@@ -99,9 +100,10 @@ export default function FavoritesPage() {
       {/* 件数・比較対象の説明 */}
       <div className="flex flex-col gap-1">
         <p className="text-gray-700 text-sm">
-          {maxFavorites
-            ? `${favorites.length} / ${maxFavorites}件登録中`
-            : `${favorites.length}件登録中`}
+          {/* 修正: フロント固定値ではなく、APIレスポンスの favoriteCount / favoriteLimit を表示に利用 */}
+          {favoriteLimit !== null
+            ? `${favoriteCount} / ${favoriteLimit}件登録中`
+            : `${favoriteCount}件登録中`}
         </p>
         <p className="text-gray-700 text-sm">比較対象：{maxCompare}園まで</p>
       </div>
@@ -156,6 +158,7 @@ export default function FavoritesPage() {
                       電話番号:{favorite.school.phoneNumber}
                     </p>
                   )}
+
                   {/* タグ */}
                   {favorite.school.tags && favorite.school.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">

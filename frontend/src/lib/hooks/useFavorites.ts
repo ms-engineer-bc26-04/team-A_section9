@@ -1,7 +1,7 @@
 //お気に入り状態を管理するカスタムフック
 // src/lib/hooks/useFavorites.ts
 import useSWR from 'swr'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   addFavorite as addFavoriteApi,
@@ -23,33 +23,64 @@ type FavoriteSchool = {
   createdAt: string
 }
 
+// 修正: APIが返すお気に入り一覧・件数・上限をまとめて扱う型を追加
+type FavoritesResponse = {
+  favorites: FavoriteSchool[]
+  favoriteCount: number
+  favoriteLimit: number | null
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-const favoritesFetcher = async (): Promise<FavoriteSchool[]> => {
+// 修正: 未ログイン時やトークンがない場合も同じ形式で返すための初期値
+const emptyFavoritesResponse: FavoritesResponse = {
+  favorites: [],
+  favoriteCount: 0,
+  favoriteLimit: null,
+}
+
+// 修正: 返り値を FavoriteSchool[] から FavoritesResponse に変更
+const favoritesFetcher = async (): Promise<FavoritesResponse> => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
+
   const accessToken = session?.access_token
-  if (!accessToken) return []
+
+  if (!accessToken) {
+    return emptyFavoritesResponse
+  }
 
   const res = await fetch(`${API_URL}/api/v1/users/me/favorites`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   })
-  if (!res.ok) throw new Error('お気に入りの取得に失敗しました')
+
+  if (!res.ok) {
+    throw new Error('お気に入りの取得に失敗しました')
+  }
 
   const json = await res.json()
-  return json.data
+
+  // 修正: APIレスポンスの data / favoriteCount / favoriteLimit を利用する
+  return {
+    favorites: json.data ?? [],
+    favoriteCount: json.favoriteCount ?? json.data?.length ?? 0,
+    favoriteLimit: json.favoriteLimit ?? null,
+  }
 }
 
 export function useFavorites(isLoggedIn: boolean) {
-  const {
-    data: favorites = [],
-    mutate,
-    error,
-  } = useSWR<FavoriteSchool[]>(
+  // 修正: useSWRの型を FavoritesResponse に変更
+  const { data, mutate, error, isLoading } = useSWR<FavoritesResponse>(
     isLoggedIn ? 'favorites' : null,
     favoritesFetcher
   )
+
+  // 修正: dataからお気に入り一覧・件数・上限を取り出す
+  // 修正: 空配列が毎回新規作成されることによるlint warningを防ぐためuseMemoを使用
+  const favorites = useMemo(() => data?.favorites ?? [], [data?.favorites])
+  const favoriteCount = data?.favoriteCount ?? favorites.length
+  const favoriteLimit = data?.favoriteLimit ?? null
 
   const isFavorited = (schoolId: number): boolean => {
     return favorites.some((f: FavoriteSchool) => f.school.id === schoolId)
@@ -58,44 +89,53 @@ export function useFavorites(isLoggedIn: boolean) {
   const initializeFavorite = useCallback(
     (schoolId: number, isFav: boolean) => {
       if (!isLoggedIn) return
+
       const exists = favorites.some(
         (f: FavoriteSchool) => f.school.id === schoolId
       )
+
       if (exists) return
 
       if (isFav) {
+        // 修正: mutateのデータ形式をFavoritesResponseに合わせる
         mutate(
-          [
-            ...favorites,
-            {
-              id: Date.now(),
-              school: {
-                id: schoolId,
-                name: '',
-                area: '',
-                address: '',
-                phoneNumber: null,
-                imageUrl: null,
-                schoolType: '',
+          {
+            favorites: [
+              ...favorites,
+              {
+                id: Date.now(),
+                school: {
+                  id: schoolId,
+                  name: '',
+                  area: '',
+                  address: '',
+                  phoneNumber: null,
+                  imageUrl: null,
+                  schoolType: '',
+                },
+                createdAt: new Date().toISOString(),
               },
-              createdAt: new Date().toISOString(),
-            },
-          ],
+            ],
+            favoriteCount: favoriteCount + 1,
+            favoriteLimit,
+          },
           false
         )
       }
     },
-    [isLoggedIn, favorites, mutate]
+    [isLoggedIn, favorites, favoriteCount, favoriteLimit, mutate]
   )
 
   const addFavorite = async (schoolId: number) => {
     const {
       data: { session },
     } = await supabase.auth.getSession()
+
     const accessToken = session?.access_token
+
     if (!accessToken) return
 
-    const optimisticData: FavoriteSchool[] = [
+    const optimisticFavorites: FavoriteSchool[] = [
       ...favorites,
       {
         id: Date.now(),
@@ -118,7 +158,12 @@ export function useFavorites(isLoggedIn: boolean) {
         return favoritesFetcher()
       },
       {
-        optimisticData,
+        // 修正: optimisticDataもFavoritesResponse形式に変更
+        optimisticData: {
+          favorites: optimisticFavorites,
+          favoriteCount: favoriteCount + 1,
+          favoriteLimit,
+        },
         rollbackOnError: true,
         revalidate: false,
       }
@@ -129,20 +174,33 @@ export function useFavorites(isLoggedIn: boolean) {
     const {
       data: { session },
     } = await supabase.auth.getSession()
+
     const accessToken = session?.access_token
+
     if (!accessToken) return
 
-    const optimisticData: FavoriteSchool[] = favorites.filter(
+    const optimisticFavorites: FavoriteSchool[] = favorites.filter(
       (f: FavoriteSchool) => f.school.id !== schoolId
     )
 
     await mutate(
       async () => {
         await removeFavoriteApi(schoolId, accessToken)
-        return optimisticData
+
+        // 修正: 削除後もFavoritesResponse形式で返す
+        return {
+          favorites: optimisticFavorites,
+          favoriteCount: optimisticFavorites.length,
+          favoriteLimit,
+        }
       },
       {
-        optimisticData,
+        // 修正: optimisticDataもFavoritesResponse形式に変更
+        optimisticData: {
+          favorites: optimisticFavorites,
+          favoriteCount: optimisticFavorites.length,
+          favoriteLimit,
+        },
         rollbackOnError: true,
         revalidate: false,
       }
@@ -151,11 +209,15 @@ export function useFavorites(isLoggedIn: boolean) {
 
   return {
     favorites,
+    // 修正: 呼び出し元でAPI由来の件数・上限を使えるように返す
+    favoriteCount,
+    favoriteLimit,
     isFavorited,
     initializeFavorite,
     addFavorite,
     removeFavorite,
-    isLoading: !error && !favorites,
+    // 修正: SWRのisLoadingをそのまま返す
+    isLoading,
     error,
   }
 }
