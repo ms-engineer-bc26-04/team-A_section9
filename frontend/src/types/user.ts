@@ -13,12 +13,18 @@ export type UserPreference = {
   preferredExtendedCare?: string | null
   preferredWeekdayEventsLevel?: string | null
   preferredParentAssociationLevel?: string | null
+  preferredLessons?: boolean | null
+  preferredAllergySupport?: boolean | null
 }
 
 export type User = {
   id: string
   email: string
+  name: string | null
+  postalCode: string | null
+  address: string | null
   membershipType: MembershipType
   subscriptionStatus: SubscriptionStatus | null
+  currentPeriodEnd: string | null
   preference: UserPreference | null
 }
