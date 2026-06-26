@@ -8,16 +8,38 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import Toast from '@/components/common/Toast'
+import { User } from '@/types/user'
 
 export default function MyPageEditPage() {
   const router = useRouter()
   const { supabaseUser, appUser, isLoading: authLoading } = useAuth()
 
-  const prefs = appUser?.preference
+  useEffect(() => {
+    if (!authLoading && !supabaseUser) {
+      router.push('/login')
+    }
+  }, [authLoading, supabaseUser, router])
 
-  const [userName, setUserName] = useState('')
-  const [postalCode, setPostalCode] = useState('')
-  const [address, setAddress] = useState('')
+  if (authLoading || !appUser) {
+    return (
+      <div className="p-4 flex flex-col gap-4">
+        <div className="h-12 bg-gray-100 rounded animate-pulse" />
+        <div className="h-12 bg-gray-100 rounded animate-pulse" />
+        <div className="h-48 bg-gray-100 rounded animate-pulse" />
+      </div>
+    )
+  }
+
+  return <EditForm appUser={appUser} />
+}
+
+function EditForm({ appUser }: { appUser: User }) {
+  const router = useRouter()
+  const prefs = appUser.preference
+
+  const [userName, setUserName] = useState(appUser.name ?? '')
+  const [postalCode, setPostalCode] = useState(appUser.postalCode ?? '')
+  const [address, setAddress] = useState(appUser.address ?? '')
   const [hasLunch, setHasLunch] = useState(
     prefs?.preferredMealType === 'SCHOOL_LUNCH'
   )
@@ -34,8 +56,10 @@ export default function MyPageEditPage() {
   const [noPTA, setNoPTA] = useState(
     prefs?.preferredParentAssociationLevel === 'LOW'
   )
-  const [hasClub, setHasClub] = useState(false)
-  const [allergySupport, setAllergySupport] = useState(false)
+  const [hasClub, setHasClub] = useState(!!prefs?.preferredLessons)
+  const [allergySupport, setAllergySupport] = useState(
+    !!prefs?.preferredAllergySupport
+  )
 
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{
@@ -47,13 +71,6 @@ export default function MyPageEditPage() {
     message: string
     type: 'success' | 'error' | 'warning'
   } | null>(null)
-
-  // 未ログインの場合は /login へ
-  useEffect(() => {
-    if (!authLoading && !supabaseUser) {
-      router.push('/login')
-    }
-  }, [authLoading, supabaseUser, router])
 
   // 郵便番号から住所を自動入力
   const handlePostalCodeChange = async (value: string) => {
@@ -121,8 +138,8 @@ export default function MyPageEditPage() {
             preferredExtendedCare: extendedCare ? '20人以上' : null,
             preferredWeekdayEventsLevel: noWeekdayEvents ? 'LOW' : null,
             preferredParentAssociationLevel: noPTA ? 'LOW' : null,
-            preferredLessons: hasClub ? true : null, // ← 追加
-            preferredAllergySupport: allergySupport ? true : null, // ← 追加
+            preferredLessons: hasClub ? true : null,
+            preferredAllergySupport: allergySupport ? true : null,
           }),
         }
       )
@@ -133,7 +150,6 @@ export default function MyPageEditPage() {
       }
 
       // お名前・郵便番号・住所を保存
-      // ※のっちさんのAPIが確定したらURLとmethodを修正する
       const profileRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`,
         {
@@ -161,16 +177,6 @@ export default function MyPageEditPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  if (authLoading) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-48 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
   }
 
   return (
@@ -258,12 +264,12 @@ export default function MyPageEditPage() {
               onChange={setHasLunch}
             />
             <CheckItem
-              label="おむつ園処理あり"
+              label="おむつ廃棄"
               checked={diaperDisposal}
               onChange={setDiaperDisposal}
             />
             <CheckItem
-              label="布団負担少なめ"
+              label="布団持参なし"
               checked={noBedding}
               onChange={setNoBedding}
             />
@@ -282,12 +288,12 @@ export default function MyPageEditPage() {
               onChange={setExtendedCare}
             />
             <CheckItem
-              label="平日行事少なめ"
+              label="平日行事なし"
               checked={noWeekdayEvents}
               onChange={setNoWeekdayEvents}
             />
             <CheckItem
-              label="保護者会少なめ"
+              label="保護者会なし"
               checked={noPTA}
               onChange={setNoPTA}
             />

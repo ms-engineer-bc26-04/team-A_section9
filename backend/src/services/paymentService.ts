@@ -3,6 +3,17 @@ import { prisma } from '../lib/prisma'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
+// FIX: Stripeの型は named import せず、stripeインスタンスの戻り値から取得する
+type StripeSubscription = Awaited<
+  ReturnType<typeof stripe.subscriptions.retrieve>
+>
+
+type StripeCheckoutSession = Awaited<
+  ReturnType<typeof stripe.checkout.sessions.retrieve>
+>
+
+type StripeInvoice = Awaited<ReturnType<typeof stripe.invoices.retrieve>>
+
 export const createCheckoutSessionService = async (supabaseUserId: string) => {
   const user = await prisma.user.findUnique({
     where: {
@@ -20,6 +31,7 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
   if (user.subscription?.status === 'ACTIVE') {
     throw new Error('ALREADY_PREMIUM')
   }
+
   let customerId = user.subscription?.stripeCustomerId
 
   if (!customerId) {
@@ -47,6 +59,7 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
       },
     })
   }
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: customerId,
@@ -64,10 +77,12 @@ export const createCheckoutSessionService = async (supabaseUserId: string) => {
     success_url: `${process.env.FRONTEND_URL}/payment/complete`,
     cancel_url: `${process.env.FRONTEND_URL}/plans`,
   })
+
   return {
     checkoutUrl: session.url,
   }
 }
+
 const updateSubscriptionToActive = async (
   userId: string,
   stripeCustomerId: string,
@@ -104,6 +119,7 @@ const updateSubscriptionToActive = async (
     }),
   ])
 }
+
 const updateSubscriptionToCanceled = async (stripeSubscriptionId: string) => {
   const subscription = await prisma.subscription.findUnique({
     where: {
@@ -135,6 +151,7 @@ const updateSubscriptionToCanceled = async (stripeSubscriptionId: string) => {
     }),
   ])
 }
+
 const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
   const subscription = await prisma.subscription.findUnique({
     where: {
@@ -183,7 +200,7 @@ const getCurrentPeriodEnd = (subscription: Stripe.Subscription) => {
 }
 
 const syncSubscriptionStatus = async (
-  stripeSubscription: Stripe.Subscription
+  stripeSubscription: StripeSubscription
 ) => {
   const stripeSubscriptionId = stripeSubscription.id
   const currentPeriodEnd = getCurrentPeriodEnd(stripeSubscription)
@@ -227,6 +244,7 @@ const syncSubscriptionStatus = async (
     }),
   ])
 }
+
 export const handleStripeWebhookService = async (
   body: Buffer | string,
   signature: string | string[] | undefined
@@ -247,7 +265,7 @@ export const handleStripeWebhookService = async (
 
   switch (event.type) {
     case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session
+      const session = event.data.object as StripeCheckoutSession
 
       const userId = session.client_reference_id
       const stripeCustomerId = session.customer as string
@@ -274,7 +292,7 @@ export const handleStripeWebhookService = async (
     }
 
     case 'customer.subscription.updated': {
-      const subscription = event.data.object as Stripe.Subscription
+      const subscription = event.data.object as StripeSubscription
 
       await syncSubscriptionStatus(subscription)
 
@@ -283,15 +301,16 @@ export const handleStripeWebhookService = async (
     }
 
     case 'customer.subscription.deleted': {
-      const subscription = event.data.object as Stripe.Subscription
+      const subscription = event.data.object as StripeSubscription
 
       await updateSubscriptionToCanceled(subscription.id)
 
       console.log('customer.subscription.deleted processed')
       break
     }
+
     case 'invoice.payment_succeeded': {
-      const invoice = event.data.object as Stripe.Invoice & {
+      const invoice = event.data.object as StripeInvoice & {
         subscription?: string
         parent?: {
           subscription_details?: {
@@ -316,8 +335,9 @@ export const handleStripeWebhookService = async (
       console.log('invoice.payment_succeeded processed')
       break
     }
+
     case 'invoice.payment_failed': {
-      const invoice = event.data.object as Stripe.Invoice & {
+      const invoice = event.data.object as StripeInvoice & {
         subscription?: string
         parent?: {
           subscription_details?: {
