@@ -32,13 +32,16 @@ type SchoolDetail = {
   lifeBurdenLevel: string
   mealType: string
   itemBurdenLevel: string
+  itemBurdenDetail: string | null
   diaperSupport: string | null
   futonSupport: string | null
   timeBurdenLevel: string
   extendedCareHours: string | null
   extendedCareUsage: string
   weekdayEventsLevel: string
+  weekdayEvents: string | null
   parentAssociationLevel: string
+  parentAssociationFrequency: string | null
   tags: string[]
   supportInfo: SupportInfo
   isFavorited: boolean
@@ -130,7 +133,7 @@ export default function SchoolDetailPage() {
 
         const { data } = await res.json()
         setSchool(data)
-        initializeFavorite(Number(id), data.isFavorited) // 追加
+        initializeFavorite(Number(id), data.isFavorited)
       } catch {
         setError('データの取得に失敗しました')
       } finally {
@@ -168,7 +171,6 @@ export default function SchoolDetailPage() {
         })
         setTimeout(() => router.push('/plans'), 2000)
       } else if (code === 'ALREADY_FAVORITED') {
-        // 追加
         setToast({ message: 'すでにお気に入り登録済みです', type: 'warning' })
       } else {
         setToast({ message: 'エラーが発生しました', type: 'error' })
@@ -298,7 +300,14 @@ export default function SchoolDetailPage() {
               label="給食・弁当"
               value={mealTypeLabel[school.mealType] ?? school.mealType}
             />
-            <DetailRow label="持ち物" value={school.itemBurdenLevel} />
+            <DetailRow
+              label="持ち物"
+              value={
+                school.itemBurdenDetail ??
+                burdenLabel[school.itemBurdenLevel] ??
+                school.itemBurdenLevel
+              }
+            />
             {school.diaperSupport && (
               <DetailRow label="おむつ対応" value={school.diaperSupport} />
             )}
@@ -332,6 +341,7 @@ export default function SchoolDetailPage() {
             <DetailRow
               label="平日行事"
               value={
+                school.weekdayEvents ??
                 burdenLabel[school.weekdayEventsLevel] ??
                 school.weekdayEventsLevel
               }
@@ -339,6 +349,7 @@ export default function SchoolDetailPage() {
             <DetailRow
               label="保護者会"
               value={
+                school.parentAssociationFrequency ??
                 burdenLabel[school.parentAssociationLevel] ??
                 school.parentAssociationLevel
               }
