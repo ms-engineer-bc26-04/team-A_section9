@@ -1,28 +1,15 @@
-import type { Response, NextFunction } from 'express'
+import type { NextFunction, Response } from 'express'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
-import { getOrCreateCurrentUser } from '../services/userService'
 import {
   CompareServiceError,
   getComparedSchools,
 } from '../services/compareService'
-import {
-  compareQuerySchema,
-  parseCompareSchoolIds,
-} from '../validators/compareValidator'
+import { getOrCreateCurrentUser } from '../services/userService'
+import { parseCompareSchoolIds } from '../validators/compareValidator'
 
 const getValidationErrorMessage = (error: unknown) => {
   if (error instanceof Error) {
     return error.message
-  }
-
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'issues' in error &&
-    Array.isArray(error.issues) &&
-    error.issues[0]?.message
-  ) {
-    return error.issues[0].message
   }
 
   return '比較対象の園IDが不正です'
@@ -44,22 +31,10 @@ export const getCompareSchoolsController = async (
       return
     }
 
-    const parsedQuery = compareQuerySchema.safeParse(req.query)
-
-    if (!parsedQuery.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedQuery.error),
-        },
-      })
-      return
-    }
-
     let schoolIds: bigint[]
 
     try {
-      schoolIds = parseCompareSchoolIds(parsedQuery.data.ids)
+      schoolIds = parseCompareSchoolIds(String(req.query.ids))
     } catch (error) {
       res.status(422).json({
         error: {

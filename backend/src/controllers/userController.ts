@@ -5,24 +5,10 @@ import {
   updateUserProfile,
   upsertUserPreference,
 } from '../services/userService'
-import {
-  userPreferenceBodySchema,
-  userProfileBodySchema,
+import type {
+  UserPreferenceBodyInput,
+  UserProfileBodyInput,
 } from '../validators/userValidator'
-
-const getValidationErrorMessage = (error: unknown) => {
-  if (
-    typeof error === 'object' &&
-    error !== null &&
-    'issues' in error &&
-    Array.isArray(error.issues) &&
-    error.issues[0]?.message
-  ) {
-    return error.issues[0].message
-  }
-
-  return '入力内容に誤りがあります'
-}
 
 export const getMe = async (
   req: AuthenticatedRequest,
@@ -53,7 +39,6 @@ export const getMe = async (
         address: user.address,
         membershipType: user.planType,
         subscriptionStatus: user.subscription?.status ?? null,
-        // 追加: プレミアム機能の利用期限を返す
         currentPeriodEnd: user.subscription?.currentPeriodEnd ?? null,
         preference: user.preference
           ? {
@@ -96,22 +81,10 @@ export const updateMe = async (
       return
     }
 
-    // #22対応：プロフィール更新リクエストをZodでバリデーションする
-    const parsedBody = userProfileBodySchema.safeParse(req.body)
-
-    if (!parsedBody.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedBody.error),
-        },
-      })
-      return
-    }
-
     const user = await getOrCreateCurrentUser(authUser)
+    const body = req.body as UserProfileBodyInput
 
-    const updatedUser = await updateUserProfile(user.id, parsedBody.data)
+    const updatedUser = await updateUserProfile(user.id, body)
 
     res.status(200).json({
       data: {
@@ -146,21 +119,10 @@ export const updateMyPreference = async (
       return
     }
 
-    // #22対応：希望条件更新リクエストをZodでバリデーションする
-    const parsedBody = userPreferenceBodySchema.safeParse(req.body)
-
-    if (!parsedBody.success) {
-      res.status(422).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: getValidationErrorMessage(parsedBody.error),
-        },
-      })
-      return
-    }
-
     const user = await getOrCreateCurrentUser(authUser)
-    const preference = await upsertUserPreference(user.id, parsedBody.data)
+    const body = req.body as UserPreferenceBodyInput
+
+    const preference = await upsertUserPreference(user.id, body)
 
     res.status(200).json({
       data: {

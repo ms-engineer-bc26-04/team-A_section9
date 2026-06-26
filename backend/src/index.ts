@@ -33,8 +33,8 @@ app.use('/api/v1/payment/webhook', express.raw({ type: 'application/json' }))
 
 app.use(express.json())
 
-// #22対応：環境ごとにログレベルを切り替える
-// 本番環境では info、開発環境では debug として、調査しやすさとログ量のバランスを取る
+// NOTE: 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
+// 不要に 429 にならないよう上限を緩める
 app.use(
   pinoHttp({
     level: isProduction ? 'info' : 'debug',

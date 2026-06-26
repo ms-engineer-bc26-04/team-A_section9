@@ -18,13 +18,7 @@ type ZipcloudResponse = {
 }
 
 export const searchAddressByZipcode = async (req: Request, res: Response) => {
-  const zipcode = String(req.query.zipcode ?? '').replace('-', '')
-
-  if (!/^\d{7}$/.test(zipcode)) {
-    return res.status(400).json({
-      message: '郵便番号は7桁の数字で入力してください',
-    })
-  }
+  const zipcode = String(req.query.zipcode)
 
   try {
     const response = await fetch(
