@@ -166,9 +166,18 @@ const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
   ])
 }
 const getCurrentPeriodEnd = (subscription: Stripe.Subscription) => {
-  const currentPeriodEnd = (
-    subscription as Stripe.Subscription & { current_period_end?: number }
-  ).current_period_end
+  const subscriptionWithPeriod = subscription as Stripe.Subscription & {
+    current_period_end?: number
+    items?: {
+      data?: Array<{
+        current_period_end?: number
+      }>
+    }
+  }
+
+  const currentPeriodEnd =
+    subscriptionWithPeriod.current_period_end ??
+    subscriptionWithPeriod.items?.data?.[0]?.current_period_end
 
   return currentPeriodEnd ? new Date(currentPeriodEnd * 1000) : undefined
 }
@@ -248,10 +257,16 @@ export const handleStripeWebhookService = async (
         throw new Error('CHECKOUT_SESSION_MISSING_REQUIRED_DATA')
       }
 
+      const subscription =
+        await stripe.subscriptions.retrieve(stripeSubscriptionId)
+
+      const currentPeriodEnd = getCurrentPeriodEnd(subscription)
+
       await updateSubscriptionToActive(
         userId,
         stripeCustomerId,
-        stripeSubscriptionId
+        stripeSubscriptionId,
+        currentPeriodEnd
       )
 
       console.log('checkout.session.completed processed')
