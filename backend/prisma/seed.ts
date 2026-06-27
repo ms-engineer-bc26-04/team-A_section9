@@ -602,6 +602,306 @@ async function main() {
         lessons: null,
         allergySupport: '除去食対応あり',
       },
+      {
+        name: 'ミズイーキッズ保育園',
+        area: '江東区',
+        address: '東京都江東区豊洲1-2-1',
+        phoneNumber: '03-1234-0021',
+        imageUrl: '/school-images/21_mse-kids-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 佐藤恵さん向け比較候補：延長20時・アプリ連絡・持ち物負担少なめで、復職後の生活を回しやすい園
+        lifeBurdenLevel: BurdenLevel.LOW,
+        timeBurdenLevel: BurdenLevel.LOW,
+        itemBurdenLevel: BurdenLevel.LOW,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル',
+        diaperSupport: 'サブスク対応',
+        futonSupport: '園で管理',
+
+        extendedCareHours: '18:00〜20:00',
+        extendedCareUsage: '20人以上',
+        weekdayEvents: 'なし',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '英語教室・プログラミング',
+        allergySupport: '個別対応あり',
+      },
+      {
+        name: 'ひよっこ保育園',
+        area: '江東区',
+        address: '東京都江東区豊洲1-3-2',
+        phoneNumber: '03-1234-0022',
+        imageUrl: '/school-images/22_hiyokko-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 佐藤恵さん向け：自宅近くで通いやすいが、持ち物は標準的な園
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.LOW,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル・コップ',
+        diaperSupport: '園で廃棄',
+        futonSupport: '週末にシーツ持ち帰り',
+
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: 'なし',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: 'リトミック',
+        allergySupport: '除去食対応あり',
+      },
+      {
+        name: 'すくすくこども園',
+        area: '江東区',
+        address: '東京都江東区豊洲2-4-3',
+        phoneNumber: '03-1234-0023',
+        imageUrl: '/school-images/23_sukusuku-kodomoen.png',
+        schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
+
+        // 佐藤恵さん向け：こども園枠。活動は充実しているが、平日行事はややあり
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        parentAssociationLevel: BurdenLevel.MEDIUM,
+
+        mealType: MealType.BOTH,
+        itemBurdenDetail: '着替え・タオル・コップ・水筒',
+        diaperSupport: '園で廃棄',
+        futonSupport: '週末にシーツ持ち帰り',
+
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: '月に1回程度',
+        parentAssociationFrequency: '学期に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.PHONE,
+        lessons: '英語教室・体操教室',
+        allergySupport: '個別相談可',
+      },
+      {
+        name: 'かがやき保育園',
+        area: '江東区',
+        address: '東京都江東区東雲1-5-4',
+        phoneNumber: '03-1234-0024',
+        imageUrl: '/school-images/24_kagayaki-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 佐藤恵さん向け比較候補：延長20時・利用者多め・低負担で本命候補にしやすい園
+        lifeBurdenLevel: BurdenLevel.LOW,
+        timeBurdenLevel: BurdenLevel.LOW,
+        itemBurdenLevel: BurdenLevel.LOW,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル',
+        diaperSupport: '園で廃棄',
+        futonSupport: '園で管理',
+
+        extendedCareHours: '18:00〜20:00',
+        extendedCareUsage: '20人以上',
+        weekdayEvents: 'なし',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '体操教室',
+        allergySupport: '個別対応あり',
+      },
+      {
+        name: 'まなびの森保育園',
+        area: '江東区',
+        address: '東京都江東区東雲1-6-5',
+        phoneNumber: '03-1234-0025',
+        imageUrl: '/school-images/25_manabinomori-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 佐藤恵さん向け比較候補：教育要素あり。ただし行事・持ち物は少し増えるため比較差分を出しやすい園
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル・水筒・制作用品',
+        diaperSupport: '園で廃棄',
+        futonSupport: 'バスタオル持参',
+
+        extendedCareHours: '18:00〜20:00',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: '月に1回程度',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '英語教室・プログラミング',
+        allergySupport: '個別相談可',
+      },
+      {
+        name: 'ガンバあおぞら保育園',
+        area: '練馬区',
+        address: '東京都練馬区石神井台1-7-6',
+        phoneNumber: '03-1234-0026',
+        imageUrl: '/school-images/26_ganba-aozora-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 高橋美咲さん向け比較候補：アレルギー代替食あり・園内習い事あり・負担も軽め
+        lifeBurdenLevel: BurdenLevel.LOW,
+        timeBurdenLevel: BurdenLevel.LOW,
+        itemBurdenLevel: BurdenLevel.LOW,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル',
+        diaperSupport: '園で廃棄',
+        futonSupport: '園で管理',
+
+        extendedCareHours: '18:00〜20:00',
+        extendedCareUsage: '20人以上',
+        weekdayEvents: 'なし',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '英語教室・リトミック',
+        allergySupport: '完全除去＋園で代替食対応',
+      },
+      {
+        name: 'どろんこ保育園',
+        area: '練馬区',
+        address: '東京都練馬区石神井台1-8-7',
+        phoneNumber: '03-1234-0027',
+        imageUrl: '/school-images/27_doronko-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 高橋美咲さん向け：自然・のびのび系。ケアはあるが持ち物負担はやや高め
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.HIGH,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        parentAssociationLevel: BurdenLevel.MEDIUM,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル・水筒・外遊び用着替え',
+        diaperSupport: '持ち帰りあり',
+        futonSupport: '週末にシーツ持ち帰り',
+
+        extendedCareHours: '18:00〜19:00',
+        extendedCareUsage: '10人未満',
+        weekdayEvents: '月に1回程度',
+        parentAssociationFrequency: '学期に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.PHONE,
+        lessons: '自然遊び',
+        allergySupport: '個別面談あり',
+      },
+      {
+        name: 'すなばこども園',
+        area: '練馬区',
+        address: '東京都練馬区上石神井2-9-8',
+        phoneNumber: '03-1234-0028',
+        imageUrl: '/school-images/28_sunaba-kodomoen.png',
+        schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
+
+        // 高橋美咲さん向け比較候補：こども園枠。園内活動は多いが平日行事もややあり
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        parentAssociationLevel: BurdenLevel.MEDIUM,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル・コップ・制作用品',
+        diaperSupport: '園で廃棄',
+        futonSupport: 'バスタオル持参',
+
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: '月に1回程度',
+        parentAssociationFrequency: '学期に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '英語教室・音楽教室',
+        allergySupport: '完全除去＋個別面談あり',
+      },
+      {
+        name: 'そらくまこども園',
+        area: '練馬区',
+        address: '東京都練馬区石神井台2-10-10',
+        phoneNumber: '03-1234-0029',
+        imageUrl: '/school-images/29_sorakuma-kodomoen.png',
+        schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
+
+        // 高橋美咲さん向け比較候補：代替食対応あり・園内習い事ありで本命候補にしやすい園
+        lifeBurdenLevel: BurdenLevel.LOW,
+        timeBurdenLevel: BurdenLevel.LOW,
+        itemBurdenLevel: BurdenLevel.LOW,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル',
+        diaperSupport: 'サブスク対応',
+        futonSupport: '園で管理',
+
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: '学期に1回程度',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: '英語教室・リトミック・体操教室',
+        allergySupport: '完全除去＋園で代替食対応',
+      },
+      {
+        name: 'きずなテラス保育園',
+        area: '練馬区',
+        address: '東京都練馬区石神井台2-11-10',
+        phoneNumber: '03-1234-0030',
+        imageUrl: '/school-images/30_kizuna-terrace-hoikuen.png',
+        schoolType: SchoolType.NURSERY,
+
+        // 高橋美咲さん向け：安心感はあるが、アレルギー対応は家庭持参寄りで差分を出す園
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.LOW,
+
+        mealType: MealType.BOTH,
+        itemBurdenDetail: '着替え・タオル・コップ',
+        diaperSupport: '園で廃棄',
+        futonSupport: '週末にシーツ持ち帰り',
+
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜20人程度',
+        weekdayEvents: 'なし',
+        parentAssociationFrequency: '年に1回',
+
+        contactBookType: ContactType.APP,
+        absenceContactMethod: ContactType.APP,
+        lessons: 'リトミック',
+        allergySupport: '完全除去＋家庭から弁当持参',
+      },
     ],
   })
 
