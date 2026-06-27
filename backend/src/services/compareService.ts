@@ -162,6 +162,12 @@ const toCompareSchool = (school: School) => {
       // DBのテキストカラム parentAssociationFrequency をそのまま返す
       parentAssociationFrequency: school.parentAssociationFrequency,
     },
+    supportInfo: {
+      contactBookType: school.contactBookType,
+      absenceContactMethod: school.absenceContactMethod,
+      lessons: school.lessons,
+      allergySupport: school.allergySupport,
+    },
   }
 }
 
