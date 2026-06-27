@@ -1,5 +1,5 @@
 # ENKATSU API設計書
-
+A
 ## 1. API概要
 
 本ドキュメントは、ENKATSU のMVPで使用するAPI仕様を整理したAPI設計書です。
@@ -375,6 +375,10 @@ MVPでは、条件検索の「多い・少ない」はユーザーごとの主�
 
 `true` はそのまま文字列検索せず、バックエンド側で検索基準に変換して絞り込みます。
 
+`lessons=true` / `allergySupport=true` は、一覧検索の絞り込み条件として利用できます。
+
+ただし、園詳細の `supportInfo.lessons` / `supportInfo.allergySupport` はプレミアム限定情報として扱います。未ログイン・一般ユーザーの場合は `supportInfo.isLocked=true` とし、各項目は `null` で返します。
+
 日本語を含む `keyword` / `q` / `area` を送信する場合は、フロントエンド側でURLエンコードされたquery paramsとして送信します。
 
 ---
@@ -390,9 +394,11 @@ MVPでは、条件検索の「多い・少ない」はユーザーごとの主�
 
 ### おすすめ表示について
 
-`sort=recommended` が指定され、ログイン済みユーザーの場合は、ユーザー住所・お気に入り傾向・希望条件をもとにおすすめ順で返します。
+`sort=recommended` が指定され、ログイン済みユーザーの場合は、ユーザー住所・希望条件をもとにおすすめ順で返します。
 
 プロフィール情報として保存された `address` や、希望条件として保存された `user_preferences` の内容を参照します。
+
+未ログインの場合、またはユーザー住所・希望条件が未設定の場合は、通常一覧と同じ `id` 昇順で返します。
 
 MVPでは高度なレコメンド機能は作成せず、シンプルな条件一致数で並び替えます。
 
@@ -2241,3 +2247,4 @@ MVPの条件検索では、以下の値を検索基準として使用します�
 | v0.2 | 2026/06/23 | 園検索条件、比較API、Redisキャッシュ方針、Stripe関連APIを整理 |
 | v0.3 | 2026/06/24 | ユーザー希望条件を `user_preferences` で管理する方針に合わせ、`GET /users/me` のレスポンスと `PATCH /users/me/preferences` を追加 |
 | v0.4 | 2026/06/25 | マイページのプロフィール情報保存API追加に伴い、`GET /users/me` に `name` / `postalCode` / `address` を追加し、`PUT /users/me` を追加。住所自動入力用の `GET /address/search` と、希望条件の `preferredLessons` / `preferredAllergySupport` も反映 |
+| v0.5 | 2026/06/27 | `sort=recommended` の挙動を実装に合わせて修正。ログイン済みユーザーは住所・希望条件をもとにおすすめ順、未ログインまたは住所・希望条件未設定時は通常一覧と同じID昇順とする方針を明記。`lessons` / `allergySupport` は一覧検索条件として利用し、詳細ではプレミアム限定情報としてロック制御する方針も補足 |
