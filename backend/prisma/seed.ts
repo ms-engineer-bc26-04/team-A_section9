@@ -21,7 +21,7 @@ async function main() {
         area: '渋谷区',
         address: '東京都渋谷区さくら1-1-1',
         phoneNumber: '03-1234-0001',
-        imageUrl: null,
+        imageUrl: '/school-images/1_sakura-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 佐藤恵さん向け：毎日給食・おむつ園処理・布団管理・平日行事少なめ・延長利用者多め
@@ -51,7 +51,7 @@ async function main() {
         area: '新宿区',
         address: '東京都新宿区みらい2-2-2',
         phoneNumber: '03-1234-0002',
-        imageUrl: null,
+        imageUrl: '/school-images/2_mirai-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         // 佐藤恵さん向け：延長保育は使いやすいが、平日行事は少し多め
@@ -66,7 +66,7 @@ async function main() {
         diaperSupport: 'サブスク対応',
         futonSupport: '園で管理',
 
-        extendedCareHours: '18:00〜20:30',
+        extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '年に1回',
@@ -81,7 +81,7 @@ async function main() {
         area: '世田谷区',
         address: '東京都世田谷区すみれ3-3-3',
         phoneNumber: '03-1234-0003',
-        imageUrl: null,
+        imageUrl: '/school-images/3_sumire-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         // 高橋美咲さん向け：アレルギー対応と園内習い事を重視
@@ -111,7 +111,7 @@ async function main() {
         area: '杉並区',
         address: '東京都杉並区こもれび4-4-4',
         phoneNumber: '03-1234-0004',
-        imageUrl: null,
+        imageUrl: '/school-images/4_komorebi-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 高橋美咲さん向け：子どものケアと保護者の準備負担のバランス型
@@ -141,7 +141,7 @@ async function main() {
         area: '目黒区',
         address: '東京都目黒区ひだまり5-5-5',
         phoneNumber: '03-1234-0005',
-        imageUrl: null,
+        imageUrl: '/school-images/5_hidamari-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 比較用：準備は標準的、時間調整もしやすい園
@@ -171,7 +171,7 @@ async function main() {
         area: '世田谷区',
         address: '東京都世田谷区にじ6-6-6',
         phoneNumber: '03-1234-0006',
-        imageUrl: null,
+        imageUrl: '/school-images/6_niji-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 比較用：家庭で用意するものや保護者参加が比較的多い園
@@ -201,7 +201,7 @@ async function main() {
         area: '渋谷区',
         address: '東京都渋谷区青空7-7-7',
         phoneNumber: '03-1234-0007',
-        imageUrl: null,
+        imageUrl: '/school-images/7_aozora-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -230,7 +230,7 @@ async function main() {
         area: '新宿区',
         address: '東京都新宿区つばめ8-8-8',
         phoneNumber: '03-1234-0008',
-        imageUrl: null,
+        imageUrl: '/school-images/8_tsubame-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -259,7 +259,7 @@ async function main() {
         area: '世田谷区',
         address: '東京都世田谷区はなまる9-9-9',
         phoneNumber: '03-1234-0009',
-        imageUrl: null,
+        imageUrl: '/school-images/9_hanamaru-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -273,7 +273,7 @@ async function main() {
         diaperSupport: 'サブスク対応',
         futonSupport: '園で管理',
 
-        extendedCareHours: '18:00〜20:30',
+        extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: '学期に1回程度',
         parentAssociationFrequency: '年に2回',
@@ -288,7 +288,7 @@ async function main() {
         area: '杉並区',
         address: '東京都杉並区森のこ10-10-10',
         phoneNumber: '03-1234-0010',
-        imageUrl: null,
+        imageUrl: '/school-images/10_morinoko-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -317,7 +317,7 @@ async function main() {
         area: '目黒区',
         address: '東京都目黒区めぐみ11-11-11',
         phoneNumber: '03-1234-0011',
-        imageUrl: null,
+        imageUrl: '/school-images/11_megumi-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -346,7 +346,7 @@ async function main() {
         area: '品川区',
         address: '東京都品川区あおば12-12-12',
         phoneNumber: '03-1234-0012',
-        imageUrl: null,
+        imageUrl: '/school-images/12_aoba-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -375,7 +375,7 @@ async function main() {
         area: '品川区',
         address: '東京都品川区ゆめの木13-13-13',
         phoneNumber: '03-1234-0013',
-        imageUrl: null,
+        imageUrl: '/school-images/13_yumenoki-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.HIGH,
@@ -404,7 +404,7 @@ async function main() {
         area: '中野区',
         address: '東京都中野区ほしぞら14-14-14',
         phoneNumber: '03-1234-0014',
-        imageUrl: null,
+        imageUrl: '/school-images/14_hoshizora-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -418,7 +418,7 @@ async function main() {
         diaperSupport: 'サブスク対応',
         futonSupport: '園で管理',
 
-        extendedCareHours: '18:00〜20:30',
+        extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
@@ -433,7 +433,7 @@ async function main() {
         area: '中野区',
         address: '東京都中野区こぐま15-15-15',
         phoneNumber: '03-1234-0015',
-        imageUrl: null,
+        imageUrl: '/school-images/15_koguma-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -462,7 +462,7 @@ async function main() {
         area: '練馬区',
         address: '東京都練馬区おひさま16-16-16',
         phoneNumber: '03-1234-0016',
-        imageUrl: null,
+        imageUrl: '/school-images/16_ohisama-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -491,7 +491,7 @@ async function main() {
         area: '練馬区',
         address: '東京都練馬区たんぽぽ17-17-17',
         phoneNumber: '03-1234-0017',
-        imageUrl: null,
+        imageUrl: '/school-images/17_tanpopo-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -520,7 +520,7 @@ async function main() {
         area: '大田区',
         address: '東京都大田区つくし18-18-18',
         phoneNumber: '03-1234-0018',
-        imageUrl: null,
+        imageUrl: '/school-images/18_tsukushi-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.HIGH,
@@ -549,7 +549,7 @@ async function main() {
         area: '大田区',
         address: '東京都大田区わかば19-19-19',
         phoneNumber: '03-1234-0019',
-        imageUrl: null,
+        imageUrl: '/school-images/19_wakaba-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -563,7 +563,7 @@ async function main() {
         diaperSupport: 'サブスク対応',
         futonSupport: '園で管理',
 
-        extendedCareHours: '18:00〜20:30',
+        extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
         parentAssociationFrequency: '年に1回',
@@ -578,7 +578,7 @@ async function main() {
         area: '板橋区',
         address: '東京都板橋区みどりの丘20-20-20',
         phoneNumber: '03-1234-0020',
-        imageUrl: null,
+        imageUrl: '/school-images/20_midorinooka-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,

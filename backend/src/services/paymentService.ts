@@ -3,7 +3,6 @@ import { prisma } from '../lib/prisma'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
-// FIX: Stripeの型は named import せず、stripeインスタンスの戻り値から取得する
 type StripeSubscription = Awaited<
   ReturnType<typeof stripe.subscriptions.retrieve>
 >
@@ -182,8 +181,9 @@ const updateSubscriptionToExpired = async (stripeSubscriptionId: string) => {
     }),
   ])
 }
-const getCurrentPeriodEnd = (subscription: Stripe.Subscription) => {
-  const subscriptionWithPeriod = subscription as Stripe.Subscription & {
+
+const getCurrentPeriodEnd = (subscription: StripeSubscription) => {
+  const subscriptionWithPeriod = subscription as StripeSubscription & {
     current_period_end?: number
     items?: {
       data?: Array<{

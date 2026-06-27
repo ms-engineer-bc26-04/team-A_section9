@@ -18,7 +18,8 @@ type ZipcloudResponse = {
 }
 
 export const searchAddressByZipcode = async (req: Request, res: Response) => {
-  const zipcode = String(req.query.zipcode)
+  const query = res.locals.validatedQuery ?? req.query
+  const zipcode = String(query.zipcode)
 
   try {
     const response = await fetch(

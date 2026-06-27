@@ -74,6 +74,10 @@ const toSchoolListItem = (
     name: school.name,
     area: school.area,
     address: school.address,
+
+    // NOTE: 園一覧画面で表示する園画像URL
+    imageUrl: school.imageUrl,
+
     schoolType: school.schoolType,
     lifeBurdenLevel: school.lifeBurdenLevel,
     timeBurdenLevel: school.timeBurdenLevel,
@@ -120,6 +124,10 @@ const toSchoolDetail = (
     name: school.name,
     area: school.area,
     address: school.address,
+
+    // NOTE: 園詳細画面で表示する園画像URL
+    imageUrl: school.imageUrl,
+
     schoolType: school.schoolType,
     lifeBurdenLevel: school.lifeBurdenLevel,
     timeBurdenLevel: school.timeBurdenLevel,
@@ -160,7 +168,8 @@ const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
 
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
-    const query = req.query as SchoolSearchQueryInput
+    const query = (res.locals.validatedQuery ??
+      req.query) as SchoolSearchQueryInput
 
     const user = await getCurrentUserIfAuthenticated(
       req as AuthenticatedRequest

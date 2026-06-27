@@ -44,6 +44,11 @@ export const validateRequest = (schemas: ValidateRequestSchemas) => {
         return
       }
 
+      if (target === 'query') {
+        res.locals.validatedQuery = result.data
+        continue
+      }
+
       req[target] = result.data
     }
 

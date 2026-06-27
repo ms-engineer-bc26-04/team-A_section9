@@ -34,7 +34,8 @@ export const getCompareSchoolsController = async (
     let schoolIds: bigint[]
 
     try {
-      schoolIds = parseCompareSchoolIds(String(req.query.ids))
+      const query = res.locals.validatedQuery ?? req.query
+      schoolIds = parseCompareSchoolIds(String(query.ids))
     } catch (error) {
       res.status(422).json({
         error: {
