@@ -11,7 +11,7 @@ export default function CompareSchoolHeader({
   schools,
 }: CompareSchoolHeaderProps) {
   return (
-    <div className="flex gap-2 mb-6">
+    <div className="flex gap-2">
       <div className="w-20 flex-shrink-0" />
       {schools.map((school) => (
         <div
@@ -19,7 +19,7 @@ export default function CompareSchoolHeader({
           className="flex-1 flex flex-col items-center gap-2"
         >
           <Link href={`/schools/${school.id}`} className="w-full">
-            <div className="relative w-full h-28 rounded-xl overflow-hidden bg-gray-100">
+            <div className="relative w-full h-20 rounded-xl overflow-hidden bg-gray-100">
               <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
                 No Image
               </div>

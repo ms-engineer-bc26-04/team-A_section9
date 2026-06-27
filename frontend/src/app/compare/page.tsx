@@ -141,25 +141,37 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="px-4 py-6 max-w-2xl mx-auto">
-      <button
-        onClick={() => router.back()}
-        className="text-gray-500 text-sm mb-4 font-extrabold"
-      >
-        ＜戻る
-      </button>
-
-      <h1 className="font-bold text-gray-800 text-xl mb-4">
-        {schools.length}つの園で比較
-      </h1>
-
-      <CompareSchoolHeader schools={schools} />
-
-      <CompareTable
-        schools={schools}
-        matchHighlights={matchHighlights}
-        isPremium={isPremium}
+    <>
+      {/* 白帯（Header左半分の透け対策） */}
+      <div
+        className="fixed top-0 left-0 w-1/2 h-14 bg-white pointer-events-none"
+        style={{ zIndex: 29 }}
       />
-    </div>
+
+      {/* stickyブロックを外に出して全幅カバー */}
+      <div className="sticky top-14 z-10 bg-white px-4 pt-3 pb-3 border-b border-gray-200">
+        <div className="max-w-2xl mx-auto">
+          <button
+            onClick={() => router.back()}
+            className="text-gray-500 text-sm mb-1 font-extrabold"
+          >
+            ＜戻る
+          </button>
+          <h1 className="font-bold text-gray-800 text-xl mb-2">
+            {schools.length}つの園で比較
+          </h1>
+          <CompareSchoolHeader schools={schools} />
+        </div>
+      </div>
+
+      {/* テーブル部分 */}
+      <div className="px-4 max-w-2xl mx-auto pt-4">
+        <CompareTable
+          schools={schools}
+          matchHighlights={matchHighlights}
+          isPremium={isPremium}
+        />
+      </div>
+    </>
   )
 }

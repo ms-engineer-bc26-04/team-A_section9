@@ -1,6 +1,7 @@
 //バックエンドの園APIを叩く関数群
 // src/lib/api/schools.ts
 import { SchoolSummary, SchoolDetail, SearchFilters } from '@/types/school'
+import { supabase } from '@/lib/supabase'
 
 const getApiUrl = () => {
   if (typeof window === 'undefined') {
@@ -10,7 +11,8 @@ const getApiUrl = () => {
 }
 
 export async function getSchools(
-  filters?: SearchFilters
+  filters?: SearchFilters,
+  accessToken?: string // ← 追加
 ): Promise<{ data: SchoolSummary[]; meta?: { total: number } }> {
   const params = new URLSearchParams()
 
@@ -36,9 +38,14 @@ export async function getSchools(
   if (filters?.extendedCareUsage !== undefined)
     params.set('extendedCareUsage', String(filters.extendedCareUsage))
 
+  const headers: Record<string, string> = {}
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}` // ← 追加
+  }
+
   const res = await fetch(
     `${getApiUrl()}/api/v1/schools?${params.toString()}`,
-    { cache: 'no-store' }
+    { cache: 'no-store', headers }
   )
 
   if (!res.ok) {

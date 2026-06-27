@@ -14,7 +14,7 @@ type HamburgerMenuProps = {
 }
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const { supabaseUser, isPremium, isLoading } = useAuth()
+  const { supabaseUser, appUser, isPremium, isLoading } = useAuth() // ← appUser追加
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -76,7 +76,8 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 {isPremium ? 'プレミアム会員' : '一般会員'}
               </p>
               <p className="font-bold text-gray-800 text-2xl">
-                {supabaseUser.email} さん
+                {appUser?.name ?? supabaseUser.email} さん{' '}
+                {/* ← nameがあれば名前、なければメールアドレス */}
               </p>
             </div>
           )}
