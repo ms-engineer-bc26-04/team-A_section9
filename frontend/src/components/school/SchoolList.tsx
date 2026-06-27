@@ -11,6 +11,7 @@ import { getSchools } from '@/lib/api/schools'
 import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolSummary } from '@/types/school'
 import Loading from '@/components/common/Loading'
+import { supabase } from '@/lib/supabase'
 
 export default function SchoolList() {
   const { isLoggedIn, isLoading: isAuthLoading } = useAuth()
@@ -29,8 +30,16 @@ export default function SchoolList() {
 
     try {
       setIsLoading(true)
+
+      let accessToken: string | undefined
+      if (isLoggedIn) {
+        const { data } = await supabase.auth.getSession()
+        accessToken = data.session?.access_token
+      }
+
       const result = await getSchools(
-        isLoggedIn ? { sort: 'recommended' } : undefined
+        isLoggedIn ? { sort: 'recommended' } : undefined,
+        accessToken // ← 追加
       )
       setSchools(result.data)
     } catch (e) {

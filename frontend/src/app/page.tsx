@@ -18,7 +18,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       {/* ヒーローセクション */}
       <div
-        className="relative px-4 pt-6"
+        className="relative px-4 pt-6 pb-6"
         style={{
           background:
             'linear-gradient(to bottom, #ffffff 0%, #ffffff 20%, #75b64c 100%)',
@@ -80,25 +80,40 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
-        {/* 背景イラスト（木・家）：全幅表示 */}
-        <div className="mt-4 h-32 md:h-48 relative -mx-4 w-screen">
-          <Image
-            src="/images/tree.png"
-            alt=""
-            aria-hidden
-            fill
-            sizes="100vw"
-            loading="eager"
-            className="object-cover object-top"
-          />
+      </div>{' '}
+      {/* ← ヒーローセクションここで閉じる */}
+      {/* 背景イラスト（木・家）：ヒーローセクションの外に出す */}
+      <div className="bg-[#75b64c] overflow-hidden h-[80px] relative -mt-px">
+        <div className="animate-scroll-x flex h-full">
+          <div className="relative h-full w-[1286px] flex-shrink-0">
+            <Image
+              src="/images/tree.png"
+              alt=""
+              aria-hidden
+              fill
+              sizes="1286px"
+              priority
+              unoptimized
+              className="object-cover"
+            />
+          </div>
+          <div className="relative h-full w-[1286px] flex-shrink-0">
+            <Image
+              src="/images/tree.png"
+              alt=""
+              aria-hidden
+              fill
+              sizes="1286px"
+              priority
+              unoptimized
+              className="object-cover"
+            />
+          </div>
         </div>
       </div>
-
       {/* 園一覧セクション */}
       <div className="bg-white px-4 py-6">
         <div className="max-w-2xl mx-auto flex flex-col gap-4">
-          {/* <h2 className="font-bold text-gray-800 text-base">園の一覧</h2> */}
           <SchoolList />
         </div>
       </div>

@@ -2,16 +2,17 @@
 // src/app/mypage/favorites/page.tsx
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
+import FavoriteButton from '@/components/school/FavoriteButton'
+import { motion } from 'framer-motion'
 
 export default function FavoritesPage() {
   const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
@@ -122,12 +123,13 @@ export default function FavoritesPage() {
               key={favorite.id}
               className="relative border border-gray-400 rounded-2xl bg-white shadow-sm"
             >
-              <div className="flex gap-3 p-3">
+              {/* 画像・テキストをまとめてLinkに */}
+              <Link
+                href={`/schools/${favorite.school.id}`}
+                className="flex gap-3 p-3 transition-transform active:scale-95"
+              >
                 {/* 画像 */}
-                <Link
-                  href={`/schools/${favorite.school.id}`}
-                  className="relative w-32 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100"
-                >
+                <div className="relative w-32 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
                   {favorite.school.imageUrl ? (
                     <Image
                       src={favorite.school.imageUrl}
@@ -141,15 +143,13 @@ export default function FavoritesPage() {
                       No Image
                     </div>
                   )}
-                </Link>
+                </div>
 
                 {/* テキスト情報 */}
                 <div className="flex-1 min-w-0 flex flex-col gap-1 pr-8">
-                  <Link href={`/schools/${favorite.school.id}`}>
-                    <p className="font-bold text-gray-800 text-base leading-snug hover:text-primary">
-                      {favorite.school.name}
-                    </p>
-                  </Link>
+                  <p className="font-bold text-gray-800 text-base leading-snug hover:text-primary">
+                    {favorite.school.name}
+                  </p>
                   <p className="text-gray-700 text-xs">
                     {favorite.school.address}
                   </p>
@@ -173,14 +173,20 @@ export default function FavoritesPage() {
                     </div>
                   )}
                 </div>
-              </div>
+              </Link>
 
               {/* チェックボックス（右上・丸型） */}
               <div
                 className="absolute top-3 right-3 cursor-pointer"
                 onClick={() => handleToggleSelect(favorite.school.id)}
               >
-                <div
+                <motion.div
+                  animate={
+                    selectedIds.includes(favorite.school.id)
+                      ? { scale: [1, 1.4, 0.9, 1.15, 1] }
+                      : { scale: 1 }
+                  }
+                  transition={{ duration: 0.4, ease: 'easeInOut' }}
                   className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
                     selectedIds.includes(favorite.school.id)
                       ? 'bg-[#A0CD83] border-[#A0CD83]'
@@ -203,24 +209,18 @@ export default function FavoritesPage() {
                       />
                     </svg>
                   )}
-                </div>
+                </motion.div>
               </div>
 
-              {/* 解除ボタン（右下・ハート） */}
-              <button
-                onClick={() => handleRemoveFavorite(favorite.school.id)}
-                className="absolute bottom-3 right-3 transition-colors"
-                aria-label="お気に入りを解除"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="#FFCFCF"
-                  className="w-6 h-6"
-                >
-                  <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-              </button>
+              {/* 解除ボタン（右下・変更なし） */}
+              <div className="absolute bottom-3 right-3">
+                <FavoriteButton
+                  schoolId={favorite.school.id}
+                  isFavorited={true}
+                  isLoggedIn={isLoggedIn}
+                  onToggle={handleRemoveFavorite}
+                />
+              </div>
             </div>
           ))}
         </div>

@@ -97,7 +97,6 @@ export function useFavorites(isLoggedIn: boolean) {
       if (exists) return
 
       if (isFav) {
-        // 修正: mutateのデータ形式をFavoritesResponseに合わせる
         mutate(
           {
             favorites: [

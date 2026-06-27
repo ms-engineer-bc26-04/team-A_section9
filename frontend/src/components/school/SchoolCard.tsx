@@ -18,7 +18,12 @@ export default function SchoolCard({
 }: SchoolCardProps) {
   return (
     <div className="relative border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm">
-      <Link href={`/schools/${school.id}`} className="flex gap-3 p-3">
+      <Link
+        href={`/schools/${school.id}`}
+        className="flex gap-3 p-3 transition-transform active:scale-95"
+      >
+        {' '}
+        {/* ← Linkに移動 */}
         {/* 画像 */}
         <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
           {school.imageUrl ? (
@@ -34,7 +39,6 @@ export default function SchoolCard({
             </div>
           )}
         </div>
-
         {/* テキスト情報 */}
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <p className="font-bold text-gray-800 text-sm leading-snug">
