@@ -753,11 +753,11 @@ async function main() {
         allergySupport: '個別相談可',
       },
       {
-        name: 'ガンバあおぞら保育園',
+        name: 'あおぞら保育園',
         area: '練馬区',
         address: '東京都練馬区石神井台1-7-6',
         phoneNumber: '03-1234-0026',
-        imageUrl: '/school-images/26_ganba-aozora-hoikuen.png',
+        imageUrl: '/school-images/26_aozora-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 高橋美咲さん向け比較候補：アレルギー代替食あり・園内習い事あり・負担も軽め
@@ -843,11 +843,11 @@ async function main() {
         allergySupport: '完全除去＋個別面談あり',
       },
       {
-        name: 'そらくまこども園',
+        name: 'そらのこ保育園',
         area: '練馬区',
         address: '東京都練馬区石神井台2-10-10',
         phoneNumber: '03-1234-0029',
-        imageUrl: '/school-images/29_sorakuma-kodomoen.png',
+        imageUrl: '/school-images/29_soranoko-hoikuen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         // 高橋美咲さん向け比較候補：代替食対応あり・園内習い事ありで本命候補にしやすい園
@@ -873,11 +873,11 @@ async function main() {
         allergySupport: '完全除去＋園で代替食対応',
       },
       {
-        name: 'きずなテラス保育園',
+        name: 'きずなこども園',
         area: '練馬区',
         address: '東京都練馬区石神井台2-11-10',
         phoneNumber: '03-1234-0030',
-        imageUrl: '/school-images/30_kizuna-terrace-hoikuen.png',
+        imageUrl: '/school-images/30_kizuna-kodomoen.png',
         schoolType: SchoolType.NURSERY,
 
         // 高橋美咲さん向け：安心感はあるが、アレルギー対応は家庭持参寄りで差分を出す園
