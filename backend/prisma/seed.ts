@@ -197,11 +197,11 @@ async function main() {
         allergySupport: '完全除去＋家庭から弁当持参',
       },
       {
-        name: '青空保育園',
+        name: 'さわやか保育園',
         area: '渋谷区',
-        address: '東京都渋谷区青空7-7-7',
+        address: '東京都渋谷区さわやか7-7-7',
         phoneNumber: '03-1234-0007',
-        imageUrl: '/school-images/7_aozora-hoikuen.png',
+        imageUrl: '/school-images/7_sawayaka-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         lifeBurdenLevel: BurdenLevel.LOW,
