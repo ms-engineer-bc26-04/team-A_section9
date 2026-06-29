@@ -1,7 +1,6 @@
 //バックエンドの園APIを叩く関数群
 // src/lib/api/schools.ts
 import { SchoolSummary, SchoolDetail, SearchFilters } from '@/types/school'
-import { supabase } from '@/lib/supabase'
 
 const getApiUrl = () => {
   if (typeof window === 'undefined') {
