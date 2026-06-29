@@ -24,7 +24,6 @@ async function main() {
         imageUrl: '/school-images/1_sakura-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け：毎日給食・おむつ園処理・布団管理・平日行事少なめ・延長利用者多め
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -54,7 +53,6 @@ async function main() {
         imageUrl: '/school-images/2_mirai-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
-        // 佐藤恵さん向け：延長保育は使いやすいが、平日行事は少し多め
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -84,7 +82,6 @@ async function main() {
         imageUrl: '/school-images/3_sumire-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
-        // 高橋美咲さん向け：アレルギー対応と園内習い事を重視
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.MEDIUM,
@@ -114,7 +111,6 @@ async function main() {
         imageUrl: '/school-images/4_komorebi-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 高橋美咲さん向け：子どものケアと保護者の準備負担のバランス型
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -144,7 +140,6 @@ async function main() {
         imageUrl: '/school-images/5_hidamari-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 比較用：準備は標準的、時間調整もしやすい園
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.MEDIUM,
@@ -174,7 +169,6 @@ async function main() {
         imageUrl: '/school-images/6_niji-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 比較用：家庭で用意するものや保護者参加が比較的多い園
         lifeBurdenLevel: BurdenLevel.HIGH,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.HIGH,
@@ -610,7 +604,6 @@ async function main() {
         imageUrl: '/school-images/21_msekids-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け比較候補：延長20時・アプリ連絡・持ち物負担少なめで、復職後の生活を回しやすい園
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -640,7 +633,6 @@ async function main() {
         imageUrl: '/school-images/22_hiyokko-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け：自宅近くで通いやすいが、持ち物は標準的な園
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.MEDIUM,
@@ -670,7 +662,6 @@ async function main() {
         imageUrl: '/school-images/23_sukusuku-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
-        // 佐藤恵さん向け：こども園枠。活動は充実しているが、平日行事はややあり
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.MEDIUM,
@@ -700,7 +691,6 @@ async function main() {
         imageUrl: '/school-images/24_kagayaki-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け比較候補：延長20時・利用者多め・低負担で本命候補にしやすい園
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -730,7 +720,6 @@ async function main() {
         imageUrl: '/school-images/25_manabinomori-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 佐藤恵さん向け比較候補：教育要素あり。ただし行事・持ち物は少し増えるため比較差分を出しやすい園
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.MEDIUM,
@@ -760,27 +749,26 @@ async function main() {
         imageUrl: '/school-images/26_aozora-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 高橋美咲さん向け比較候補：アレルギー代替食あり・園内習い事あり・負担も軽め
-        lifeBurdenLevel: BurdenLevel.LOW,
-        timeBurdenLevel: BurdenLevel.LOW,
-        itemBurdenLevel: BurdenLevel.LOW,
-        weekdayEventsLevel: BurdenLevel.LOW,
+        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        timeBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
         parentAssociationLevel: BurdenLevel.LOW,
 
         mealType: MealType.SCHOOL_LUNCH,
-        itemBurdenDetail: '着替え・タオル',
+        itemBurdenDetail: '着替え・タオル・水筒・食事用エプロン',
         diaperSupport: '園で廃棄',
-        futonSupport: '園で管理',
+        futonSupport: '週末持ち帰り',
 
-        extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '20人以上',
-        weekdayEvents: 'なし',
+        extendedCareHours: '18:00〜19:30',
+        extendedCareUsage: '10〜15人程度',
+        weekdayEvents: '月に1回程度',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
         lessons: '英語教室・リトミック',
-        allergySupport: '完全除去＋園で代替食対応',
+        allergySupport: '除去食対応あり。代替食は内容により家庭持参',
       },
       {
         name: 'どろんこ保育園',
@@ -790,27 +778,26 @@ async function main() {
         imageUrl: '/school-images/27_doronko-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 高橋美咲さん向け：自然・のびのび系。ケアはあるが持ち物負担はやや高め
-        lifeBurdenLevel: BurdenLevel.MEDIUM,
+        lifeBurdenLevel: BurdenLevel.HIGH,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.HIGH,
         weekdayEventsLevel: BurdenLevel.MEDIUM,
         parentAssociationLevel: BurdenLevel.MEDIUM,
 
         mealType: MealType.SCHOOL_LUNCH,
-        itemBurdenDetail: '着替え・タオル・水筒・外遊び用着替え',
-        diaperSupport: '持ち帰りあり',
-        futonSupport: '週末にシーツ持ち帰り',
+        itemBurdenDetail: '着替え多め・タオル・水筒・外遊び用衣類',
+        diaperSupport: '持ち帰り',
+        futonSupport: '週末持ち帰り',
 
         extendedCareHours: '18:00〜19:00',
-        extendedCareUsage: '10人未満',
+        extendedCareUsage: '5〜10人程度',
         weekdayEvents: '月に1回程度',
-        parentAssociationFrequency: '学期に1回',
+        parentAssociationFrequency: '学期に1回程度',
 
-        contactBookType: ContactType.APP,
+        contactBookType: ContactType.PAPER,
         absenceContactMethod: ContactType.PHONE,
-        lessons: '自然遊び',
-        allergySupport: '個別面談あり',
+        lessons: '自然あそび・体操あそび',
+        allergySupport: '個別相談可。内容により家庭持参',
       },
       {
         name: 'すなばこども園',
@@ -820,27 +807,26 @@ async function main() {
         imageUrl: '/school-images/28_sunaba-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
-        // 高橋美咲さん向け比較候補：こども園枠。園内活動は多いが平日行事もややあり
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.MEDIUM,
-        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        weekdayEventsLevel: BurdenLevel.LOW,
         parentAssociationLevel: BurdenLevel.MEDIUM,
 
         mealType: MealType.SCHOOL_LUNCH,
-        itemBurdenDetail: '着替え・タオル・コップ・制作用品',
+        itemBurdenDetail: '着替え・タオル・水筒・午睡用シーツ',
         diaperSupport: '園で廃棄',
-        futonSupport: 'バスタオル持参',
+        futonSupport: 'シーツのみ週末持ち帰り',
 
         extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '10〜20人程度',
-        weekdayEvents: '月に1回程度',
-        parentAssociationFrequency: '学期に1回',
+        extendedCareUsage: '10人程度',
+        weekdayEvents: 'ほぼなし',
+        parentAssociationFrequency: '学期に1回程度',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: '英語教室・音楽教室',
-        allergySupport: '完全除去＋個別面談あり',
+        lessons: 'リトミック・造形あそび',
+        allergySupport: '除去食対応あり。代替食は一部家庭持参',
       },
       {
         name: 'そらのこ保育園',
@@ -848,9 +834,8 @@ async function main() {
         address: '東京都練馬区石神井台2-10-10',
         phoneNumber: '03-1234-0029',
         imageUrl: '/school-images/29_soranoko-hoikuen.png',
-        schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
+        schoolType: SchoolType.NURSERY,
 
-        // 高橋美咲さん向け比較候補：代替食対応あり・園内習い事ありで本命候補にしやすい園
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
@@ -858,49 +843,48 @@ async function main() {
         parentAssociationLevel: BurdenLevel.LOW,
 
         mealType: MealType.SCHOOL_LUNCH,
-        itemBurdenDetail: '着替え・タオル',
-        diaperSupport: 'サブスク対応',
+        itemBurdenDetail: '着替え・タオルのみ',
+        diaperSupport: 'サブスク対応・園で廃棄',
         futonSupport: '園で管理',
 
-        extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '10〜20人程度',
-        weekdayEvents: '学期に1回程度',
+        extendedCareHours: '18:00〜20:00',
+        extendedCareUsage: '15〜20人程度',
+        weekdayEvents: 'ほぼなし',
         parentAssociationFrequency: '年に1回',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
         lessons: '英語教室・リトミック・体操教室',
-        allergySupport: '完全除去＋園で代替食対応',
+        allergySupport: '完全除去食対応。園で代替食対応あり',
       },
       {
-        name: 'きずなテラスこども園',
+        name: 'きずなテラス保育園',
         area: '練馬区',
         address: '東京都練馬区石神井台2-11-10',
         phoneNumber: '03-1234-0030',
-        imageUrl: '/school-images/30_kizunaterasu-terrace-kodomoen.png',
+        imageUrl: '/school-images/30_kizuna-terrace-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
-        // 高橋美咲さん向け：安心感はあるが、アレルギー対応は家庭持参寄りで差分を出す園
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
         itemBurdenLevel: BurdenLevel.MEDIUM,
-        weekdayEventsLevel: BurdenLevel.LOW,
-        parentAssociationLevel: BurdenLevel.LOW,
+        weekdayEventsLevel: BurdenLevel.MEDIUM,
+        parentAssociationLevel: BurdenLevel.MEDIUM,
 
-        mealType: MealType.BOTH,
-        itemBurdenDetail: '着替え・タオル・コップ',
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオル・水筒・午睡用シーツ',
         diaperSupport: '園で廃棄',
-        futonSupport: '週末にシーツ持ち帰り',
+        futonSupport: 'シーツのみ週末持ち帰り',
 
-        extendedCareHours: '18:00〜19:30',
-        extendedCareUsage: '10〜20人程度',
-        weekdayEvents: 'なし',
-        parentAssociationFrequency: '年に1回',
+        extendedCareHours: '18:00〜19:00',
+        extendedCareUsage: '5〜10人程度',
+        weekdayEvents: '月に1〜2回程度',
+        parentAssociationFrequency: '学期に1回程度',
 
         contactBookType: ContactType.APP,
         absenceContactMethod: ContactType.APP,
-        lessons: 'リトミック',
-        allergySupport: '完全除去＋家庭から弁当持参',
+        lessons: '体操教室・音楽あそび',
+        allergySupport: '個別面談のうえ除去食対応',
       },
     ],
   })
@@ -909,9 +893,9 @@ async function main() {
 }
 
 main()
-  .catch((error) => {
-    console.error(error)
-    throw error
+  .catch((e) => {
+    console.error(e)
+    throw e
   })
   .finally(async () => {
     await prisma.$disconnect()
