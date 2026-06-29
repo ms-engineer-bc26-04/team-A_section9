@@ -1,60 +1,10 @@
-import express from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import rateLimit from 'express-rate-limit'
-import { pinoHttp } from 'pino-http'
+import app from './app'
 import { connectRedis } from './lib/redis'
-import schoolRoutes from './routes/schoolRoutes'
-import userRoutes from './routes/userRoutes'
-import favoriteRoutes from './routes/favoriteRoutes'
-import paymentRoutes from './routes/paymentRoutes'
-import addressRoutes from './routes/addressRoutes'
 
-const app = express()
 const PORT = process.env.PORT || 4000
-
-const isProduction = process.env.NODE_ENV === 'production'
-const rateLimitMax = isProduction ? 100 : 1000
-
-app.use(helmet())
-app.use(cors({ origin: process.env.FRONTEND_URL }))
-
-// 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
-// 不要に 429 にならないよう上限を緩める
-app.use(
-  rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: rateLimitMax,
-  })
-)
-
-// Stripe Webhook は署名検証のため raw body を受け取る
-app.use('/api/v1/payment/webhook', express.raw({ type: 'application/json' }))
-
-app.use(express.json())
-
-// NOTE: 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
-// 不要に 429 にならないよう上限を緩める
-app.use(
-  pinoHttp({
-    level: isProduction ? 'info' : 'debug',
-  })
-)
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' })
-})
-
-app.use('/api/v1/schools', schoolRoutes)
-app.use('/api/v1/users', userRoutes)
-app.use('/api/v1/users', favoriteRoutes)
-app.use('/api/v1/payment', paymentRoutes)
-app.use('/api/v1/address', addressRoutes)
 
 connectRedis()
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
-
-export default app
