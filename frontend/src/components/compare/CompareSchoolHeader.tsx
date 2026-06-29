@@ -1,6 +1,7 @@
 // 比較画面の園の画像・名前エリアを担当するコンポーネント
 // src/components/compare/CompareSchoolHeader.tsx
 import Link from 'next/link'
+import Image from 'next/image'
 import { CompareSchool } from './CompareTable'
 
 type CompareSchoolHeaderProps = {
@@ -20,9 +21,19 @@ export default function CompareSchoolHeader({
         >
           <Link href={`/schools/${school.id}`} className="w-full">
             <div className="relative w-full h-20 rounded-xl overflow-hidden bg-gray-100">
-              <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                No Image
-              </div>
+              {school.imageUrl ? (
+                <Image
+                  src={school.imageUrl}
+                  alt={school.name}
+                  fill
+                  sizes="(max-width: 672px) 33vw, 224px"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                  No Image
+                </div>
+              )}
             </div>
           </Link>
           <Link href={`/schools/${school.id}`}>

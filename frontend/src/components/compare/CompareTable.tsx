@@ -14,6 +14,12 @@ type CompareSchool = {
   name: string
   area: string
   schoolType: string
+  imageUrl: string | null // ← 追加
+  lifeBurdenLevel: string // ← 追加
+  timeBurdenLevel: string // ← 追加
+  itemBurdenLevel: string // ← 追加
+  weekdayEventsLevel: string // ← 追加
+  parentAssociationLevel: string // ← 追加
   lifeBurden: {
     mealType: string
     itemBurdenDetail: string
@@ -46,6 +52,7 @@ type MatchHighlights = {
 const mealTypeLabel: Record<string, string> = {
   SCHOOL_LUNCH: '毎日給食あり',
   LUNCH_BOX_REQUIRED: '弁当あり',
+  LUNCH_BOX: '弁当あり',
   BOTH: '給食・弁当併用',
   MIXED: '給食・弁当併用',
 }

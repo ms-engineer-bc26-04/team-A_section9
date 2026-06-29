@@ -23,7 +23,6 @@ export default function FavoritesPage() {
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  // 修正: APIレスポンス由来の favoriteCount / favoriteLimit を useFavorites から受け取る
   const { favorites, favoriteCount, favoriteLimit, removeFavorite, isLoading } =
     useFavorites(isLoggedIn)
 
@@ -101,7 +100,6 @@ export default function FavoritesPage() {
       {/* 件数・比較対象の説明 */}
       <div className="flex flex-col gap-1">
         <p className="text-gray-700 text-sm">
-          {/* 修正: フロント固定値ではなく、APIレスポンスの favoriteCount / favoriteLimit を表示に利用 */}
           {favoriteLimit !== null
             ? `${favoriteCount} / ${favoriteLimit}件登録中`
             : `${favoriteCount}件登録中`}
@@ -121,7 +119,7 @@ export default function FavoritesPage() {
           {favorites.map((favorite) => (
             <div
               key={favorite.id}
-              className="relative border border-gray-400 rounded-2xl bg-white shadow-sm"
+              className="relative border border-gray-200 rounded-xl bg-white shadow-sm"
             >
               {/* 画像・テキストをまとめてLinkに */}
               <Link
@@ -129,13 +127,13 @@ export default function FavoritesPage() {
                 className="flex gap-3 p-3 transition-transform active:scale-95"
               >
                 {/* 画像 */}
-                <div className="relative w-32 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-gray-100">
+                <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
                   {favorite.school.imageUrl ? (
                     <Image
                       src={favorite.school.imageUrl}
                       alt={favorite.school.name}
                       fill
-                      sizes="128px"
+                      sizes="96px"
                       className="object-cover"
                     />
                   ) : (
@@ -147,15 +145,15 @@ export default function FavoritesPage() {
 
                 {/* テキスト情報 */}
                 <div className="flex-1 min-w-0 flex flex-col gap-1 pr-8">
-                  <p className="font-bold text-gray-800 text-base leading-snug hover:text-primary">
+                  <p className="font-bold text-gray-800 text-sm leading-snug">
                     {favorite.school.name}
                   </p>
-                  <p className="text-gray-700 text-xs">
+                  <p className="text-gray-500 text-xs truncate">
                     {favorite.school.address}
                   </p>
                   {favorite.school.phoneNumber && (
-                    <p className="text-gray-700 text-xs">
-                      電話番号:{favorite.school.phoneNumber}
+                    <p className="text-gray-500 text-xs">
+                      電話番号：{favorite.school.phoneNumber}
                     </p>
                   )}
 
@@ -165,7 +163,7 @@ export default function FavoritesPage() {
                       {favorite.school.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
+                          className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
                         >
                           {tag}
                         </span>
@@ -212,7 +210,7 @@ export default function FavoritesPage() {
                 </motion.div>
               </div>
 
-              {/* 解除ボタン（右下・変更なし） */}
+              {/* 解除ボタン（右下） */}
               <div className="absolute bottom-3 right-3">
                 <FavoriteButton
                   schoolId={favorite.school.id}

@@ -12,7 +12,7 @@ type ToastProps = {
 }
 
 const typeStyles = {
-  success: 'bg-[#FFCFCF] text-gray-800',
+  success: 'bg-[#FF8FAB] text-gray-800',
   error: 'bg-red-500 text-white',
   warning: 'bg-yellow-500 text-white',
 }
