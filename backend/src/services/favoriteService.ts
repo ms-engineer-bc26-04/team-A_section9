@@ -1,4 +1,4 @@
-import { Prisma, type MembershipType } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 
 const FREE_USER_FAVORITE_LIMIT = 5
@@ -13,8 +13,9 @@ export class FavoriteServiceError extends Error {
   }
 }
 
-const getFavoriteLimit = (planType: MembershipType) => {
-  return planType === 'PAID' ? null : FREE_USER_FAVORITE_LIMIT
+// #135対応：planTypeではなく、controller側で判定したisPremiumをもとに上限を決める
+const getFavoriteLimit = (isPremium: boolean) => {
+  return isPremium ? null : FREE_USER_FAVORITE_LIMIT
 }
 
 const toSerializableSchool = (school: Record<string, unknown>) => {
@@ -42,10 +43,7 @@ const toSerializableFavorite = (favorite: {
   }
 }
 
-export const getUserFavorites = async (
-  userId: string,
-  planType: MembershipType
-) => {
+export const getUserFavorites = async (userId: string, isPremium: boolean) => {
   const favorites = await prisma.favorite.findMany({
     where: {
       userId,
@@ -62,14 +60,15 @@ export const getUserFavorites = async (
     data: favorites.map((favorite) => toSerializableFavorite(favorite)),
     meta: {
       favoriteCount: favorites.length,
-      favoriteLimit: getFavoriteLimit(planType),
+      // #135対応：プレミアムユーザーはfavoriteLimitをnullとして返す
+      favoriteLimit: getFavoriteLimit(isPremium),
     },
   }
 }
 
 export const addUserFavorite = async (
   userId: string,
-  planType: MembershipType,
+  isPremium: boolean,
   schoolId: bigint
 ) => {
   const school = await prisma.school.findUnique({
@@ -103,7 +102,8 @@ export const addUserFavorite = async (
     )
   }
 
-  const favoriteLimit = getFavoriteLimit(planType)
+  // #135対応：プレミアムユーザーは上限チェックをスキップする
+  const favoriteLimit = getFavoriteLimit(isPremium)
 
   if (favoriteLimit !== null) {
     const favoriteCount = await prisma.favorite.count({
@@ -116,7 +116,7 @@ export const addUserFavorite = async (
       throw new FavoriteServiceError(
         403,
         'FAVORITE_LIMIT_EXCEEDED',
-        '一般ユーザーは5件までお気に入り登録できます'
+        '一般ユーザーは5件までお気に入り登録できます。プレミアムユーザーなら5件以上登録できます'
       )
     }
   }

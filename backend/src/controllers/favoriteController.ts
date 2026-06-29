@@ -25,6 +25,13 @@ const getCurrentUserOrUnauthorized = async (
   return getOrCreateCurrentUser(req.authUser)
 }
 
+// #135対応：プレミアム判定は planType だけでなく subscription.status === 'ACTIVE' も見る
+const isPremiumUser = (
+  user: Awaited<ReturnType<typeof getOrCreateCurrentUser>>
+) => {
+  return user.subscription?.status === 'ACTIVE' || user.planType === 'PAID'
+}
+
 export const getFavorites = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -37,7 +44,8 @@ export const getFavorites = async (
       return
     }
 
-    const result = await getUserFavorites(user.id, user.planType)
+    // #135対応：お気に入り上限表示用に、プレミアム判定結果をserviceへ渡す
+    const result = await getUserFavorites(user.id, isPremiumUser(user))
 
     res.status(200).json(result)
   } catch (error) {
@@ -57,9 +65,10 @@ export const addFavorite = async (
       return
     }
 
+    // #135対応：プレミアムユーザーは5件上限を適用しないよう、判定結果をserviceへ渡す
     const favorite = await addUserFavorite(
       user.id,
-      user.planType,
+      isPremiumUser(user),
       BigInt(req.body.schoolId)
     )
 
