@@ -74,6 +74,7 @@ const toSchoolListItem = (
     name: school.name,
     area: school.area,
     address: school.address,
+    phoneNumber: school.phoneNumber,
 
     // NOTE: 園一覧画面で表示する園画像URL
     imageUrl: school.imageUrl,
@@ -124,7 +125,7 @@ const toSchoolDetail = (
     name: school.name,
     area: school.area,
     address: school.address,
-
+    phoneNumber: school.phoneNumber,
     // NOTE: 園詳細画面で表示する園画像URL
     imageUrl: school.imageUrl,
 
