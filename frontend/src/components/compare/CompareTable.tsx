@@ -123,7 +123,7 @@ export default function CompareTable({
   return (
     <>
       {/* 生活負担セクション */}
-      <SectionHeader icon="/images/icons/icon5.png" label="生活負担" />
+      <SectionHeader icon="/images/icon5.png" label="生活負担" />
       <div className="border border-gray-300 rounded-xl overflow-hidden mb-6">
         <CompareRow
           label="給食・弁当"
@@ -173,7 +173,7 @@ export default function CompareTable({
       </div>
 
       {/* 時間負担セクション */}
-      <SectionHeader icon="/images/icons/icon6.png" label="時間負担" />
+      <SectionHeader icon="/images/icon6.png" label="時間負担" />
       <div className="border border-gray-300 rounded-xl overflow-hidden mb-6">
         <CompareRow
           label={`延長保育\nの時間`}
@@ -213,7 +213,7 @@ export default function CompareTable({
       {/* サポート情報セクション（プレミアムのみ） */}
       {isPremium && (
         <>
-          <SectionHeader icon="/images/icons/icon7.png" label="サポート情報" />
+          <SectionHeader icon="/images/icon7.png" label="サポート情報" />
           <div className="border border-gray-300 rounded-xl overflow-hidden mb-6">
             <CompareRow
               label="連絡帳"
@@ -266,7 +266,7 @@ export default function CompareTable({
       {isPremium && matchHighlights && (
         <>
           <SectionHeader
-            icon="/images/icons/icon8.png"
+            icon="/images/icon8.png"
             label="あなたの希望条件との一致"
           />
           <div className="border border-gray-300 rounded-xl overflow-hidden mb-3">

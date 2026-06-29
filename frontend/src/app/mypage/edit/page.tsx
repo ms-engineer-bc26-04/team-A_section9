@@ -1,6 +1,5 @@
+// プロフィール編集画面
 // src/app/mypage/edit/page.tsx
-// プロフィール編集画面。ユーザー情報・住所・希望条件を編集する
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -9,6 +8,8 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import Toast from '@/components/common/Toast'
 import { User } from '@/types/user'
+import ProfileForm from '@/components/mypage/ProfileForm'
+import PreferenceForm from '@/components/mypage/PreferenceForm'
 
 export default function MyPageEditPage() {
   const router = useRouter()
@@ -40,26 +41,16 @@ function EditForm({ appUser }: { appUser: User }) {
   const [userName, setUserName] = useState(appUser.name ?? '')
   const [postalCode, setPostalCode] = useState(appUser.postalCode ?? '')
   const [address, setAddress] = useState(appUser.address ?? '')
-  const [hasLunch, setHasLunch] = useState(
-    prefs?.preferredMealType === 'SCHOOL_LUNCH'
-  )
-  const [diaperDisposal, setDiaperDisposal] = useState(
-    !!prefs?.preferredDiaperSupport
-  )
-  const [noBedding, setNoBedding] = useState(!!prefs?.preferredFutonSupport)
-  const [extendedCare, setExtendedCare] = useState(
-    !!prefs?.preferredExtendedCare
-  )
-  const [noWeekdayEvents, setNoWeekdayEvents] = useState(
-    prefs?.preferredWeekdayEventsLevel === 'LOW'
-  )
-  const [noPTA, setNoPTA] = useState(
-    prefs?.preferredParentAssociationLevel === 'LOW'
-  )
-  const [hasClub, setHasClub] = useState(!!prefs?.preferredLessons)
-  const [allergySupport, setAllergySupport] = useState(
-    !!prefs?.preferredAllergySupport
-  )
+  const [preferences, setPreferences] = useState({
+    hasLunch: prefs?.preferredMealType === 'SCHOOL_LUNCH',
+    diaperDisposal: !!prefs?.preferredDiaperSupport,
+    noBedding: !!prefs?.preferredFutonSupport,
+    extendedCare: !!prefs?.preferredExtendedCare,
+    noWeekdayEvents: prefs?.preferredWeekdayEventsLevel === 'LOW',
+    noPTA: prefs?.preferredParentAssociationLevel === 'LOW',
+    hasClub: !!prefs?.preferredLessons,
+    allergySupport: !!prefs?.preferredAllergySupport,
+  })
 
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<{
@@ -72,7 +63,6 @@ function EditForm({ appUser }: { appUser: User }) {
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  // 郵便番号から住所を自動入力
   const handlePostalCodeChange = async (value: string) => {
     setPostalCode(value)
     if (value.length === 7) {
@@ -97,7 +87,10 @@ function EditForm({ appUser }: { appUser: User }) {
     }
   }
 
-  // バリデーション
+  const handlePreferenceChange = (key: string, value: boolean) => {
+    setPreferences((prev) => ({ ...prev, [key]: value }))
+  }
+
   const validate = () => {
     const newErrors: typeof errors = {}
     if (!userName) newErrors.userName = 'お名前を入力してください'
@@ -111,7 +104,6 @@ function EditForm({ appUser }: { appUser: User }) {
     return Object.keys(newErrors).length === 0
   }
 
-  // 保存
   const handleSave = async () => {
     if (!validate()) return
 
@@ -122,7 +114,6 @@ function EditForm({ appUser }: { appUser: User }) {
 
       const token = data.session.access_token
 
-      // 希望条件を保存
       const prefsRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me/preferences`,
         {
@@ -132,14 +123,14 @@ function EditForm({ appUser }: { appUser: User }) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            preferredMealType: hasLunch ? 'SCHOOL_LUNCH' : null,
-            preferredDiaperSupport: diaperDisposal ? '園で廃棄' : null,
-            preferredFutonSupport: noBedding ? '園で管理' : null,
-            preferredExtendedCare: extendedCare ? '20人以上' : null,
-            preferredWeekdayEventsLevel: noWeekdayEvents ? 'LOW' : null,
-            preferredParentAssociationLevel: noPTA ? 'LOW' : null,
-            preferredLessons: hasClub ? true : null,
-            preferredAllergySupport: allergySupport ? true : null,
+            preferredMealType: preferences.hasLunch ? 'SCHOOL_LUNCH' : null,
+            preferredDiaperSupport: preferences.diaperDisposal ? '園で廃棄' : null,
+            preferredFutonSupport: preferences.noBedding ? '園で管理' : null,
+            preferredExtendedCare: preferences.extendedCare ? '20人以上' : null,
+            preferredWeekdayEventsLevel: preferences.noWeekdayEvents ? 'LOW' : null,
+            preferredParentAssociationLevel: preferences.noPTA ? 'LOW' : null,
+            preferredLessons: preferences.hasClub ? true : null,
+            preferredAllergySupport: preferences.allergySupport ? true : null,
           }),
         }
       )
@@ -149,7 +140,6 @@ function EditForm({ appUser }: { appUser: User }) {
         return
       }
 
-      // お名前・郵便番号・住所を保存
       const profileRes = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/v1/users/me`,
         {
@@ -158,11 +148,7 @@ function EditForm({ appUser }: { appUser: User }) {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            name: userName,
-            postalCode,
-            address,
-          }),
+          body: JSON.stringify({ name: userName, postalCode, address }),
         }
       )
 
@@ -189,7 +175,6 @@ function EditForm({ appUser }: { appUser: User }) {
         />
       )}
 
-      {/* 戻るボタン */}
       <div className="pt-4 mb-4">
         <button
           onClick={() => router.push('/mypage')}
@@ -201,126 +186,21 @@ function EditForm({ appUser }: { appUser: User }) {
 
       <h1 className="text-xl font-bold text-gray-800 mb-6">プロフィール編集</h1>
 
-      {/* お名前 */}
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          お名前
-          <span className="text-red-500 text-xs ml-1">※必須</span>
-        </label>
-        <input
-          type="text"
-          placeholder="例) 園活 みずえ"
-          value={userName}
-          onChange={(e) => setUserName(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm"
-        />
-        {errors.userName && (
-          <p className="text-red-500 text-xs mt-1">{errors.userName}</p>
-        )}
-      </div>
+      <ProfileForm
+        userName={userName}
+        postalCode={postalCode}
+        address={address}
+        errors={errors}
+        onChangeName={setUserName}
+        onChangePostalCode={handlePostalCodeChange}
+        onChangeAddress={setAddress}
+      />
 
-      {/* お住いのエリア */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          お住いのエリア
-          <span className="text-red-500 text-xs ml-1">※必須</span>
-        </label>
-        <input
-          type="text"
-          placeholder="郵便番号："
-          value={postalCode}
-          onChange={(e) => handlePostalCodeChange(e.target.value)}
-          maxLength={7}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm mb-2"
-        />
-        {errors.postalCode && (
-          <p className="text-red-500 text-xs mt-1">{errors.postalCode}</p>
-        )}
-        <input
-          type="text"
-          placeholder="住所"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm"
-        />
-        {errors.address && (
-          <p className="text-red-500 text-xs mt-1">{errors.address}</p>
-        )}
-      </div>
+      <PreferenceForm
+        {...preferences}
+        onChange={handlePreferenceChange}
+      />
 
-      {/* 希望条件 */}
-      <div className="mb-6">
-        <h2 className="text-base font-bold text-gray-800 mb-4">希望条件</h2>
-
-        {/* 生活負担 */}
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            生活負担
-          </h3>
-          <div className="flex flex-col gap-3">
-            <CheckItem
-              label="毎日給食"
-              checked={hasLunch}
-              onChange={setHasLunch}
-            />
-            <CheckItem
-              label="おむつ園処理あり"
-              checked={diaperDisposal}
-              onChange={setDiaperDisposal}
-            />
-            <CheckItem
-              label="布団負担少なめ"
-              checked={noBedding}
-              onChange={setNoBedding}
-            />
-          </div>
-        </div>
-
-        {/* 時間負担 */}
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            時間負担
-          </h3>
-          <div className="flex flex-col gap-3">
-            <CheckItem
-              label="延長保育利用者が多い"
-              checked={extendedCare}
-              onChange={setExtendedCare}
-            />
-            <CheckItem
-              label="平日行事少なめ"
-              checked={noWeekdayEvents}
-              onChange={setNoWeekdayEvents}
-            />
-            <CheckItem
-              label="保護者会少なめ"
-              checked={noPTA}
-              onChange={setNoPTA}
-            />
-          </div>
-        </div>
-
-        {/* 補助情報 */}
-        <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-1 mb-3">
-            補助情報
-          </h3>
-          <div className="flex flex-col gap-3">
-            <CheckItem
-              label="園内習い事あり"
-              checked={hasClub}
-              onChange={setHasClub}
-            />
-            <CheckItem
-              label="アレルギー対応あり"
-              checked={allergySupport}
-              onChange={setAllergySupport}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 保存ボタン */}
       <button
         onClick={handleSave}
         disabled={isLoading}
@@ -329,28 +209,5 @@ function EditForm({ appUser }: { appUser: User }) {
         {isLoading ? '保存中...' : '保存'}
       </button>
     </div>
-  )
-}
-
-// チェックボックスアイテム
-function CheckItem({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string
-  checked: boolean
-  onChange: (val: boolean) => void
-}) {
-  return (
-    <label className="flex items-center gap-3 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="w-4 h-4 accent-[#A0CD83]"
-      />
-      <span className="text-sm text-gray-600">{label}</span>
-    </label>
   )
 }
