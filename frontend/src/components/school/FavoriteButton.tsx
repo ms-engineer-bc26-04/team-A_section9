@@ -54,8 +54,8 @@ export default function FavoriteButton({
             key={animKey}
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
-            fill={isFavorited ? '#FFCFCF' : 'none'}
-            stroke={isFavorited ? '#FFCFCF' : '#ccc'}
+            fill={isFavorited ? '#FFA4A4' : 'none'}
+            stroke={isFavorited ? '#FFA4A4' : '#ccc'}
             strokeWidth={2}
             className="w-6 h-6"
             initial={{ scale: 1 }}

@@ -34,61 +34,6 @@ const burdenToValue = (level: string) => {
   return 3
 }
 
-// TODO: APIにlifeBurdenLevelなどが追加されたら仮データを削除する
-const MOCK_BURDEN: Record<
-  string,
-  {
-    lifeBurdenLevel: string
-    timeBurdenLevel: string
-    itemBurdenLevel: string
-    weekdayEventsLevel: string
-    parentAssociationLevel: string
-  }
-> = {
-  '67': {
-    lifeBurdenLevel: 'LOW',
-    timeBurdenLevel: 'LOW',
-    itemBurdenLevel: 'LOW',
-    weekdayEventsLevel: 'LOW',
-    parentAssociationLevel: 'LOW',
-  },
-  '68': {
-    lifeBurdenLevel: 'LOW',
-    timeBurdenLevel: 'MEDIUM',
-    itemBurdenLevel: 'LOW',
-    weekdayEventsLevel: 'MEDIUM',
-    parentAssociationLevel: 'LOW',
-  },
-  '69': {
-    lifeBurdenLevel: 'MEDIUM',
-    timeBurdenLevel: 'LOW',
-    itemBurdenLevel: 'MEDIUM',
-    weekdayEventsLevel: 'LOW',
-    parentAssociationLevel: 'MEDIUM',
-  },
-  '70': {
-    lifeBurdenLevel: 'LOW',
-    timeBurdenLevel: 'MEDIUM',
-    itemBurdenLevel: 'LOW',
-    weekdayEventsLevel: 'MEDIUM',
-    parentAssociationLevel: 'LOW',
-  },
-  '71': {
-    lifeBurdenLevel: 'MEDIUM',
-    timeBurdenLevel: 'LOW',
-    itemBurdenLevel: 'MEDIUM',
-    weekdayEventsLevel: 'LOW',
-    parentAssociationLevel: 'MEDIUM',
-  },
-  '72': {
-    lifeBurdenLevel: 'HIGH',
-    timeBurdenLevel: 'MEDIUM',
-    itemBurdenLevel: 'HIGH',
-    weekdayEventsLevel: 'MEDIUM',
-    parentAssociationLevel: 'HIGH',
-  },
-}
-
 const CHART_COLORS = ['#A0CD83', '#F5A623', '#FF8C8C']
 
 const AXES = [
@@ -160,15 +105,17 @@ export default function CompareChartPage() {
         const apiSchools = json.data.schools
         const matchHighlights = json.data.matchHighlights
 
+        // APIの値を直接使う
         const chartSchools: ChartSchool[] = apiSchools.map(
-          (s: { id: string; name: string }) => {
-            const mock = MOCK_BURDEN[s.id] ?? {
-              lifeBurdenLevel: 'MEDIUM',
-              timeBurdenLevel: 'MEDIUM',
-              itemBurdenLevel: 'MEDIUM',
-              weekdayEventsLevel: 'MEDIUM',
-              parentAssociationLevel: 'MEDIUM',
-            }
+          (s: {
+            id: string
+            name: string
+            lifeBurdenLevel: string
+            timeBurdenLevel: string
+            itemBurdenLevel: string
+            weekdayEventsLevel: string
+            parentAssociationLevel: string
+          }) => {
             const highlights = matchHighlights?.[s.id]
             const matchCount = highlights
               ? Object.values(highlights).filter(Boolean).length
@@ -177,13 +124,11 @@ export default function CompareChartPage() {
             return {
               id: s.id,
               name: s.name,
-              lifeBurdenLevel: burdenToValue(mock.lifeBurdenLevel),
-              timeBurdenLevel: burdenToValue(mock.timeBurdenLevel),
-              itemBurdenLevel: burdenToValue(mock.itemBurdenLevel),
-              weekdayEventsLevel: burdenToValue(mock.weekdayEventsLevel),
-              parentAssociationLevel: burdenToValue(
-                mock.parentAssociationLevel
-              ),
+              lifeBurdenLevel: burdenToValue(s.lifeBurdenLevel),
+              timeBurdenLevel: burdenToValue(s.timeBurdenLevel),
+              itemBurdenLevel: burdenToValue(s.itemBurdenLevel),
+              weekdayEventsLevel: burdenToValue(s.weekdayEventsLevel),
+              parentAssociationLevel: burdenToValue(s.parentAssociationLevel),
               matchCount,
             }
           }
@@ -207,10 +152,11 @@ export default function CompareChartPage() {
     return () => clearTimeout(timer)
   }, [idsParam, fetchCompare])
 
-  const recommendedSchool =
-    schools.length > 0
-      ? schools.reduce((a, b) => (a.matchCount >= b.matchCount ? a : b))
-      : null
+  const maxMatchCount =
+    schools.length > 0 ? Math.max(...schools.map((s) => s.matchCount)) : 0
+  const recommendedSchools = schools.filter(
+    (s) => s.matchCount === maxMatchCount && s.matchCount > 0
+  )
 
   const chartData = AXES.map((axis) => {
     const entry: Record<string, string | number> = { subject: axis.label }
@@ -279,8 +225,6 @@ export default function CompareChartPage() {
             data={chartData}
             margin={{ top: 20, right: 50, bottom: 20, left: 50 }}
           >
-            {' '}
-            {/* 左右marginを拡大 */}
             <PolarGrid />
             <PolarAngleAxis
               dataKey="subject"
@@ -292,7 +236,6 @@ export default function CompareChartPage() {
                 }
                 const value = payload.value
                 const lines = value.split('の')
-                // textAnchorをstringではなくSVGの型に合わせる
                 const anchor = x > 200 ? 'start' : x < 150 ? 'end' : 'middle'
                 if (lines.length === 2) {
                   return (
@@ -346,7 +289,7 @@ export default function CompareChartPage() {
       </p>
 
       {/* あなたにおすすめ */}
-      {recommendedSchool && recommendedSchool.matchCount > 0 && (
+      {recommendedSchools.length > 0 && (
         <div className="bg-[#fff1db] rounded-2xl p-4 flex flex-col gap-2">
           <div className="flex items-center gap-2">
             <div className="relative w-9 h-9 flex-shrink-0">
@@ -363,7 +306,7 @@ export default function CompareChartPage() {
             </p>
           </div>
           <p className="text-sm text-gray-700">
-            {recommendedSchool.name}は<br />
+            {recommendedSchools.map((s) => s.name).join('・')}は<br />
             あなたの希望条件に合っていておすすめです
           </p>
         </div>
