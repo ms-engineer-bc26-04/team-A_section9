@@ -82,7 +82,7 @@ export default function PlansPage() {
 
       {/* タイトル */}
       <h1 className="text-xl font-bold text-gray-800 text-center pt-6 mb-6">
-        プラン・料金体系
+        プラン・料金
       </h1>
 
       {/* 会員でない方 */}

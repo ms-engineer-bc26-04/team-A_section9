@@ -136,7 +136,9 @@ export default function MyPage() {
       </div>
 
       {/* ユーザー情報カード */}
-      <div className="bg-[#A0CD83] rounded-xl p-4 flex items-center gap-4 mb-4">
+      <div
+        className={`${isPremium ? 'bg-[#F5A623]' : 'bg-[#A0CD83]'} rounded-xl p-4 flex items-center gap-4 mb-4`}
+      >
         <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
           <Image
             src="/images/icon14.png"
@@ -146,7 +148,9 @@ export default function MyPage() {
           />
         </div>
         <div>
-          <p className="text-white font-bold text-lg">{appUser.email}</p>
+          <p className="text-white font-bold text-lg">
+            {appUser.name ? `${appUser.name}さん` : appUser.email}
+          </p>
           <p className="text-white/80 text-sm">
             {isPremium ? 'プレミアムユーザー' : '会員ユーザー'}
           </p>
