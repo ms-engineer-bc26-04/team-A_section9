@@ -11,6 +11,7 @@ import Modal from '@/components/common/Modal'
 import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import Toast from '@/components/common/Toast'
 import { useFavorites } from '@/lib/hooks/useFavorites'
+import FavoriteButton from '@/components/school/FavoriteButton'
 
 type SupportInfo = {
   isLocked: boolean
@@ -88,23 +89,20 @@ export default function SchoolDetailPage() {
   const [school, setSchool] = useState<SchoolDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [favoriteLoading, setFavoriteLoading] = useState(false)
+  const [favorited, setFavorited] = useState(false)
   const [contactMessage, setContactMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  const [showLoginModal, setShowLoginModal] = useState(false)
-  const [showPremiumModal, setShowPremiumModal] = useState(false)
   const [showRegisterModal, setShowRegisterModal] = useState(false)
+  const [showPremiumModal, setShowPremiumModal] = useState(false)
 
   const [toast, setToast] = useState<{
     message: string
     type: 'success' | 'error' | 'warning'
   } | null>(null)
 
-  const { isFavorited, addFavorite, removeFavorite, initializeFavorite } =
-    useFavorites(isLoggedIn)
+  const { addFavorite, removeFavorite } = useFavorites(isLoggedIn)
   const schoolId = Number(id)
-  const currentlyFavorited = isFavorited(schoolId)
 
   useEffect(() => {
     const fetchSchool = async () => {
@@ -135,7 +133,7 @@ export default function SchoolDetailPage() {
 
         const { data } = await res.json()
         setSchool(data)
-        initializeFavorite(Number(id), data.isFavorited)
+        setFavorited(data.isFavorited)
       } catch {
         setError('データの取得に失敗しました')
       } finally {
@@ -146,22 +144,17 @@ export default function SchoolDetailPage() {
     if (!authLoading) {
       fetchSchool()
     }
-  }, [id, supabaseUser, authLoading, router, initializeFavorite])
+  }, [id, supabaseUser, authLoading, router])
 
-  const handleFavorite = async () => {
-    if (!supabaseUser) {
-      setShowLoginModal(true)
-      return
-    }
-
-    setFavoriteLoading(true)
-
+  const handleToggle = async (schoolId: number) => {
     try {
-      if (currentlyFavorited) {
+      if (favorited) {
         await removeFavorite(schoolId)
+        setFavorited(false)
         setToast({ message: 'お気に入りを解除しました', type: 'success' })
       } else {
         await addFavorite(schoolId)
+        setFavorited(true)
         setToast({ message: 'お気に入りに追加しました', type: 'success' })
       }
     } catch (e: unknown) {
@@ -172,13 +165,9 @@ export default function SchoolDetailPage() {
           type: 'warning',
         })
         setTimeout(() => router.push('/plans'), 2000)
-      } else if (code === 'ALREADY_FAVORITED') {
-        setToast({ message: 'すでにお気に入り登録済みです', type: 'warning' })
       } else {
         setToast({ message: 'エラーが発生しました', type: 'error' })
       }
-    } finally {
-      setFavoriteLoading(false)
     }
   }
 
@@ -272,38 +261,18 @@ export default function SchoolDetailPage() {
           </div>
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            {/* 見学申込みボタン */}
             <button
               onClick={() => router.push(`/schools/${id}/visit`)}
               className="bg-[#F5A623] text-white text-sm font-bold px-4 py-2 rounded-full"
             >
               見学申込み
             </button>
-
-            {/* お気に入りボタン */}
-            <button
-              onClick={handleFavorite}
-              disabled={favoriteLoading}
-              className="p-2"
-              aria-label={
-                currentlyFavorited ? 'お気に入り解除' : 'お気に入り登録'
-              }
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill={currentlyFavorited ? '#FFCFCF' : 'none'}
-                stroke={currentlyFavorited ? '#FFCFCF' : '#ccc'}
-                strokeWidth={2}
-                className="w-8 h-8"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-                />
-              </svg>
-            </button>
+            <FavoriteButton
+              schoolId={schoolId}
+              isFavorited={favorited}
+              isLoggedIn={isLoggedIn}
+              onToggle={handleToggle}
+            />
           </div>
         </div>
 
@@ -487,7 +456,6 @@ export default function SchoolDetailPage() {
           )}
         </section>
 
-        {/* 園へのお問い合わせ */}
         <section className="mt-6 bg-[#F5F5F0] rounded-xl p-4">
           <h2 className="font-bold text-base text-gray-800 mb-1">
             園へのお問い合わせ
@@ -513,22 +481,6 @@ export default function SchoolDetailPage() {
           </button>
         </section>
       </div>
-
-      <Modal
-        isOpen={showLoginModal}
-        onClose={() => setShowLoginModal(false)}
-        title="ログインが必要です"
-      >
-        <p className="text-sm text-gray-600 text-center mb-4">
-          お気に入り登録にはログインが必要です
-        </p>
-        <button
-          onClick={() => router.push('/login')}
-          className="w-full bg-primary text-white rounded-full py-3 font-bold text-sm"
-        >
-          ログインする
-        </button>
-      </Modal>
 
       <Modal
         isOpen={showRegisterModal}

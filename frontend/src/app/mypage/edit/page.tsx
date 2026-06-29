@@ -264,12 +264,12 @@ function EditForm({ appUser }: { appUser: User }) {
               onChange={setHasLunch}
             />
             <CheckItem
-              label="おむつ廃棄"
+              label="おむつ園処理あり"
               checked={diaperDisposal}
               onChange={setDiaperDisposal}
             />
             <CheckItem
-              label="布団持参なし"
+              label="布団負担少なめ"
               checked={noBedding}
               onChange={setNoBedding}
             />
@@ -288,12 +288,12 @@ function EditForm({ appUser }: { appUser: User }) {
               onChange={setExtendedCare}
             />
             <CheckItem
-              label="平日行事なし"
+              label="平日行事少なめ"
               checked={noWeekdayEvents}
               onChange={setNoWeekdayEvents}
             />
             <CheckItem
-              label="保護者会なし"
+              label="保護者会少なめ"
               checked={noPTA}
               onChange={setNoPTA}
             />
