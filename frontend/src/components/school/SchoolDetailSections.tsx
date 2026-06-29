@@ -66,7 +66,15 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function SectionHeader({ src, alt, label }: { src: string; alt: string; label: string }) {
+function SectionHeader({
+  src,
+  alt,
+  label,
+}: {
+  src: string
+  alt: string
+  label: string
+}) {
   return (
     <h2 className="font-bold text-base text-gray-700 border-b border-gray-200 pb-1 mb-3 flex items-center gap-2">
       <Image src={src} alt={alt} width={24} height={24} />
@@ -97,7 +105,11 @@ export default function SchoolDetailSections({
     <>
       {/* 毎日の準備 */}
       <section className="mt-6">
-        <SectionHeader src="/images/icon5.png" alt="毎日の準備" label="毎日の準備" />
+        <SectionHeader
+          src="/images/icon5.png"
+          alt="毎日の準備"
+          label="毎日の準備"
+        />
         <div className="flex flex-col gap-2">
           <DetailRow
             label="給食・弁当"
@@ -105,20 +117,26 @@ export default function SchoolDetailSections({
           />
           <DetailRow
             label="持ち物"
-            value={itemBurdenDetail ?? burdenLabel[itemBurdenLevel] ?? itemBurdenLevel}
+            value={
+              itemBurdenDetail ??
+              burdenLabel[itemBurdenLevel] ??
+              itemBurdenLevel
+            }
           />
           {diaperSupport && (
             <DetailRow label="おむつ対応" value={diaperSupport} />
           )}
-          {futonSupport && (
-            <DetailRow label="布団対応" value={futonSupport} />
-          )}
+          {futonSupport && <DetailRow label="布団対応" value={futonSupport} />}
         </div>
       </section>
 
       {/* 仕事との両立 */}
       <section className="mt-6">
-        <SectionHeader src="/images/icon6.png" alt="仕事との両立" label="仕事との両立" />
+        <SectionHeader
+          src="/images/icon6.png"
+          alt="仕事との両立"
+          label="仕事との両立"
+        />
         <div className="flex flex-col gap-2">
           {extendedCareHours && (
             <DetailRow label="延長保育の時間" value={extendedCareHours} />
@@ -126,30 +144,46 @@ export default function SchoolDetailSections({
           <DetailRow label="延長保育利用者" value={extendedCareUsage} />
           <DetailRow
             label="平日行事"
-            value={weekdayEvents ?? burdenLabel[weekdayEventsLevel] ?? weekdayEventsLevel}
+            value={
+              weekdayEvents ??
+              burdenLabel[weekdayEventsLevel] ??
+              weekdayEventsLevel
+            }
           />
           <DetailRow
             label="保護者会"
-            value={parentAssociationFrequency ?? burdenLabel[parentAssociationLevel] ?? parentAssociationLevel}
+            value={
+              parentAssociationFrequency ??
+              burdenLabel[parentAssociationLevel] ??
+              parentAssociationLevel
+            }
           />
         </div>
       </section>
 
       {/* サポート情報 */}
       <section className="mt-6">
-        <SectionHeader src="/images/icon7.png" alt="サポート情報" label="サポート情報" />
+        <SectionHeader
+          src="/images/icon7.png"
+          alt="サポート情報"
+          label="サポート情報"
+        />
         {supportInfo.isLocked ? (
           <div className="relative">
             <div className="flex flex-col gap-2 select-none">
-              {['連絡帳', '欠席連絡方法', '園内習い事', 'アレルギー対応'].map((item) => (
-                <div
-                  key={item}
-                  className="flex justify-between items-center py-1 border-b border-gray-100"
-                >
-                  <span className="text-sm text-gray-500">{item}</span>
-                  <span className="text-sm text-gray-200 blur-sm">▓▓▓▓▓▓</span>
-                </div>
-              ))}
+              {['連絡帳', '欠席連絡方法', '園内習い事', 'アレルギー対応'].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="flex justify-between items-center py-1 border-b border-gray-100"
+                  >
+                    <span className="text-sm text-gray-500">{item}</span>
+                    <span className="text-sm text-gray-200 blur-sm">
+                      ▓▓▓▓▓▓
+                    </span>
+                  </div>
+                )
+              )}
             </div>
             <button
               className="absolute inset-0 flex flex-col items-center justify-center bg-white/70 rounded-lg"
@@ -161,9 +195,17 @@ export default function SchoolDetailSections({
                 }
               }}
             >
-              <Image src="/images/icon9.png" alt="ロック" width={40} height={40} className="mb-2" />
+              <Image
+                src="/images/icon9.png"
+                alt="ロック"
+                width={40}
+                height={40}
+                className="mb-2"
+              />
               <span className="text-sm font-bold text-gray-600 text-center">
-                プレミアムユーザーに<br />登録すれば閲覧可能
+                プレミアムユーザーに
+                <br />
+                登録すれば閲覧可能
               </span>
             </button>
           </div>
@@ -172,20 +214,29 @@ export default function SchoolDetailSections({
             {supportInfo.contactBookType && (
               <DetailRow
                 label="連絡帳"
-                value={contactBookLabel[supportInfo.contactBookType] ?? supportInfo.contactBookType}
+                value={
+                  contactBookLabel[supportInfo.contactBookType] ??
+                  supportInfo.contactBookType
+                }
               />
             )}
             {supportInfo.absenceContactMethod && (
               <DetailRow
                 label="欠席連絡方法"
-                value={absenceContactLabel[supportInfo.absenceContactMethod] ?? supportInfo.absenceContactMethod}
+                value={
+                  absenceContactLabel[supportInfo.absenceContactMethod] ??
+                  supportInfo.absenceContactMethod
+                }
               />
             )}
             {supportInfo.lessons && (
               <DetailRow label="園内習い事" value={supportInfo.lessons} />
             )}
             {supportInfo.allergySupport && (
-              <DetailRow label="アレルギー対応" value={supportInfo.allergySupport} />
+              <DetailRow
+                label="アレルギー対応"
+                value={supportInfo.allergySupport}
+              />
             )}
           </div>
         )}
@@ -193,7 +244,11 @@ export default function SchoolDetailSections({
 
       {/* 園の特徴 */}
       <section className="mt-6">
-        <SectionHeader src="/images/icon8.png" alt="園の特徴" label="園の特徴" />
+        <SectionHeader
+          src="/images/icon8.png"
+          alt="園の特徴"
+          label="園の特徴"
+        />
         {description ? (
           <p className="text-sm text-gray-600 leading-relaxed">{description}</p>
         ) : (

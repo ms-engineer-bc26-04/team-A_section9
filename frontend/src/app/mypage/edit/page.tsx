@@ -124,10 +124,14 @@ function EditForm({ appUser }: { appUser: User }) {
           },
           body: JSON.stringify({
             preferredMealType: preferences.hasLunch ? 'SCHOOL_LUNCH' : null,
-            preferredDiaperSupport: preferences.diaperDisposal ? '園で廃棄' : null,
+            preferredDiaperSupport: preferences.diaperDisposal
+              ? '園で廃棄'
+              : null,
             preferredFutonSupport: preferences.noBedding ? '園で管理' : null,
             preferredExtendedCare: preferences.extendedCare ? '20人以上' : null,
-            preferredWeekdayEventsLevel: preferences.noWeekdayEvents ? 'LOW' : null,
+            preferredWeekdayEventsLevel: preferences.noWeekdayEvents
+              ? 'LOW'
+              : null,
             preferredParentAssociationLevel: preferences.noPTA ? 'LOW' : null,
             preferredLessons: preferences.hasClub ? true : null,
             preferredAllergySupport: preferences.allergySupport ? true : null,
@@ -196,10 +200,7 @@ function EditForm({ appUser }: { appUser: User }) {
         onChangeAddress={setAddress}
       />
 
-      <PreferenceForm
-        {...preferences}
-        onChange={handlePreferenceChange}
-      />
+      <PreferenceForm {...preferences} onChange={handlePreferenceChange} />
 
       <button
         onClick={handleSave}

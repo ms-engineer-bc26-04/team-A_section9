@@ -35,9 +35,21 @@ export default function PreferenceForm({
           生活負担
         </h3>
         <div className="flex flex-col gap-3">
-          <CheckItem label="毎日給食" checked={hasLunch} onChange={(v) => onChange('hasLunch', v)} />
-          <CheckItem label="おむつ園処理あり" checked={diaperDisposal} onChange={(v) => onChange('diaperDisposal', v)} />
-          <CheckItem label="布団負担少なめ" checked={noBedding} onChange={(v) => onChange('noBedding', v)} />
+          <CheckItem
+            label="毎日給食"
+            checked={hasLunch}
+            onChange={(v) => onChange('hasLunch', v)}
+          />
+          <CheckItem
+            label="おむつ園処理あり"
+            checked={diaperDisposal}
+            onChange={(v) => onChange('diaperDisposal', v)}
+          />
+          <CheckItem
+            label="布団負担少なめ"
+            checked={noBedding}
+            onChange={(v) => onChange('noBedding', v)}
+          />
         </div>
       </div>
 
@@ -47,9 +59,21 @@ export default function PreferenceForm({
           時間負担
         </h3>
         <div className="flex flex-col gap-3">
-          <CheckItem label="延長保育利用者が多い" checked={extendedCare} onChange={(v) => onChange('extendedCare', v)} />
-          <CheckItem label="平日行事少なめ" checked={noWeekdayEvents} onChange={(v) => onChange('noWeekdayEvents', v)} />
-          <CheckItem label="保護者会少なめ" checked={noPTA} onChange={(v) => onChange('noPTA', v)} />
+          <CheckItem
+            label="延長保育利用者が多い"
+            checked={extendedCare}
+            onChange={(v) => onChange('extendedCare', v)}
+          />
+          <CheckItem
+            label="平日行事少なめ"
+            checked={noWeekdayEvents}
+            onChange={(v) => onChange('noWeekdayEvents', v)}
+          />
+          <CheckItem
+            label="保護者会少なめ"
+            checked={noPTA}
+            onChange={(v) => onChange('noPTA', v)}
+          />
         </div>
       </div>
 
@@ -59,8 +83,16 @@ export default function PreferenceForm({
           補助情報
         </h3>
         <div className="flex flex-col gap-3">
-          <CheckItem label="園内習い事あり" checked={hasClub} onChange={(v) => onChange('hasClub', v)} />
-          <CheckItem label="アレルギー対応あり" checked={allergySupport} onChange={(v) => onChange('allergySupport', v)} />
+          <CheckItem
+            label="園内習い事あり"
+            checked={hasClub}
+            onChange={(v) => onChange('hasClub', v)}
+          />
+          <CheckItem
+            label="アレルギー対応あり"
+            checked={allergySupport}
+            onChange={(v) => onChange('allergySupport', v)}
+          />
         </div>
       </div>
     </div>

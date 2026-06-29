@@ -8,7 +8,9 @@ import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import Loading from '@/components/common/Loading'
-import BurdenRadarChart, { ChartSchool } from '@/components/compare/BurdenRadarChart'
+import BurdenRadarChart, {
+  ChartSchool,
+} from '@/components/compare/BurdenRadarChart'
 import RecommendedSchoolCard from '@/components/compare/RecommendedSchoolCard'
 
 const burdenToValue = (level: string) => {
@@ -57,7 +59,9 @@ export default function CompareChartPage() {
 
       try {
         setIsLoading(true)
-        const { data: { session } } = await supabase.auth.getSession()
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
         const accessToken = session?.access_token
         if (!accessToken) return
 
@@ -128,7 +132,9 @@ export default function CompareChartPage() {
     return (
       <div className="px-4 py-6 max-w-2xl mx-auto flex flex-col items-center gap-6 mt-10">
         <div className="text-center flex flex-col gap-2">
-          <p className="font-bold text-gray-700 text-base">エラーが発生しました</p>
+          <p className="font-bold text-gray-700 text-base">
+            エラーが発生しました
+          </p>
           <p className="text-gray-500 text-sm">{error}</p>
         </div>
         <Link
@@ -152,7 +158,9 @@ export default function CompareChartPage() {
         </button>
       </div>
 
-      <h1 className="font-bold text-gray-800 text-xl mb-1">負担バランスで比較</h1>
+      <h1 className="font-bold text-gray-800 text-xl mb-1">
+        負担バランスで比較
+      </h1>
       <p className="text-xs text-gray-700 mb-6">
         5つの負担項目をレーダーチャートで比較できます。
       </p>

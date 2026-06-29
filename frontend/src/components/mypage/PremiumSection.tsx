@@ -45,7 +45,12 @@ export default function PremiumSection({
   return (
     <div className="bg-[#FFF8EC] rounded-xl p-4 mb-6">
       <div className="flex items-center justify-center gap-2 mb-3">
-        <Image src="/images/icon21.png" alt="プレミアム" width={24} height={24} />
+        <Image
+          src="/images/icon21.png"
+          alt="プレミアム"
+          width={24}
+          height={24}
+        />
         <p className="text-sm font-bold text-gray-700 text-center">
           プレミアムユーザーになると
           <br />

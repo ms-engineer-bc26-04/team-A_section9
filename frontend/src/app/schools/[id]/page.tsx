@@ -68,7 +68,6 @@ export default function SchoolDetailPage() {
   } | null>(null)
 
   const { addFavorite, removeFavorite } = useFavorites(isLoggedIn)
-  const schoolId = Number(id)
 
   useEffect(() => {
     const fetchSchool = async () => {

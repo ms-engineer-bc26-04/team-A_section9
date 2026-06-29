@@ -6,7 +6,11 @@ type CheckItemProps = {
   onChange: (val: boolean) => void
 }
 
-export default function CheckItem({ label, checked, onChange }: CheckItemProps) {
+export default function CheckItem({
+  label,
+  checked,
+  onChange,
+}: CheckItemProps) {
   return (
     <label className="flex items-center gap-3 cursor-pointer">
       <input

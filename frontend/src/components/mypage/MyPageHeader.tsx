@@ -8,7 +8,11 @@ type MyPageHeaderProps = {
   isPremium: boolean
 }
 
-export default function MyPageHeader({ name, email, isPremium }: MyPageHeaderProps) {
+export default function MyPageHeader({
+  name,
+  email,
+  isPremium,
+}: MyPageHeaderProps) {
   return (
     <div
       className={`${isPremium ? 'bg-[#F9B84A]' : 'bg-[#A0CD83]'} rounded-xl p-4 flex items-center gap-4 mb-4`}

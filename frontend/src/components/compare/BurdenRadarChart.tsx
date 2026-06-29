@@ -87,8 +87,12 @@ export default function BurdenRadarChart({ schools }: BurdenRadarChartProps) {
                       fill="#555"
                       fontSize={11}
                     >
-                      <tspan x={x} dy="0">{lines[0]}の</tspan>
-                      <tspan x={x} dy="14">{lines[1]}</tspan>
+                      <tspan x={x} dy="0">
+                        {lines[0]}の
+                      </tspan>
+                      <tspan x={x} dy="14">
+                        {lines[1]}
+                      </tspan>
                     </text>
                   )
                 }

@@ -8,7 +8,11 @@ type MyPageNavProps = {
   onFavorites: () => void
 }
 
-export default function MyPageNav({ isPremium, onEditProfile, onFavorites }: MyPageNavProps) {
+export default function MyPageNav({
+  isPremium,
+  onEditProfile,
+  onFavorites,
+}: MyPageNavProps) {
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden mb-6">
       <button
