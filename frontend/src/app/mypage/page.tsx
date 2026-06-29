@@ -137,11 +137,11 @@ export default function MyPage() {
 
       {/* ユーザー情報カード */}
       <div
-        className={`${isPremium ? 'bg-[#F5A623]' : 'bg-[#A0CD83]'} rounded-xl p-4 flex items-center gap-4 mb-4`}
+        className={`${isPremium ? 'bg-[#F9B84A]' : 'bg-[#A0CD83]'} rounded-xl p-4 flex items-center gap-4 mb-4`}
       >
         <div className="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
           <Image
-            src="/images/icon14.png"
+            src={isPremium ? '/images/icon22.png' : '/images/icon14.png'}
             alt="アバター"
             width={48}
             height={48}
@@ -165,7 +165,7 @@ export default function MyPage() {
         >
           <div className="flex items-center gap-3">
             <Image
-              src="/images/icon14.png"
+              src={isPremium ? '/images/icon22.png' : '/images/icon14.png'}
               alt="プロフィール"
               width={24}
               height={24}
@@ -180,7 +180,7 @@ export default function MyPage() {
         >
           <div className="flex items-center gap-3">
             <Image
-              src="/images/icon13.png"
+              src={isPremium ? '/images/icon22.png' : '/images/icon13.png'}
               alt="お気に入り"
               width={24}
               height={24}
