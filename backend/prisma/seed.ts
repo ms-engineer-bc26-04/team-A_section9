@@ -607,7 +607,7 @@ async function main() {
         area: '江東区',
         address: '東京都江東区豊洲1-2-1',
         phoneNumber: '03-1234-0021',
-        imageUrl: '/school-images/21_mse-kids-hoikuen.png',
+        imageUrl: '/school-images/21_msekids-hoikuen.png',
         schoolType: SchoolType.NURSERY,
 
         // 佐藤恵さん向け比較候補：延長20時・アプリ連絡・持ち物負担少なめで、復職後の生活を回しやすい園
@@ -873,11 +873,11 @@ async function main() {
         allergySupport: '完全除去＋園で代替食対応',
       },
       {
-        name: 'きずなこども園',
+        name: 'きずなテラスこども園',
         area: '練馬区',
         address: '東京都練馬区石神井台2-11-10',
         phoneNumber: '03-1234-0030',
-        imageUrl: '/school-images/30_kizuna-kodomoen.png',
+        imageUrl: '/school-images/30_kizunaterasu-terrace-kodomoen.png',
         schoolType: SchoolType.NURSERY,
 
         // 高橋美咲さん向け：安心感はあるが、アレルギー対応は家庭持参寄りで差分を出す園
