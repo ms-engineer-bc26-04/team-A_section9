@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express'
+import { getRedisAvailable, redis } from '../lib/redis'
 import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
 import {
   getFavoritedSchoolIds,
@@ -8,6 +9,8 @@ import {
 } from '../services/schoolService'
 import { getOrCreateCurrentUser } from '../services/userService'
 import type { SchoolSearchQueryInput } from '../validators/schoolValidator'
+
+const SCHOOL_LIST_CACHE_TTL_SECONDS = 300
 
 const SCHOOL_TYPE_TAGS: Record<string, string> = {
   NURSERY: '保育園',
@@ -126,6 +129,7 @@ const toSchoolDetail = (
     area: school.area,
     address: school.address,
     phoneNumber: school.phoneNumber,
+
     // NOTE: 園詳細画面で表示する園画像URL
     imageUrl: school.imageUrl,
 
@@ -167,6 +171,36 @@ const getCurrentUserIfAuthenticated = async (req: AuthenticatedRequest) => {
   return getOrCreateCurrentUser(req.authUser)
 }
 
+const createSchoolsCacheKey = (query: SchoolSearchQueryInput) => {
+  const params = new URLSearchParams()
+
+  Object.entries(query)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .forEach(([key, value]) => {
+      if (value === undefined || value === null || value === '') {
+        return
+      }
+
+      if (Array.isArray(value)) {
+        value.forEach((item) => params.append(key, String(item)))
+        return
+      }
+
+      params.append(key, String(value))
+    })
+
+  const queryString = params.toString()
+
+  return queryString ? `schools:list?${queryString}` : 'schools:list'
+}
+
+const canUseSchoolsCache = (
+  query: SchoolSearchQueryInput,
+  user: Awaited<ReturnType<typeof getCurrentUserIfAuthenticated>>
+) => {
+  return !user && query.sort !== 'recommended' && getRedisAvailable()
+}
+
 export const getSchoolsController: RequestHandler = async (req, res) => {
   try {
     const query = (res.locals.validatedQuery ??
@@ -175,6 +209,28 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
     const user = await getCurrentUserIfAuthenticated(
       req as AuthenticatedRequest
     )
+
+    const useCache = canUseSchoolsCache(query, user)
+    const cacheKey = createSchoolsCacheKey(query)
+
+    if (useCache) {
+      try {
+        const cachedResponse = await redis.get(cacheKey)
+
+        if (cachedResponse) {
+          req.log.info({ cacheKey }, 'schools cache hit')
+          res.json(JSON.parse(cachedResponse))
+          return
+        }
+
+        req.log.info({ cacheKey }, 'schools cache miss')
+      } catch (error) {
+        req.log.warn(
+          { error, cacheKey },
+          'Redis cache read failed. Fallback to DB.'
+        )
+      }
+    }
 
     const schools =
       query.sort === 'recommended' && user
@@ -188,16 +244,33 @@ export const getSchoolsController: RequestHandler = async (req, res) => {
         )
       : new Set<string>()
 
-    res.json({
+    const responseBody = {
       data: schools.map((school) =>
         toSchoolListItem(school, favoritedSchoolIds.has(school.id.toString()))
       ),
       meta: {
         count: schools.length,
       },
-    })
+    }
+
+    if (useCache) {
+      try {
+        await redis.setEx(
+          cacheKey,
+          SCHOOL_LIST_CACHE_TTL_SECONDS,
+          JSON.stringify(responseBody)
+        )
+      } catch (error) {
+        req.log.warn(
+          { error, cacheKey },
+          'Redis cache write failed. Continue without cache.'
+        )
+      }
+    }
+
+    res.json(responseBody)
   } catch (error) {
-    console.error(error)
+    req.log.error({ error }, 'Failed to fetch schools')
 
     res.status(500).json({
       error: {
@@ -240,7 +313,7 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
       ),
     })
   } catch (error) {
-    console.error(error)
+    req.log.error({ error }, 'Failed to fetch school detail')
 
     res.status(500).json({
       error: {
