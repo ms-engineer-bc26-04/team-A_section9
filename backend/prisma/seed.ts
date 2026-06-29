@@ -14,6 +14,10 @@ async function main() {
   await prisma.compareHistory.deleteMany()
   await prisma.school.deleteMany()
 
+  await prisma.$executeRawUnsafe(
+    `SELECT setval(pg_get_serial_sequence('"schools"', 'id'), 1, false)`
+  )
+
   await prisma.school.createMany({
     data: [
       {
