@@ -8,9 +8,9 @@ import SchoolList from '@/components/school/SchoolList'
 
 const FEATURE_ICONS = [
   { label: '毎日給食', icon: '/images/icons/icon1.png' },
-  { label: '延長保育利用者が多い', icon: '/images/icons/icon2.png' },
-  { label: '布団負担少なめ', icon: '/images/icons/icon3.png' },
-  { label: '平日行事少なめ', icon: '/images/icons/icon4.png' },
+  { label: '延長保育利用者が多い', icon: '/images/icon2.png' },
+  { label: '布団負担少なめ', icon: '/images/icon3.png' },
+  { label: '平日行事少なめ', icon: '/images/icon4.png' },
 ]
 
 export default function HomePage() {

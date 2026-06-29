@@ -1,48 +1,23 @@
-//比較詳細チャート画面
+// 比較詳細チャート画面
 // src/app/compare/chart/page.tsx
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
-import {
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  ResponsiveContainer,
-} from 'recharts'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import Loading from '@/components/common/Loading'
-
-type ChartSchool = {
-  id: string
-  name: string
-  lifeBurdenLevel: number
-  timeBurdenLevel: number
-  itemBurdenLevel: number
-  weekdayEventsLevel: number
-  parentAssociationLevel: number
-  matchCount: number
-}
+import BurdenRadarChart, {
+  ChartSchool,
+} from '@/components/compare/BurdenRadarChart'
+import RecommendedSchoolCard from '@/components/compare/RecommendedSchoolCard'
 
 const burdenToValue = (level: string) => {
   if (level === 'LOW') return 1
   if (level === 'MEDIUM') return 2
   return 3
 }
-
-const CHART_COLORS = ['#A0CD83', '#F5A623', '#FF8C8C']
-
-const AXES = [
-  { key: 'lifeBurdenLevel', label: '生活負担' },
-  { key: 'timeBurdenLevel', label: '時間負担' },
-  { key: 'itemBurdenLevel', label: '持ち物負担' },
-  { key: 'weekdayEventsLevel', label: '平日行事の多さ' },
-  { key: 'parentAssociationLevel', label: '保護者会の負担' },
-]
 
 export default function CompareChartPage() {
   const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
@@ -105,7 +80,6 @@ export default function CompareChartPage() {
         const apiSchools = json.data.schools
         const matchHighlights = json.data.matchHighlights
 
-        // APIの値を直接使う
         const chartSchools: ChartSchool[] = apiSchools.map(
           (s: {
             id: string
@@ -152,20 +126,6 @@ export default function CompareChartPage() {
     return () => clearTimeout(timer)
   }, [idsParam, fetchCompare])
 
-  const maxMatchCount =
-    schools.length > 0 ? Math.max(...schools.map((s) => s.matchCount)) : 0
-  const recommendedSchools = schools.filter(
-    (s) => s.matchCount === maxMatchCount && s.matchCount > 0
-  )
-
-  const chartData = AXES.map((axis) => {
-    const entry: Record<string, string | number> = { subject: axis.label }
-    schools.forEach((s) => {
-      entry[s.name] = s[axis.key as keyof ChartSchool] as number
-    })
-    return entry
-  })
-
   if (isAuthLoading || isLoading) return <Loading />
 
   if (error) {
@@ -205,112 +165,8 @@ export default function CompareChartPage() {
         5つの負担項目をレーダーチャートで比較できます。
       </p>
 
-      {/* 凡例 */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-6">
-        {schools.map((school, i) => (
-          <div key={school.id} className="flex items-center gap-1">
-            <span
-              className="inline-block w-6 h-0.5"
-              style={{ backgroundColor: CHART_COLORS[i] }}
-            />
-            <span className="text-xs text-gray-700">{school.name}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* レーダーチャート */}
-      <div className="w-full h-80">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadarChart
-            data={chartData}
-            margin={{ top: 20, right: 50, bottom: 20, left: 50 }}
-          >
-            <PolarGrid />
-            <PolarAngleAxis
-              dataKey="subject"
-              tick={(props) => {
-                const { x, y, payload } = props as {
-                  x: number
-                  y: number
-                  payload: { value: string }
-                }
-                const value = payload.value
-                const lines = value.split('の')
-                const anchor = x > 200 ? 'start' : x < 150 ? 'end' : 'middle'
-                if (lines.length === 2) {
-                  return (
-                    <text
-                      x={x}
-                      y={y}
-                      textAnchor={anchor as 'start' | 'end' | 'middle'}
-                      fill="#555"
-                      fontSize={11}
-                    >
-                      <tspan x={x} dy="0">
-                        {lines[0]}の
-                      </tspan>
-                      <tspan x={x} dy="14">
-                        {lines[1]}
-                      </tspan>
-                    </text>
-                  )
-                }
-                return (
-                  <text
-                    x={x}
-                    y={y}
-                    textAnchor={anchor as 'start' | 'end' | 'middle'}
-                    fill="#555"
-                    fontSize={11}
-                  >
-                    <tspan>{value}</tspan>
-                  </text>
-                )
-              }}
-            />
-            {schools.map((school, i) => (
-              <Radar
-                key={school.id}
-                name={school.name}
-                dataKey={school.name}
-                stroke={CHART_COLORS[i]}
-                fill={CHART_COLORS[i]}
-                fillOpacity={0.15}
-                dot={false}
-              />
-            ))}
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* 注釈 */}
-      <p className="text-[10px] text-gray-400 text-center mb-6">
-        ※チャートが大きいほど負担が大きくなります
-      </p>
-
-      {/* あなたにおすすめ */}
-      {recommendedSchools.length > 0 && (
-        <div className="bg-[#fff1db] rounded-2xl p-4 flex flex-col gap-2">
-          <div className="flex items-center gap-2">
-            <div className="relative w-9 h-9 flex-shrink-0">
-              <Image
-                src="/images/icon21.png"
-                alt="おすすめ"
-                fill
-                sizes="36px"
-                className="object-contain"
-              />
-            </div>
-            <p className="font-bold text-gray-800 text-base">
-              あなたにおすすめ
-            </p>
-          </div>
-          <p className="text-sm text-gray-700">
-            {recommendedSchools.map((s) => s.name).join('・')}は<br />
-            あなたの希望条件に合っていておすすめです
-          </p>
-        </div>
-      )}
+      <BurdenRadarChart schools={schools} />
+      <RecommendedSchoolCard schools={schools} />
     </div>
   )
 }
