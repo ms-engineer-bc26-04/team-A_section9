@@ -140,6 +140,12 @@ const toCompareSchool = (school: School) => {
     name: school.name,
     area: school.area,
     schoolType: school.schoolType,
+    imageUrl: school.imageUrl,
+    lifeBurdenLevel: school.lifeBurdenLevel,
+    timeBurdenLevel: school.timeBurdenLevel,
+    itemBurdenLevel: school.itemBurdenLevel,
+    weekdayEventsLevel: school.weekdayEventsLevel,
+    parentAssociationLevel: school.parentAssociationLevel,
     lifeBurden: {
       mealType: school.mealType,
 
