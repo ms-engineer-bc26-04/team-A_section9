@@ -147,8 +147,6 @@ export default function ComparePage() {
         className="fixed top-0 left-0 w-1/2 h-14 bg-white pointer-events-none"
         style={{ zIndex: 29 }}
       />
-
-      {/* stickyブロックを外に出して全幅カバー */}
       <div className="sticky top-14 z-10 bg-white px-4 pt-3 pb-3 border-b border-gray-200">
         <div className="max-w-2xl mx-auto">
           <button
@@ -157,9 +155,24 @@ export default function ComparePage() {
           >
             ＜戻る
           </button>
-          <h1 className="font-bold text-gray-800 text-xl mb-2">
-            {schools.length}つの園で比較
-          </h1>
+
+          {/* h1とボタンを横並びに */}
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="font-bold text-gray-800 text-xl">
+              {schools.length}つの園で比較
+            </h1>
+
+            {/* 負担バランスチャートボタン（プレミアムのみ） */}
+            {isPremium && (
+              <button
+                onClick={() => router.push(`/compare/chart?ids=${idsParam}`)}
+                className="flex items-center gap-1 bg-[#A0CD83] text-white text-xs font-bold px-3 py-2 rounded-full hover:bg-[#82b865] transition-colors whitespace-nowrap"
+              >
+                比較チャートを見る
+              </button>
+            )}
+          </div>
+
           <CompareSchoolHeader schools={schools} />
         </div>
       </div>
