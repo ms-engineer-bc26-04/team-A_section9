@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
-import Loading from '@/components/common/Loading'
+import { ComparePageSkeleton } from '@/components/common/Skeleton'
 import CompareTable, {
   CompareSchool,
   MatchHighlights,
@@ -117,8 +117,11 @@ export default function ComparePage() {
     return () => clearTimeout(timer)
   }, [idsParam, fetchCompare])
 
+  // idsParamから園数を取得
+  const schoolCount = idsParam ? idsParam.split(',').filter(Boolean).length : 2
+
   if (isAuthLoading || isLoading) {
-    return <Loading />
+    return <ComparePageSkeleton schoolCount={schoolCount} />
   }
 
   if (error) {

@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 import Modal from '@/components/common/Modal'
-import { SchoolCardSkeleton } from '@/components/common/Skeleton'
+import { SchoolDetailSkeleton } from '@/components/common/Skeleton'
 import Toast from '@/components/common/Toast'
 import { useFavorites } from '@/lib/hooks/useFavorites'
 import SchoolDetailHeader from '@/components/school/SchoolDetailHeader'
@@ -146,13 +146,7 @@ export default function SchoolDetailPage() {
   }
 
   if (isLoading || authLoading) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <SchoolCardSkeleton />
-        <SchoolCardSkeleton />
-        <SchoolCardSkeleton />
-      </div>
-    )
+    return <SchoolDetailSkeleton />
   }
 
   if (error || !school) {

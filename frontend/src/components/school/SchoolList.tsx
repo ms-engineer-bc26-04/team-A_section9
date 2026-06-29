@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/hooks/useAuth'
 import { getSchools } from '@/lib/api/schools'
 import { useFavorites } from '@/lib/hooks/useFavorites'
 import { SchoolSummary } from '@/types/school'
-import Loading from '@/components/common/Loading'
+import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import { supabase } from '@/lib/supabase'
 
 export default function SchoolList() {
@@ -88,10 +88,13 @@ export default function SchoolList() {
     }
   }
 
+  // Loadingの代わりにSchoolCardSkeletonを使用
   if (isLoading || isAuthLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <Loading size="lg" />
+      <div className="flex flex-col gap-3">
+        {[1, 2, 3].map((i) => (
+          <SchoolCardSkeleton key={i} />
+        ))}
       </div>
     )
   }
