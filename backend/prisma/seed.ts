@@ -9,6 +9,18 @@ import {
 const prisma = new PrismaClient()
 
 async function main() {
+  await prisma.schoolAdmin.deleteMany()
+
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        in: ['school-admin@example.com'],
+      },
+    },
+  })
+
+  await prisma.schoolInquiry.deleteMany()
+  await prisma.schoolVisitReservation.deleteMany()
   await prisma.favorite.deleteMany()
   await prisma.reportHistory.deleteMany()
   await prisma.compareHistory.deleteMany()
@@ -891,6 +903,28 @@ async function main() {
         allergySupport: '個別面談のうえ除去食対応',
       },
     ],
+  })
+
+  const schoolAdminUser = await prisma.user.upsert({
+    where: { email: 'school-admin@example.com' },
+    update: {},
+    create: {
+      email: 'school-admin@example.com',
+      name: '園管理者テスト',
+    },
+  })
+
+  await prisma.schoolAdmin.upsert({
+    where: {
+      userId: schoolAdminUser.id,
+    },
+    update: {
+      schoolId: 1n,
+    },
+    create: {
+      userId: schoolAdminUser.id,
+      schoolId: 1n,
+    },
   })
 
   console.log('Seed data inserted successfully.')
