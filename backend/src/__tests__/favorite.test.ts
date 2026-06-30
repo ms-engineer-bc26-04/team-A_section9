@@ -172,11 +172,7 @@ describe('Favorite API', () => {
     expect(response.status).toBe(201)
     expect(response.body.data).toBeDefined()
     expect(response.body.data.schoolId).toBe('1')
-    expect(mockedAddUserFavorite).toHaveBeenCalledWith(
-      'test-user-id',
-      true,
-      1n
-    )
+    expect(mockedAddUserFavorite).toHaveBeenCalledWith('test-user-id', true, 1n)
   })
 
   it('POST /api/v1/users/me/favorites は重複登録の場合 409 を返す', async () => {
