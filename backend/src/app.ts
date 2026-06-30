@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes'
 import favoriteRoutes from './routes/favoriteRoutes'
 import paymentRoutes from './routes/paymentRoutes'
 import addressRoutes from './routes/addressRoutes'
+import schoolAdminRoutes from './routes/schoolAdminRoutes'
 
 const app = express()
 
@@ -46,5 +47,5 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/users', favoriteRoutes)
 app.use('/api/v1/payment', paymentRoutes)
 app.use('/api/v1/address', addressRoutes)
-
+app.use('/api/v1/school-admin', schoolAdminRoutes)
 export default app
