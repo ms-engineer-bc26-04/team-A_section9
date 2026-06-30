@@ -2717,7 +2717,7 @@ Authorization: Bearer <supabase_access_token>
 ```json
 {
   "data": {
-    "id": "school_1",
+    "id": "1",
     "name": "さくら保育園",
     "area": "渋谷区",
     "address": "東京都渋谷区...",
