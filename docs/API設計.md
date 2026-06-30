@@ -304,6 +304,9 @@ MVPでは、アプリ側の `users` レコードは `GET /users/me` 実行時に
 | 決済       | POST     | `/payment/checkout`             | 必須 | Stripe Checkout Session作成                                       |
 | 決済       | POST     | `/payment/customer-portal`      | 必須 | Stripe Customer Portal URL作成                                    |
 | 決済       | POST     | `/payment/webhook`              | 不要 | Stripe Webhook受信                                                |
+| 園管理者   | GET      | `/school-admin/me`              | 必須 | ログイン中の園管理者情報取得                                      |
+| 園管理者   | GET      | `/school-admin/school`          | 必須 | ログイン中の園管理者に紐づく自園情報取得                          |
+| 園管理者   | PATCH    | `/school-admin/school`          | 必須 | ログイン中の園管理者に紐づく自園情報更新                          |
 
 ---
 
