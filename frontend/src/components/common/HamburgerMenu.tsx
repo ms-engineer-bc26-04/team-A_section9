@@ -14,7 +14,7 @@ type HamburgerMenuProps = {
 }
 
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
-  const { supabaseUser, appUser, isPremium, isLoading } = useAuth() // ← appUser追加
+  const { supabaseUser, appUser, isPremium, isLoading } = useAuth()
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -76,8 +76,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 {isPremium ? 'プレミアム会員' : '一般会員'}
               </p>
               <p className="font-bold text-gray-800 text-2xl">
-                {appUser?.name ?? supabaseUser.email} さん{' '}
-                {/* ← nameがあれば名前、なければメールアドレス */}
+                {appUser?.name ?? supabaseUser.email} さん
               </p>
             </div>
           )}
@@ -120,6 +119,18 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                 </button>
               </div>
             )}
+            {/* 保育園の方はこちらボタン：全員に表示 */}
+            <div className="mt-6">
+              <button
+                onClick={() => {
+                  router.push('/admin/login')
+                  onClose()
+                }}
+                className="border-2 border-[#a0cd83] text-[#a0cd83] font-extrabold text-sm px-6 py-2.5 rounded-full hover:bg-[#f2f8ee] active:bg-[#f2f8ee] transition-colors"
+              >
+                保育園の方はこちら
+              </button>
+            </div>
           </div>
         </div>
 
