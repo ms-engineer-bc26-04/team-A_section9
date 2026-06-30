@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
                 type="text"
                 value={accountId}
                 onChange={(e) => setAccountId(e.target.value)}
-                placeholder="例) aaaaa"
+                placeholder="例) example@enkatsu.local"
                 className="w-full border border-gray-400 rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#73c0ff]"
               />
             </div>

@@ -143,10 +143,7 @@ export default function AdminEditPage() {
     fetchSchoolData()
   }, [])
 
-  const handleChange = (
-    key: keyof SchoolForm,
-    value: string
-  ) => {
+  const handleChange = (key: keyof SchoolForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
@@ -188,7 +185,6 @@ export default function AdminEditPage() {
       )}
       <div className="min-h-screen bg-white pt-4">
         <div className="max-w-2xl mx-auto px-4 pb-16">
-
           <div className="mb-2">
             <button
               onClick={() => router.back()}
@@ -209,22 +205,24 @@ export default function AdminEditPage() {
           {/* 画像 */}
           <div className="flex items-center gap-4 mb-6">
             <div className="relative w-24 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                    {form.imageUrl ? (
-                    <Image
-                        src={form.imageUrl}
-                        alt="園の画像"
-                        fill
-                        className="object-cover"
-                        unoptimized
-                    />
-                    ) : (
+              {form.imageUrl ? (
+                <Image
+                  src={form.imageUrl}
+                  alt="園の画像"
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
                   No Image
                 </div>
               )}
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">画像URL</label>
+              <label className="block text-sm text-gray-600 mb-1">
+                画像URL
+              </label>
               <input
                 type="text"
                 value={form.imageUrl}
@@ -426,12 +424,7 @@ function SectionHeader({ label, iconSrc }: SectionHeaderProps) {
   return (
     <div className="flex items-center gap-2 mb-4 mt-2">
       <div className="w-6 h-6 rounded-full flex-shrink-0 relative overflow-hidden">
-        <Image
-          src={iconSrc}
-          alt=""
-          fill
-          className="object-contain"
-        />
+        <Image src={iconSrc} alt="" fill className="object-contain" />
       </div>
       <h2 className="text-base font-bold text-gray-800">{label}</h2>
       <div className="flex-1 h-px bg-gray-200" />
