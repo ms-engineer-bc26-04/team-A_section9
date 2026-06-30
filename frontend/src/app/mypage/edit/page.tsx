@@ -10,6 +10,7 @@ import Toast from '@/components/common/Toast'
 import { User } from '@/types/user'
 import ProfileForm from '@/components/mypage/ProfileForm'
 import PreferenceForm from '@/components/mypage/PreferenceForm'
+import { EditPageSkeleton } from '@/components/common/Skeleton'
 
 export default function MyPageEditPage() {
   const router = useRouter()
@@ -22,13 +23,7 @@ export default function MyPageEditPage() {
   }, [authLoading, supabaseUser, router])
 
   if (authLoading || !appUser) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-12 bg-gray-100 rounded animate-pulse" />
-        <div className="h-48 bg-gray-100 rounded animate-pulse" />
-      </div>
-    )
+    return <EditPageSkeleton />
   }
 
   return <EditForm appUser={appUser} />

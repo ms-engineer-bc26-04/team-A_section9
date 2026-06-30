@@ -11,6 +11,7 @@ import MyPageHeader from '@/components/mypage/MyPageHeader'
 import MyPageNav from '@/components/mypage/MyPageNav'
 import PlanFeatureList from '@/components/mypage/PlanFeatureList'
 import PremiumSection from '@/components/mypage/PremiumSection'
+import { MyPageSkeleton } from '@/components/common/Skeleton'
 
 export default function MyPage() {
   const router = useRouter()
@@ -98,13 +99,7 @@ export default function MyPage() {
   }
 
   if (authLoading) {
-    return (
-      <div className="p-4 flex flex-col gap-4">
-        <div className="h-24 bg-gray-100 rounded-xl animate-pulse" />
-        <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />
-        <div className="h-48 bg-gray-100 rounded-xl animate-pulse" />
-      </div>
-    )
+    return <MyPageSkeleton />
   }
 
   if (!supabaseUser || !appUser) return null

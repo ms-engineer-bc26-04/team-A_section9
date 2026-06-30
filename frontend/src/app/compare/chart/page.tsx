@@ -7,11 +7,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
-import Loading from '@/components/common/Loading'
 import BurdenRadarChart, {
   ChartSchool,
 } from '@/components/compare/BurdenRadarChart'
 import RecommendedSchoolCard from '@/components/compare/RecommendedSchoolCard'
+import { CompareChartSkeleton } from '@/components/common/Skeleton'
 
 const burdenToValue = (level: string) => {
   if (level === 'LOW') return 1
@@ -126,7 +126,10 @@ export default function CompareChartPage() {
     return () => clearTimeout(timer)
   }, [idsParam, fetchCompare])
 
-  if (isAuthLoading || isLoading) return <Loading />
+  const schoolCount = idsParam ? idsParam.split(',').filter(Boolean).length : 2
+
+  if (isAuthLoading || isLoading)
+    return <CompareChartSkeleton schoolCount={schoolCount} />
 
   if (error) {
     return (
