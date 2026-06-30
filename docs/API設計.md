@@ -2533,9 +2533,9 @@ Authorization: Bearer <supabase_access_token>
   "data": {
     "id": "school_admin_1",
     "userId": "user_1",
-    "schoolId": "school_1",
+    "schoolId": "1",
     "school": {
-      "id": "school_1",
+      "id": "1",
       "name": "さくら保育園"
     }
   }
@@ -2624,7 +2624,7 @@ Authorization: Bearer <supabase_access_token>
 ```json
 {
   "data": {
-    "id": "school_1",
+    "id": "1",
     "name": "さくら保育園",
     "area": "渋谷区",
     "address": "東京都渋谷区...",
@@ -2695,9 +2695,9 @@ Authorization: Bearer <supabase_access_token>
   "managerName": "山田 太郎",
   "contactPerson": "佐藤 花子",
   "mealType": "SCHOOL_LUNCH",
-  "supplies": "おむつ持参",
-  "extendedCare": "18:00〜20:00",
-  "features": "駅から近く、少人数保育に対応"
+  "itemBurdenDetail": "おむつ持参",
+  "extendedCareHours": "18:00〜20:00",
+  "description": "駅から近く、少人数保育に対応"
 }
 ```
 
