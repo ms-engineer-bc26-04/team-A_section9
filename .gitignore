@@ -148,6 +148,7 @@ vite.config.ts.timestamp-*
 
 # Playwright
 /test-results/
-/playwright-report/
-/playwright/.auth/
+frontend/playwright/.auth/
+frontend/playwright-report/
+frontend/test-results/
 .env.test.local
