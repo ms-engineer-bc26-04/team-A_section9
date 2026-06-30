@@ -19,3 +19,24 @@ export const getManagedSchoolService = async (schoolId: bigint) => {
     where: { id: schoolId },
   })
 }
+
+export const updateManagedSchoolService = async (
+  schoolId: bigint,
+  data: {
+    name?: string
+    area?: string
+    address?: string
+    phoneNumber?: string | null
+    imageUrl?: string | null
+    managerName?: string | null
+    contactPerson?: string | null
+    description?: string | null
+  }
+) => {
+  return prisma.school.update({
+    where: {
+      id: schoolId,
+    },
+    data,
+  })
+}
