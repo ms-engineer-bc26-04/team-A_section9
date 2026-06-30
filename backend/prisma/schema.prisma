@@ -67,21 +67,27 @@ model User {
   createdAt      DateTime       @default(now()) @map("created_at")
   updatedAt      DateTime       @updatedAt @map("updated_at")
 
-  favorites        Favorite[]
-  subscription     Subscription?
-  preference       UserPreference?
-  compareHistories CompareHistory[]
-  reportHistories  ReportHistory[]
+  favorites               Favorite[]
+  subscription            Subscription?
+  schoolAdmins            SchoolAdmin[]
+  schoolInquiries         SchoolInquiry[]
+  schoolVisitReservations SchoolVisitReservation[]
+  preference              UserPreference?
+  compareHistories        CompareHistory[]
+  reportHistories         ReportHistory[]
 
   @@map("users")
 }
+
 model School {
-  id          BigInt  @id @default(autoincrement())
-  name        String  @db.VarChar(255)
-  area        String  @db.VarChar(100)
-  address     String  @db.VarChar(255)
-  phoneNumber String? @map("phone_number") @db.VarChar(20)
-  imageUrl    String? @map("image_url") @db.VarChar(255)
+  id            BigInt  @id @default(autoincrement())
+  name          String  @db.VarChar(255)
+  area          String  @db.VarChar(100)
+  address       String  @db.VarChar(255)
+  phoneNumber   String? @map("phone_number") @db.VarChar(20)
+  imageUrl      String? @map("image_url") @db.VarChar(255)
+  managerName   String? @map("manager_name") @db.VarChar(100)
+  contactPerson String? @map("contact_person") @db.VarChar(100)
 
   schoolType      SchoolType  @map("school_type")
   lifeBurdenLevel BurdenLevel @map("life_burden_level")
@@ -108,7 +114,10 @@ model School {
   createdAt            DateTime     @default(now()) @map("created_at")
   updatedAt            DateTime     @updatedAt @map("updated_at")
 
-  favorites Favorite[]
+  favorites               Favorite[]
+  schoolAdmins            SchoolAdmin[]
+  schoolInquiries         SchoolInquiry[]
+  schoolVisitReservations SchoolVisitReservation[]
 
   @@index([area])
   @@index([schoolType])
@@ -160,8 +169,8 @@ model UserPreference {
   preferredDiaperSupport          String?      @map("preferred_diaper_support") @db.VarChar(50)
   preferredFutonSupport           String?      @map("preferred_futon_support") @db.VarChar(50)
   preferredExtendedCare           String?      @map("preferred_extended_care") @db.VarChar(50)
-  preferredLessons        Boolean? @map("preferred_lessons")
-  preferredAllergySupport Boolean? @map("preferred_allergy_support")
+  preferredLessons                Boolean?     @map("preferred_lessons")
+  preferredAllergySupport         Boolean?     @map("preferred_allergy_support")
   preferredWeekdayEventsLevel     BurdenLevel? @map("preferred_weekday_events_level")
   preferredParentAssociationLevel BurdenLevel? @map("preferred_parent_association_level")
   createdAt                       DateTime     @default(now()) @map("created_at")
@@ -196,4 +205,54 @@ model ReportHistory {
   @@index([userId])
   @@index([schoolId])
   @@map("report_histories")
+}
+
+model SchoolAdmin {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  schoolId  BigInt   @map("school_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([userId])
+  @@unique([userId, schoolId])
+  @@index([userId])
+  @@index([schoolId])
+  @@map("school_admins")
+}
+
+model SchoolInquiry {
+  id        String   @id @default(uuid()) @db.Uuid
+  schoolId  BigInt   @map("school_id")
+  userId    String   @map("user_id") @db.Uuid
+  message   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([schoolId])
+  @@map("school_inquiries")
+}
+
+model SchoolVisitReservation {
+  id            String   @id @default(uuid()) @db.Uuid
+  schoolId      BigInt   @map("school_id")
+  userId        String   @map("user_id") @db.Uuid
+  preferredDate DateTime @map("preferred_date") @db.Date
+  preferredTime String   @map("preferred_time") @db.VarChar(20)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  school School @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([schoolId])
+  @@map("school_visit_reservations")
 }
