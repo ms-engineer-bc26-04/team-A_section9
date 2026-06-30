@@ -23,7 +23,8 @@ vi.mock('../lib/supabase', () => ({
 
 // 追加：認証ユーザー向けキャッシュ対象外テストでDB依存を避けるため、getOrCreateCurrentUserのみmock化
 vi.mock('../services/userService', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../services/userService')>()
+  const actual =
+    await importOriginal<typeof import('../services/userService')>()
 
   return {
     ...actual,
