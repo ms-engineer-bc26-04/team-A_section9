@@ -132,7 +132,18 @@ test.describe('一般ユーザーの主要導線', () => {
 
   test('FE-017: Stripe Checkoutへ遷移できる', async ({ page }) => {
     await page.goto('/plans')
-    // TODO: /plans 画面のコンポーネントが分かり次第、Checkoutボタンのセレクタを確定する
+
+    // PlansPage.tsx: 一般ユーザーは「プレミアム会員に登録する」ボタンが有効
+    const checkoutButton = page.getByRole('button', {
+      name: 'プレミアム会員に登録する',
+    })
+    await expect(checkoutButton).toBeEnabled()
+    await checkoutButton.click()
+
+    // window.location.href で外部のStripe Checkoutへ遷移する実装のため、
+    // 実際のStripeドメインへの遷移確認まではせず、ボタン押下を確認するに留める
+    // TODO: テスト環境でStripeのテストモードURLへの遷移を確認できる場合は
+    // page.waitForURL(/checkout\.stripe\.com/) 等に差し替える
   })
 
   // ログアウトは全テストの最後に実行する

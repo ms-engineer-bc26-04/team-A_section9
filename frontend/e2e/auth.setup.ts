@@ -3,15 +3,22 @@
 import { test as setup, expect } from '@playwright/test'
 import path from 'path'
 
-const authFile = path.join(__dirname, '../playwright/.auth/user.json')
+const generalUserAuthFile = path.join(
+  __dirname,
+  '../playwright/.auth/general-user.json'
+)
+const premiumUserAuthFile = path.join(
+  __dirname,
+  '../playwright/.auth/premium-user.json'
+)
 
 setup('一般ユーザーとしてログインする', async ({ page }) => {
-  const email = process.env.E2E_USER_EMAIL
-  const password = process.env.E2E_USER_PASSWORD
+  const email = process.env.E2E_GENERAL_USER_EMAIL
+  const password = process.env.E2E_GENERAL_USER_PASSWORD
 
   if (!email || !password) {
     throw new Error(
-      'E2E_USER_EMAIL / E2E_USER_PASSWORD が設定されていません。.env.test.local を確認してください'
+      'E2E_GENERAL_USER_EMAIL / E2E_GENERAL_USER_PASSWORD が設定されていません'
     )
   }
 
@@ -20,8 +27,27 @@ setup('一般ユーザーとしてログインする', async ({ page }) => {
   await page.getByPlaceholder('半角英数字8文字以上').fill(password)
   await page.getByRole('button', { name: 'ログイン' }).click()
 
-  // LoginPage.tsx: ログイン成功時は / へ遷移する実装
   await expect(page).toHaveURL('/')
 
-  await page.context().storageState({ path: authFile })
+  await page.context().storageState({ path: generalUserAuthFile })
+})
+
+setup('プレミアムユーザーとしてログインする', async ({ page }) => {
+  const email = process.env.E2E_PREMIUM_USER_EMAIL
+  const password = process.env.E2E_PREMIUM_USER_PASSWORD
+
+  if (!email || !password) {
+    throw new Error(
+      'E2E_PREMIUM_USER_EMAIL / E2E_PREMIUM_USER_PASSWORD が設定されていません'
+    )
+  }
+
+  await page.goto('/login')
+  await page.getByPlaceholder('例）example@mail.com').fill(email)
+  await page.getByPlaceholder('半角英数字8文字以上').fill(password)
+  await page.getByRole('button', { name: 'ログイン' }).click()
+
+  await expect(page).toHaveURL('/')
+
+  await page.context().storageState({ path: premiumUserAuthFile })
 })
