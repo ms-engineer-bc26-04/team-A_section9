@@ -1,7 +1,6 @@
 import request from 'supertest'
-import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import app from '../app'
-import { prisma } from '../lib/prisma'
 
 // 比較APIの認証処理をテスト内で制御するためにmock化
 vi.mock('../lib/supabase', () => ({
@@ -23,75 +22,13 @@ vi.mock('../services/userService', async (importOriginal) => {
   }
 })
 
-import { supabase } from '../lib/supabase'
-import { getOrCreateCurrentUser } from '../services/userService'
+import {
+  mockAuthenticatedUser,
+  mockCurrentUser,
+  setupAuthTest,
+} from './helpers/authTestHelper'
 
-const mockedSupabase = vi.mocked(supabase)
-const mockedGetOrCreateCurrentUser = vi.mocked(getOrCreateCurrentUser)
-
-const mockUserRecord = {
-  id: 'test-user-id',
-  supabaseUserId: 'test-supabase-user-id',
-  email: 'test@example.com',
-  planType: 'FREE',
-  createdAt: new Date('2026-06-30T00:00:00.000Z'),
-  updatedAt: new Date('2026-06-30T00:00:00.000Z'),
-}
-
-const mockAuthenticatedUser = () => {
-  mockedSupabase.auth.getUser.mockResolvedValue({
-    data: {
-      user: {
-        id: 'test-supabase-user-id',
-        email: 'test@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        aud: 'authenticated',
-        created_at: '2026-06-30T00:00:00.000Z',
-      },
-    },
-    error: null,
-  } as never)
-}
-
-const mockCurrentUser = (
-  overrides: Partial<Awaited<ReturnType<typeof getOrCreateCurrentUser>>> = {}
-) => {
-  mockedGetOrCreateCurrentUser.mockResolvedValue({
-    id: 'test-user-id',
-    email: 'test@example.com',
-    planType: 'FREE',
-    subscription: null,
-    preference: null,
-    ...overrides,
-  } as never)
-}
-
-beforeEach(() => {
-  vi.clearAllMocks()
-
-  mockedSupabase.auth.getUser.mockResolvedValue({
-    data: {
-      user: null,
-    },
-    error: null,
-  } as never)
-
-  // 修正箇所：
-  // 以前のテストでは prisma.user.upsert をmockしていたが、
-  // 現在の authMiddleware では findFirst / update / create を使っているため、
-  // 認証ありテストが実DB処理に進まないように3つをmockする。
-  vi.spyOn(prisma.user, 'findFirst').mockResolvedValue(mockUserRecord as never)
-  vi.spyOn(prisma.user, 'update').mockResolvedValue(mockUserRecord as never)
-  vi.spyOn(prisma.user, 'create').mockResolvedValue(mockUserRecord as never)
-
-  mockCurrentUser()
-})
-
-afterAll(async () => {
-  vi.restoreAllMocks()
-  await prisma.$disconnect()
-})
+setupAuthTest()
 
 describe('Compare API', () => {
   it('GET /api/v1/schools/compare は未認証の場合 401 を返す', async () => {
