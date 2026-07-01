@@ -8,9 +8,11 @@ import Image from 'next/image'
 import AdminHeader from '@/components/admin/AdminHeader'
 import Toast from '@/components/common/Toast'
 
-// TODO: 環境変数化する（NEXT_PUBLIC_API_BASE_URL など）
-const API_BASE_URL = 'http://localhost:4000/api/v1'
-const SCHOOL_ADMIN_ENDPOINT = `${API_BASE_URL}/school-admin/school`
+import { supabase } from '@/lib/supabase'
+import {
+  getSchoolAdminSchool,
+  updateSchoolAdminSchool,
+} from '@/lib/api/schoolAdmin'
 
 // APIレスポンス・リクエストの項目名（API設計書 19-2 / 19-3 に準拠）
 type SchoolForm = {
@@ -117,21 +119,17 @@ export default function AdminEditPage() {
     const fetchSchoolData = async () => {
       setIsLoading(true)
       try {
-        // TODO: useAuth.ts から Supabase アクセストークンを取得して付与する
-        // const { accessToken } = useAuth()
-        const res = await fetch(SCHOOL_ADMIN_ENDPOINT, {
-          headers: {
-            'Content-Type': 'application/json',
-            // Authorization: `Bearer ${accessToken}`,
-          },
-        })
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-        if (!res.ok) {
-          // バックエンド未実装の間はここに到達する想定なので、モック初期値のまま続行
+        const accessToken = session?.access_token
+        if (!accessToken) {
+          router.push('/admin/login')
           return
         }
 
-        const json = await res.json()
+        const json = await getSchoolAdminSchool(accessToken)
         setForm(mapResponseToForm(json.data))
       } catch {
         // API未実装・接続エラー時はモック初期値のまま表示する
@@ -141,7 +139,7 @@ export default function AdminEditPage() {
     }
 
     fetchSchoolData()
-  }, [])
+  }, [router])
 
   const handleChange = (key: keyof SchoolForm, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }))
@@ -150,21 +148,17 @@ export default function AdminEditPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      // TODO: useAuth.ts から Supabase アクセストークンを取得して付与する
-      // const { accessToken } = useAuth()
-      const res = await fetch(SCHOOL_ADMIN_ENDPOINT, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          // Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(buildRequestBody(form)),
-      })
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-      if (!res.ok) {
-        throw new Error('保存に失敗しました')
+      const accessToken = session?.access_token
+      if (!accessToken) {
+        router.push('/admin/login')
+        return
       }
 
+      await updateSchoolAdminSchool(accessToken, buildRequestBody(form))
       setToast({ message: '保存しました', type: 'success' })
     } catch {
       setToast({ message: '保存に失敗しました', type: 'error' })
