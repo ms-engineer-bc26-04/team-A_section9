@@ -68,6 +68,14 @@ const mockedGetOrCreateCurrentUser = vi.mocked(getOrCreateCurrentUser)
 // 追加：認証ユーザー向けキャッシュ対象外テストでお気に入り取得のDB依存を避けるためにmock化した関数を扱う
 const mockedGetFavoritedSchoolIds = vi.mocked(getFavoritedSchoolIds)
 
+const mockRedisAvailable = () => {
+  mockedGetRedisAvailable.mockReturnValue(true)
+}
+
+const mockRedisUnavailable = () => {
+  mockedGetRedisAvailable.mockReturnValue(false)
+}
+
 const mockAuthenticatedUser = () => {
   mockedSupabase.auth.getUser.mockResolvedValue({
     data: {
@@ -94,11 +102,58 @@ const mockCurrentUser = () => {
   mockedGetFavoritedSchoolIds.mockResolvedValue(new Set<string>())
 }
 
+const getFirstSchool = async () => {
+  const schoolsResponse = await request(app).get('/api/v1/schools')
+  const firstSchool = schoolsResponse.body.data[0]
+
+  expect(firstSchool).toBeDefined()
+
+  return firstSchool
+}
+
+const expectSchoolListResponse = (response: {
+  status: number
+  body: {
+    data: unknown
+    meta?: {
+      count?: unknown
+    }
+  }
+}) => {
+  expect(response.status).toBe(200)
+  expect(Array.isArray(response.body.data)).toBe(true)
+  expect(response.body.meta).toBeDefined()
+  expect(typeof response.body.meta?.count).toBe('number')
+}
+
+const expectSchoolDetailResponse = (
+  response: {
+    status: number
+    body: {
+      data?: {
+        id?: unknown
+        name?: unknown
+        supportInfo?: unknown
+      }
+    }
+  },
+  expectedId?: string
+) => {
+  expect(response.status).toBe(200)
+  expect(response.body.data).toBeDefined()
+
+  if (expectedId) {
+    expect(response.body.data?.id).toBe(expectedId)
+  }
+
+  expect(response.body.data?.supportInfo).toBeDefined()
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 
   // 追加：既存テストではRedisキャッシュを使わない状態をデフォルトにする
-  mockedGetRedisAvailable.mockReturnValue(false)
+  mockRedisUnavailable()
 
   // 追加：認証なしのリクエストではSupabaseユーザーを返さない
   mockedSupabase.auth.getUser.mockResolvedValue({
@@ -136,21 +191,17 @@ describe('School API', () => {
   it('GET /api/v1/schools は園一覧を返す', async () => {
     const response = await request(app).get('/api/v1/schools')
 
-    expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
-    expect(response.body.meta).toBeDefined()
-    expect(typeof response.body.meta.count).toBe('number')
+    expectSchoolListResponse(response)
   })
 
   it('GET /api/v1/schools はキャッシュ未登録時にDB取得後Redisへ保存する', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockResolvedValue(null)
     mockedRedis.setEx.mockResolvedValue('OK')
 
     const response = await request(app).get('/api/v1/schools')
 
-    expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
+    expectSchoolListResponse(response)
     expect(mockedRedis.get).toHaveBeenCalledWith('schools:list')
     expect(mockedRedis.setEx).toHaveBeenCalledTimes(1)
     expect(mockedRedis.setEx).toHaveBeenCalledWith(
@@ -161,7 +212,7 @@ describe('School API', () => {
   })
 
   it('GET /api/v1/schools はキャッシュ登録済みの場合Redisの値を返す', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
 
     const cachedBody = {
       data: [],
@@ -181,7 +232,7 @@ describe('School API', () => {
   })
 
   it('GET /api/v1/schools はquery paramsが異なる場合、別キャッシュキーとして扱う', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockResolvedValue(null)
     mockedRedis.setEx.mockResolvedValue('OK')
 
@@ -202,17 +253,17 @@ describe('School API', () => {
   })
 
   it('GET /api/v1/schools?sort=recommended はキャッシュ対象外にする', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
 
     const response = await request(app).get('/api/v1/schools?sort=recommended')
 
-    expect(response.status).toBe(200)
+    expectSchoolListResponse(response)
     expect(mockedRedis.get).not.toHaveBeenCalled()
     expect(mockedRedis.setEx).not.toHaveBeenCalled()
   })
 
   it('GET /api/v1/schools は認証ユーザー向けレスポンスをキャッシュ対象外にする', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockAuthenticatedUser()
     mockCurrentUser()
 
@@ -220,69 +271,64 @@ describe('School API', () => {
       .get('/api/v1/schools')
       .set('Authorization', 'Bearer test-token')
 
-    expect(response.status).toBe(200)
+    expectSchoolListResponse(response)
     expect(mockedRedis.get).not.toHaveBeenCalled()
     expect(mockedRedis.setEx).not.toHaveBeenCalled()
   })
 
   it('GET /api/v1/schools はRedis読み取り失敗時もDB取得へフォールバックする', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockRejectedValue(new Error('Redis read failed'))
     mockedRedis.setEx.mockResolvedValue('OK')
 
     const response = await request(app).get('/api/v1/schools')
 
-    expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
-    expect(response.body.meta).toBeDefined()
+    expectSchoolListResponse(response)
     expect(mockedRedis.get).toHaveBeenCalledWith('schools:list')
   })
 
   it('GET /api/v1/schools はRedis書き込み失敗時も正常にレスポンスを返す', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockResolvedValue(null)
     mockedRedis.setEx.mockRejectedValue(new Error('Redis write failed'))
 
     const response = await request(app).get('/api/v1/schools')
 
-    expect(response.status).toBe(200)
-    expect(Array.isArray(response.body.data)).toBe(true)
-    expect(response.body.meta).toBeDefined()
+    expectSchoolListResponse(response)
     expect(mockedRedis.get).toHaveBeenCalledWith('schools:list')
     expect(mockedRedis.setEx).toHaveBeenCalledTimes(1)
   })
 
-  it('GET /api/v1/schools/:id は存在する園の詳細を返す', async () => {
-    const schoolsResponse = await request(app).get('/api/v1/schools')
-    const firstSchool = schoolsResponse.body.data[0]
+  it('GET /api/v1/schools はRedis利用不可時もDB取得で正常レスポンスを返す', async () => {
+    mockRedisUnavailable()
 
-    expect(firstSchool).toBeDefined()
+    const response = await request(app).get('/api/v1/schools')
+
+    expectSchoolListResponse(response)
+    expect(mockedRedis.get).not.toHaveBeenCalled()
+    expect(mockedRedis.setEx).not.toHaveBeenCalled()
+  })
+
+  it('GET /api/v1/schools/:id は存在する園の詳細を返す', async () => {
+    const firstSchool = await getFirstSchool()
 
     const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
 
-    expect(response.status).toBe(200)
-    expect(response.body.data).toBeDefined()
-    expect(response.body.data.id).toBe(String(firstSchool.id))
-    expect(response.body.data.name).toBeDefined()
-    expect(response.body.data.supportInfo).toBeDefined()
+    expectSchoolDetailResponse(response, String(firstSchool.id))
+    expect(response.body.data?.name).toBeDefined()
   })
 
   it('GET /api/v1/schools/:id はキャッシュ未登録時にDB取得後Redisへ保存する', async () => {
-    const schoolsResponse = await request(app).get('/api/v1/schools')
-    const firstSchool = schoolsResponse.body.data[0]
-
-    expect(firstSchool).toBeDefined()
+    const firstSchool = await getFirstSchool()
 
     vi.clearAllMocks()
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockResolvedValue(null)
     mockedRedis.setEx.mockResolvedValue('OK')
 
     const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
 
-    expect(response.status).toBe(200)
-    expect(response.body.data).toBeDefined()
-    expect(response.body.data.id).toBe(String(firstSchool.id))
+    expectSchoolDetailResponse(response, String(firstSchool.id))
     expect(mockedRedis.get).toHaveBeenCalledWith(
       `schools:detail:${firstSchool.id}`
     )
@@ -295,7 +341,7 @@ describe('School API', () => {
   })
 
   it('GET /api/v1/schools/:id はキャッシュ登録済みの場合Redisの値を返す', async () => {
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
 
     const cachedBody = {
       data: {
@@ -322,13 +368,10 @@ describe('School API', () => {
   })
 
   it('GET /api/v1/schools/:id は認証ユーザー向けレスポンスをキャッシュ対象外にする', async () => {
-    const schoolsResponse = await request(app).get('/api/v1/schools')
-    const firstSchool = schoolsResponse.body.data[0]
-
-    expect(firstSchool).toBeDefined()
+    const firstSchool = await getFirstSchool()
 
     vi.clearAllMocks()
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockAuthenticatedUser()
     mockCurrentUser()
 
@@ -336,50 +379,57 @@ describe('School API', () => {
       .get(`/api/v1/schools/${firstSchool.id}`)
       .set('Authorization', 'Bearer test-token')
 
-    expect(response.status).toBe(200)
+    expectSchoolDetailResponse(response, String(firstSchool.id))
     expect(mockedRedis.get).not.toHaveBeenCalled()
     expect(mockedRedis.setEx).not.toHaveBeenCalled()
   })
 
   it('GET /api/v1/schools/:id はRedis読み取り失敗時もDB取得へフォールバックする', async () => {
-    const schoolsResponse = await request(app).get('/api/v1/schools')
-    const firstSchool = schoolsResponse.body.data[0]
-
-    expect(firstSchool).toBeDefined()
+    const firstSchool = await getFirstSchool()
 
     vi.clearAllMocks()
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockRejectedValue(new Error('Redis read failed'))
     mockedRedis.setEx.mockResolvedValue('OK')
 
     const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
 
-    expect(response.status).toBe(200)
-    expect(response.body.data).toBeDefined()
+    expectSchoolDetailResponse(response, String(firstSchool.id))
     expect(mockedRedis.get).toHaveBeenCalledWith(
       `schools:detail:${firstSchool.id}`
     )
   })
 
   it('GET /api/v1/schools/:id はRedis書き込み失敗時も正常にレスポンスを返す', async () => {
-    const schoolsResponse = await request(app).get('/api/v1/schools')
-    const firstSchool = schoolsResponse.body.data[0]
-
-    expect(firstSchool).toBeDefined()
+    const firstSchool = await getFirstSchool()
 
     vi.clearAllMocks()
-    mockedGetRedisAvailable.mockReturnValue(true)
+    mockRedisAvailable()
     mockedRedis.get.mockResolvedValue(null)
     mockedRedis.setEx.mockRejectedValue(new Error('Redis write failed'))
 
     const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
 
-    expect(response.status).toBe(200)
-    expect(response.body.data).toBeDefined()
+    expectSchoolDetailResponse(response, String(firstSchool.id))
     expect(mockedRedis.get).toHaveBeenCalledWith(
       `schools:detail:${firstSchool.id}`
     )
     expect(mockedRedis.setEx).toHaveBeenCalledTimes(1)
+  })
+
+  it('GET /api/v1/schools/:id はRedis利用不可時もDB取得で正常レスポンスを返す', async () => {
+    mockRedisUnavailable()
+
+    const firstSchool = await getFirstSchool()
+
+    vi.clearAllMocks()
+    mockRedisUnavailable()
+
+    const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
+
+    expectSchoolDetailResponse(response, String(firstSchool.id))
+    expect(mockedRedis.get).not.toHaveBeenCalled()
+    expect(mockedRedis.setEx).not.toHaveBeenCalled()
   })
 
   it('GET /api/v1/schools/:id は存在しない園IDの場合 404 を返す', async () => {
