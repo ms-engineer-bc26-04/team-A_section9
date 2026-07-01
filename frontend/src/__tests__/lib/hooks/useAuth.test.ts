@@ -1,6 +1,6 @@
 // frontend/src/__tests__/lib/hooks/useAuth.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { supabase } from '@/lib/supabase'
 
@@ -18,7 +18,6 @@ vi.mock('@/lib/supabase', () => ({
   },
 }))
 
-// fetch のモック（GET /api/v1/users/me 用）
 const mockGetSession = supabase.auth.getSession as ReturnType<typeof vi.fn>
 
 beforeEach(() => {
@@ -161,6 +160,136 @@ describe('useAuth', () => {
       expect(result.current.isPremium).toBe(false)
       // isLoggedIn はセッションがあれば true
       expect(result.current.isLoggedIn).toBe(true)
+    })
+  })
+
+  describe('onAuthStateChange コールバックの挙動', () => {
+    it('ログイン後にセッションが変わった場合、supabaseUser と appUser が更新される', async () => {
+      // 初回は未ログイン状態
+      mockGetSession.mockResolvedValue({
+        data: { session: null },
+      })
+
+      // onAuthStateChange のコールバックを手動で呼び出せるように保持する
+      let authChangeCallback: (
+        event: string,
+        session: { user: { id: string }; access_token: string } | null
+      ) => Promise<void>
+
+      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation(
+        (callback) => {
+          authChangeCallback = callback as typeof authChangeCallback
+          return { data: { subscription: { unsubscribe: vi.fn() } } } as never
+        }
+      )
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: {
+            id: 'user-5',
+            email: 'new@example.com',
+            name: 'ログイン後ユーザー',
+            subscriptionStatus: 'ACTIVE',
+          },
+        }),
+      })
+
+      const { result } = renderHook(() => useAuth())
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      // 初回は未ログイン
+      expect(result.current.isLoggedIn).toBe(false)
+
+      // onAuthStateChange コールバックを呼び出してログイン状態をシミュレート
+      await act(async () => {
+        await authChangeCallback!('SIGNED_IN', {
+          user: { id: 'user-5' },
+          access_token: 'new-token',
+        })
+      })
+
+      await waitFor(() => expect(result.current.isLoggedIn).toBe(true))
+      expect(result.current.isPremium).toBe(true)
+    })
+
+    it('ログアウト後に appUser が null にリセットされる', async () => {
+      // 初回はログイン状態
+      mockGetSession.mockResolvedValue({
+        data: {
+          session: {
+            user: { id: 'user-6' },
+            access_token: 'dummy-token',
+          },
+        },
+      })
+
+      let authChangeCallback: (event: string, session: null) => Promise<void>
+
+      vi.mocked(supabase.auth.onAuthStateChange).mockImplementation(
+        (callback) => {
+          authChangeCallback = callback as typeof authChangeCallback
+          return { data: { subscription: { unsubscribe: vi.fn() } } } as never
+        }
+      )
+
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: {
+            id: 'user-6',
+            email: 'logout@example.com',
+            name: 'ログアウトユーザー',
+            subscriptionStatus: null,
+          },
+        }),
+      })
+
+      const { result } = renderHook(() => useAuth())
+
+      await waitFor(() => expect(result.current.isLoggedIn).toBe(true))
+
+      // ログアウトをシミュレート（session: null）
+      await act(async () => {
+        await authChangeCallback!('SIGNED_OUT', null)
+      })
+
+      await waitFor(() => expect(result.current.isLoggedIn).toBe(false))
+      expect(result.current.appUser).toBeNull()
+      expect(result.current.isPremium).toBe(false)
+    })
+
+    it('fetchAppUser でネットワークエラーが発生しても appUser は null のまま続行する', async () => {
+      mockGetSession.mockResolvedValue({
+        data: {
+          session: {
+            user: { id: 'user-7' },
+            access_token: 'dummy-token',
+          },
+        },
+      })
+
+      // fetch 自体が例外を投げる(ネットワークエラー)
+      ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValue(
+        new Error('Network Error')
+      )
+
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      const { result } = renderHook(() => useAuth())
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      // 38行目: catch内のconsole.errorが呼ばれることを確認
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'ユーザー情報の取得に失敗しました',
+        expect.any(Error)
+      )
+      expect(result.current.appUser).toBeNull()
+      expect(result.current.isLoggedIn).toBe(true)
+
+      consoleSpy.mockRestore()
     })
   })
 })

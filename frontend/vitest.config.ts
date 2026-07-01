@@ -9,7 +9,21 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
     exclude: ['node_modules', 'e2e', '.next'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/__tests__/**',
+        'src/types/**',
+        'src/app/**', // Next.jsのページコンポーネントは対象外
+        'node_modules',
+        '.next',
+      ],
+    },
   },
   resolve: {
     alias: {
