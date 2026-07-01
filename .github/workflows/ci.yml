@@ -35,7 +35,7 @@ jobs:
         run: npm run format:check
 
   backend:
-    name: Backend lint and format
+    name: Backend lint, format and test
     runs-on: ubuntu-latest
 
     defaults:
@@ -61,3 +61,6 @@ jobs:
 
       - name: Run format check
         run: npm run format:check
+
+      - name: Run test
+        run: npm run test
