@@ -126,7 +126,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                   router.push('/admin/login')
                   onClose()
                 }}
-                className="border-2 border-[#a0cd83] text-[#a0cd83] font-extrabold text-sm px-6 py-2.5 rounded-full hover:bg-[#f2f8ee] active:bg-[#f2f8ee] transition-colors"
+                className="border-2 border-[#73c0ff] text-[#73c0ff] font-extrabold text-sm px-6 py-2.5 rounded-full hover:bg-[#EBF5FA] active:bg-[#EBF5FA] transition-colors"
               >
                 保育園の方はこちら
               </button>

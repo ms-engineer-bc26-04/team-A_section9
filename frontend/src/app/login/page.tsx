@@ -58,7 +58,7 @@ export default function LoginPage() {
         {/* 鍵アイコン */}
         <div className="flex justify-center mb-6">
           <Image
-            src="/images/icon9.png"
+            src="/images/icon19.png"
             alt="ログイン"
             width={80}
             height={80}
