@@ -5,6 +5,21 @@ const getApiUrl = () => {
   return process.env.NEXT_PUBLIC_API_URL
 }
 
+export async function getSchoolAdminMe(accessToken: string) {
+  const res = await fetch(`${getApiUrl()}/api/v1/school-admin/me`, {
+    cache: 'no-store',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  if (!res.ok) {
+    throw new Error('園管理者情報の取得に失敗しました')
+  }
+
+  return res.json()
+}
+
 export async function getSchoolAdminSchool(accessToken: string) {
   const res = await fetch(`${getApiUrl()}/api/v1/school-admin/school`, {
     cache: 'no-store',
