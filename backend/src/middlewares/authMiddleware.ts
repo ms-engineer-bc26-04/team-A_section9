@@ -39,19 +39,31 @@ export const authenticateSupabaseUser = async (
         },
       })
     }
-    await prisma.user.upsert({
+    const existingUser = await prisma.user.findFirst({
       where: {
-        supabaseUserId: user.id,
-      },
-      update: {
-        email: user.email ?? '',
-      },
-      create: {
-        supabaseUserId: user.id,
-        email: user.email ?? '',
-        planType: 'FREE',
+        OR: [{ supabaseUserId: user.id }, { email: user.email ?? '' }],
       },
     })
+
+    if (existingUser) {
+      await prisma.user.update({
+        where: {
+          id: existingUser.id,
+        },
+        data: {
+          supabaseUserId: user.id,
+          email: user.email ?? '',
+        },
+      })
+    } else {
+      await prisma.user.create({
+        data: {
+          supabaseUserId: user.id,
+          email: user.email ?? '',
+          planType: 'FREE',
+        },
+      })
+    }
 
     req.authUser = user
     next()

@@ -23,7 +23,12 @@ export const getSchoolAdminMe = async (
     }
 
     const data = await getSchoolAdminMeService(schoolAdmin.id)
-    return res.json({ data })
+    return res.json({
+      data: {
+        ...data,
+        id: String(data.id),
+      },
+    })
   } catch (error) {
     next(error)
   }
@@ -46,7 +51,12 @@ export const getManagedSchool = async (
     }
 
     const data = await getManagedSchoolService(schoolAdmin.schoolId)
-    return res.json({ data })
+    return res.json({
+      data: {
+        ...data,
+        id: String(data.id),
+      },
+    })
   } catch (error) {
     next(error)
   }
@@ -72,7 +82,12 @@ export const updateManagedSchool = async (
       req.body
     )
 
-    return res.json({ data })
+    return res.json({
+      data: {
+        ...data,
+        id: String(data.id),
+      },
+    })
   } catch (error) {
     next(error)
   }
