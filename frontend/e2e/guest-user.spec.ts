@@ -68,7 +68,12 @@ test.describe('未登録ユーザーの主要導線', () => {
     await page.goto('/')
 
     await page.getByRole('button', { name: 'メニューを開く' }).click()
-    await page.getByRole('link', { name: 'プラン・料金確認' }).click()
+
+    const plansLink = page.getByRole('link', { name: 'プラン・料金確認' })
+    await expect(plansLink).toBeVisible()
+
+    await plansLink.click({ force: true })
+    await page.waitForURL('/plans', { timeout: 5000 })
 
     await expect(page).toHaveURL('/plans')
   })

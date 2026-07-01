@@ -2,9 +2,7 @@
 //園データの型を定義。
 
 export type SchoolType =
-  | 'nursery'
-  | 'certified_childcare_center'
-  | 'small_scale_nursery'
+  'nursery' | 'certified_childcare_center' | 'small_scale_nursery'
 
 export type BurdenLevel = 'low' | 'middle' | 'high'
 

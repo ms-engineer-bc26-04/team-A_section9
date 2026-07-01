@@ -40,7 +40,8 @@ const emptyFavoritesResponse: FavoritesResponse = {
 }
 
 // 修正: 返り値を FavoriteSchool[] から FavoritesResponse に変更
-const favoritesFetcher = async (): Promise<FavoritesResponse> => {
+// テストのためにexportに変更
+export const favoritesFetcher = async (): Promise<FavoritesResponse> => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -61,11 +62,12 @@ const favoritesFetcher = async (): Promise<FavoritesResponse> => {
 
   const json = await res.json()
 
-  // 修正: APIレスポンスの data / favoriteCount / favoriteLimit を利用する
+  // 修正: APIレスポンスは data 配下に一覧、meta 配下に件数・上限が入る形式
+  // （API設計書 11-1 お気に入り一覧取得 のレスポンス形式に合わせる）
   return {
     favorites: json.data ?? [],
-    favoriteCount: json.favoriteCount ?? json.data?.length ?? 0,
-    favoriteLimit: json.favoriteLimit ?? null,
+    favoriteCount: json.meta?.favoriteCount ?? json.data?.length ?? 0,
+    favoriteLimit: json.meta?.favoriteLimit ?? null,
   }
 }
 

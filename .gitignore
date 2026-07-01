@@ -145,3 +145,10 @@ vite.config.ts.timestamp-*
 # .gitignore の中にこれを書いておく
 .DS_Store
 **/.DS_Store
+
+# Playwright
+/test-results/
+frontend/playwright/.auth/
+frontend/playwright-report/
+frontend/test-results/
+.env.test.local

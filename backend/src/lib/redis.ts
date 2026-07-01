@@ -6,15 +6,60 @@
 
 import { createClient } from 'redis'
 
+const REDIS_ERROR_LOG_INTERVAL_MS = 60_000
+
 export const redis = createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379',
+  socket: {
+    reconnectStrategy: (retries) => {
+      // Redis停止時に短時間で再接続を連打しすぎないよう、最大5秒まで待機する
+      return Math.min(retries * 500, 5_000)
+    },
+  },
 })
 
 let isRedisAvailable = false
+let lastRedisErrorLoggedAt = 0
+let hasLoggedRedisRecovered = false
+
+const markRedisUnavailable = () => {
+  isRedisAvailable = false
+  hasLoggedRedisRecovered = false
+}
+
+const logRedisErrorWithThrottle = (message: string, error: unknown) => {
+  const now = Date.now()
+
+  if (now - lastRedisErrorLoggedAt < REDIS_ERROR_LOG_INTERVAL_MS) {
+    return
+  }
+
+  lastRedisErrorLoggedAt = now
+  console.error(message, error)
+}
 
 redis.on('error', (error) => {
+  markRedisUnavailable()
+
+  logRedisErrorWithThrottle('Redis error. Continue without Redis cache.', error)
+})
+
+redis.on('ready', () => {
+  isRedisAvailable = true
+
+  if (!hasLoggedRedisRecovered) {
+    console.log('Redis connected')
+    hasLoggedRedisRecovered = true
+  }
+})
+
+redis.on('end', () => {
+  markRedisUnavailable()
+  console.warn('Redis connection closed. Continue without Redis cache.')
+})
+
+redis.on('reconnecting', () => {
   isRedisAvailable = false
-  console.error('Redis error:', error)
 })
 
 export const connectRedis = async () => {
@@ -24,10 +69,15 @@ export const connectRedis = async () => {
     }
 
     isRedisAvailable = true
-    console.log('Redis connected')
+
+    if (!hasLoggedRedisRecovered) {
+      console.log('Redis connected')
+      hasLoggedRedisRecovered = true
+    }
   } catch (error) {
-    isRedisAvailable = false
-    console.error(
+    markRedisUnavailable()
+
+    logRedisErrorWithThrottle(
       'Redis connection failed. Continue without Redis cache.',
       error
     )

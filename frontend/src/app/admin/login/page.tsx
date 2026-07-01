@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import AdminHeader from '@/components/admin/AdminHeader'
 import { supabase } from '@/lib/supabase'
+import { getSchoolAdminMe } from '@/lib/api/schoolAdmin'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -36,6 +37,26 @@ export default function AdminLoginPage() {
 
       if (authError) {
         setError('アカウントIDまたはパスワードが正しくありません')
+        return
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const accessToken = session?.access_token
+
+      if (!accessToken) {
+        setError('ログイン情報の取得に失敗しました')
+        await supabase.auth.signOut()
+        return
+      }
+
+      try {
+        await getSchoolAdminMe(accessToken)
+      } catch {
+        setError('園管理者として登録されていません')
+        await supabase.auth.signOut()
         return
       }
 
