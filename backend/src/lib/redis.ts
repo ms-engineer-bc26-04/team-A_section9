@@ -1,7 +1,9 @@
 // Redis利用方針
 // - GET /api/v1/schools の匿名ユーザー向け園一覧・検索結果をキャッシュ対象とする
-// - isFavorited / favoriteCount / favoriteLimit / isPremium / matchHighlights などのユーザー固有情報はキャッシュ対象外とする
+// - GET /api/v1/schools/:id の匿名ユーザー向け園詳細をキャッシュ対象とする
+// - isFavorited / favoriteCount / favoriteLimit / isPremium / matchHighlights / supportInfoの開放状態などのユーザー固有情報はキャッシュ対象外とする
 // - sort=recommended はユーザー住所・希望条件により結果が変わるため、MVPではキャッシュ対象外とする
+// - GET /api/v1/schools/compare は認証・会員区分による制御があるため、キャッシュ対象追加時は別途設計する
 // - Redis接続に失敗した場合でもAPI提供は継続し、DBから直接取得する方針とする
 
 import { createClient } from 'redis'

@@ -68,6 +68,32 @@ const mockedGetOrCreateCurrentUser = vi.mocked(getOrCreateCurrentUser)
 // 追加：認証ユーザー向けキャッシュ対象外テストでお気に入り取得のDB依存を避けるためにmock化した関数を扱う
 const mockedGetFavoritedSchoolIds = vi.mocked(getFavoritedSchoolIds)
 
+const mockAuthenticatedUser = () => {
+  mockedSupabase.auth.getUser.mockResolvedValue({
+    data: {
+      user: {
+        id: 'test-supabase-user-id',
+        email: 'test@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: '2026-06-30T00:00:00.000Z',
+      },
+    },
+    error: null,
+  } as never)
+}
+
+const mockCurrentUser = () => {
+  mockedGetOrCreateCurrentUser.mockResolvedValue({
+    id: 'test-user-id',
+    email: 'test@example.com',
+    planType: 'FREE',
+  } as never)
+
+  mockedGetFavoritedSchoolIds.mockResolvedValue(new Set<string>())
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 
@@ -187,31 +213,8 @@ describe('School API', () => {
 
   it('GET /api/v1/schools は認証ユーザー向けレスポンスをキャッシュ対象外にする', async () => {
     mockedGetRedisAvailable.mockReturnValue(true)
-
-    // 追加：Authorizationヘッダー付きリクエストを認証ユーザーとして扱う
-    mockedSupabase.auth.getUser.mockResolvedValue({
-      data: {
-        user: {
-          id: 'test-supabase-user-id',
-          email: 'test@example.com',
-          app_metadata: {},
-          user_metadata: {},
-          aud: 'authenticated',
-          created_at: '2026-06-30T00:00:00.000Z',
-        },
-      },
-      error: null,
-    } as never)
-
-    // 追加：認証後のアプリ側ユーザー取得・作成はmockで返し、DB制約に依存しない
-    mockedGetOrCreateCurrentUser.mockResolvedValue({
-      id: 'test-user-id',
-      email: 'test@example.com',
-      planType: 'FREE',
-    } as never)
-
-    // 追加：認証ユーザーのお気に入り取得はmockで空Setを返す
-    mockedGetFavoritedSchoolIds.mockResolvedValue(new Set<string>())
+    mockAuthenticatedUser()
+    mockCurrentUser()
 
     const response = await request(app)
       .get('/api/v1/schools')
@@ -262,6 +265,121 @@ describe('School API', () => {
     expect(response.body.data.id).toBe(String(firstSchool.id))
     expect(response.body.data.name).toBeDefined()
     expect(response.body.data.supportInfo).toBeDefined()
+  })
+
+  it('GET /api/v1/schools/:id はキャッシュ未登録時にDB取得後Redisへ保存する', async () => {
+    const schoolsResponse = await request(app).get('/api/v1/schools')
+    const firstSchool = schoolsResponse.body.data[0]
+
+    expect(firstSchool).toBeDefined()
+
+    vi.clearAllMocks()
+    mockedGetRedisAvailable.mockReturnValue(true)
+    mockedRedis.get.mockResolvedValue(null)
+    mockedRedis.setEx.mockResolvedValue('OK')
+
+    const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data).toBeDefined()
+    expect(response.body.data.id).toBe(String(firstSchool.id))
+    expect(mockedRedis.get).toHaveBeenCalledWith(
+      `schools:detail:${firstSchool.id}`
+    )
+    expect(mockedRedis.setEx).toHaveBeenCalledTimes(1)
+    expect(mockedRedis.setEx).toHaveBeenCalledWith(
+      `schools:detail:${firstSchool.id}`,
+      expect.any(Number),
+      JSON.stringify(response.body)
+    )
+  })
+
+  it('GET /api/v1/schools/:id はキャッシュ登録済みの場合Redisの値を返す', async () => {
+    mockedGetRedisAvailable.mockReturnValue(true)
+
+    const cachedBody = {
+      data: {
+        id: '1',
+        name: 'キャッシュ済み園',
+        supportInfo: {
+          isLocked: true,
+          contactBookType: null,
+          absenceContactMethod: null,
+          lessons: null,
+          allergySupport: null,
+        },
+      },
+    }
+
+    mockedRedis.get.mockResolvedValue(JSON.stringify(cachedBody))
+
+    const response = await request(app).get('/api/v1/schools/1')
+
+    expect(response.status).toBe(200)
+    expect(response.body).toEqual(cachedBody)
+    expect(mockedRedis.get).toHaveBeenCalledWith('schools:detail:1')
+    expect(mockedRedis.setEx).not.toHaveBeenCalled()
+  })
+
+  it('GET /api/v1/schools/:id は認証ユーザー向けレスポンスをキャッシュ対象外にする', async () => {
+    const schoolsResponse = await request(app).get('/api/v1/schools')
+    const firstSchool = schoolsResponse.body.data[0]
+
+    expect(firstSchool).toBeDefined()
+
+    vi.clearAllMocks()
+    mockedGetRedisAvailable.mockReturnValue(true)
+    mockAuthenticatedUser()
+    mockCurrentUser()
+
+    const response = await request(app)
+      .get(`/api/v1/schools/${firstSchool.id}`)
+      .set('Authorization', 'Bearer test-token')
+
+    expect(response.status).toBe(200)
+    expect(mockedRedis.get).not.toHaveBeenCalled()
+    expect(mockedRedis.setEx).not.toHaveBeenCalled()
+  })
+
+  it('GET /api/v1/schools/:id はRedis読み取り失敗時もDB取得へフォールバックする', async () => {
+    const schoolsResponse = await request(app).get('/api/v1/schools')
+    const firstSchool = schoolsResponse.body.data[0]
+
+    expect(firstSchool).toBeDefined()
+
+    vi.clearAllMocks()
+    mockedGetRedisAvailable.mockReturnValue(true)
+    mockedRedis.get.mockRejectedValue(new Error('Redis read failed'))
+    mockedRedis.setEx.mockResolvedValue('OK')
+
+    const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data).toBeDefined()
+    expect(mockedRedis.get).toHaveBeenCalledWith(
+      `schools:detail:${firstSchool.id}`
+    )
+  })
+
+  it('GET /api/v1/schools/:id はRedis書き込み失敗時も正常にレスポンスを返す', async () => {
+    const schoolsResponse = await request(app).get('/api/v1/schools')
+    const firstSchool = schoolsResponse.body.data[0]
+
+    expect(firstSchool).toBeDefined()
+
+    vi.clearAllMocks()
+    mockedGetRedisAvailable.mockReturnValue(true)
+    mockedRedis.get.mockResolvedValue(null)
+    mockedRedis.setEx.mockRejectedValue(new Error('Redis write failed'))
+
+    const response = await request(app).get(`/api/v1/schools/${firstSchool.id}`)
+
+    expect(response.status).toBe(200)
+    expect(response.body.data).toBeDefined()
+    expect(mockedRedis.get).toHaveBeenCalledWith(
+      `schools:detail:${firstSchool.id}`
+    )
+    expect(mockedRedis.setEx).toHaveBeenCalledTimes(1)
   })
 
   it('GET /api/v1/schools/:id は存在しない園IDの場合 404 を返す', async () => {
