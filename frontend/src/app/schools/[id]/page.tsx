@@ -52,12 +52,7 @@ type SchoolDetail = {
 export default function SchoolDetailPage() {
   const { id } = useParams()
   const router = useRouter()
-  const {
-    supabaseUser,
-    isLoggedIn,
-    isPremium,
-    isLoading: authLoading,
-  } = useAuth()
+  const { supabaseUser, isLoggedIn, isLoading: authLoading } = useAuth()
 
   const [school, setSchool] = useState<SchoolDetail | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -191,7 +186,6 @@ export default function SchoolDetailPage() {
         tags={school.tags}
         isFavorited={favorited}
         isLoggedIn={isLoggedIn}
-        isPremium={isPremium}
         onToggleFavorite={handleToggle}
         onVisit={() => router.push(`/schools/${id}/visit`)}
       />
@@ -217,7 +211,7 @@ export default function SchoolDetailPage() {
           onShowPremiumModal={() => setShowPremiumModal(true)}
         />
 
-        {isLoggedIn && isPremium && (
+        {isLoggedIn && (
           <SchoolContactForm
             contactMessage={contactMessage}
             isSending={isSending}
