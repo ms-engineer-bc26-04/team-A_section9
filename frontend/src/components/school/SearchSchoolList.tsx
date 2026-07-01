@@ -173,7 +173,7 @@ export default function SearchSchoolList({ searchParams }: Props) {
         <div className="flex flex-col items-center justify-center py-16 gap-4">
           <div className="relative w-36 h-36">
             <Image
-              src="/images/icons/icon10.png"
+              src="/images/icon10.png"
               alt="検索結果なし"
               fill
               sizes="144px"
