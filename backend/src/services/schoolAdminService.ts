@@ -1,4 +1,8 @@
 import { prisma } from '../lib/prisma'
+import { updateManagedSchoolBodySchema } from '../validators/schoolAdminValidator'
+import { z } from 'zod'
+
+type UpdateManagedSchoolInput = z.output<typeof updateManagedSchoolBodySchema>
 
 export const getSchoolAdminMeService = async (schoolAdminId: string) => {
   const schoolAdmin = await prisma.schoolAdmin.findUnique({
@@ -12,9 +16,7 @@ export const getSchoolAdminMeService = async (schoolAdminId: string) => {
       },
     },
   })
-
   if (!schoolAdmin) return null
-
   return {
     ...schoolAdmin,
     schoolId: schoolAdmin.schoolId.toString(),
@@ -31,9 +33,7 @@ export const getManagedSchoolService = async (schoolId: bigint) => {
   const school = await prisma.school.findUnique({
     where: { id: schoolId },
   })
-
   if (!school) return null
-
   return {
     ...school,
     id: school.id.toString(),
@@ -42,16 +42,7 @@ export const getManagedSchoolService = async (schoolId: bigint) => {
 
 export const updateManagedSchoolService = async (
   schoolId: bigint,
-  data: {
-    name?: string
-    area?: string
-    address?: string
-    phoneNumber?: string | null
-    imageUrl?: string | null
-    managerName?: string | null
-    contactPerson?: string | null
-    description?: string | null
-  }
+  data: UpdateManagedSchoolInput
 ) => {
   return prisma.school.update({
     where: {
