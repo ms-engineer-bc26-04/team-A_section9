@@ -48,6 +48,15 @@ const mockedGetOrCreateCurrentUser = vi.mocked(getOrCreateCurrentUser)
 const mockedAddUserFavorite = vi.mocked(addUserFavorite)
 const mockedDeleteUserFavorite = vi.mocked(deleteUserFavorite)
 
+const mockUserRecord = {
+  id: 'test-user-id',
+  supabaseUserId: 'test-supabase-user-id',
+  email: 'test@example.com',
+  planType: 'FREE',
+  createdAt: new Date('2026-06-30T00:00:00.000Z'),
+  updatedAt: new Date('2026-06-30T00:00:00.000Z'),
+}
+
 const mockAuthenticatedUser = () => {
   mockedSupabase.auth.getUser.mockResolvedValue({
     data: {
@@ -87,14 +96,13 @@ beforeEach(() => {
     error: null,
   } as never)
 
-  vi.spyOn(prisma.user, 'upsert').mockResolvedValue({
-    id: 'test-user-id',
-    supabaseUserId: 'test-supabase-user-id',
-    email: 'test@example.com',
-    planType: 'FREE',
-    createdAt: new Date('2026-06-30T00:00:00.000Z'),
-    updatedAt: new Date('2026-06-30T00:00:00.000Z'),
-  } as never)
+  // 修正箇所：
+  // 以前のテストでは prisma.user.upsert をmockしていたが、
+  // 現在の authMiddleware では findFirst / update / create を使っているため、
+  // 認証ありテストが実DB処理に進まないように3つをmockする。
+  vi.spyOn(prisma.user, 'findFirst').mockResolvedValue(mockUserRecord as never)
+  vi.spyOn(prisma.user, 'update').mockResolvedValue(mockUserRecord as never)
+  vi.spyOn(prisma.user, 'create').mockResolvedValue(mockUserRecord as never)
 
   mockCurrentUser()
 
