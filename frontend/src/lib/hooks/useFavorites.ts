@@ -40,7 +40,8 @@ const emptyFavoritesResponse: FavoritesResponse = {
 }
 
 // 修正: 返り値を FavoriteSchool[] から FavoritesResponse に変更
-const favoritesFetcher = async (): Promise<FavoritesResponse> => {
+// テストのためにexportに変更
+export const favoritesFetcher = async (): Promise<FavoritesResponse> => {
   const {
     data: { session },
   } = await supabase.auth.getSession()
