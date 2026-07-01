@@ -11,6 +11,7 @@ import { getOrCreateCurrentUser } from '../services/userService'
 import type { SchoolSearchQueryInput } from '../validators/schoolValidator'
 
 const SCHOOL_LIST_CACHE_TTL_SECONDS = 300
+const SCHOOL_DETAIL_CACHE_TTL_SECONDS = 300
 
 const SCHOOL_TYPE_TAGS: Record<string, string> = {
   NURSERY: '保育園',
@@ -194,6 +195,10 @@ const createSchoolsCacheKey = (query: SchoolSearchQueryInput) => {
   return queryString ? `schools:list?${queryString}` : 'schools:list'
 }
 
+const createSchoolDetailCacheKey = (schoolId: bigint) => {
+  return `schools:detail:${schoolId.toString()}`
+}
+
 const canUseSchoolsCache = (
   query: SchoolSearchQueryInput,
   user: Awaited<ReturnType<typeof getCurrentUserIfAuthenticated>>
@@ -285,6 +290,32 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
   try {
     const id = BigInt(String(req.params.id))
 
+    const user = await getCurrentUserIfAuthenticated(
+      req as AuthenticatedRequest
+    )
+
+    const useCache = !user && getRedisAvailable()
+    const cacheKey = createSchoolDetailCacheKey(id)
+
+    if (useCache) {
+      try {
+        const cachedResponse = await redis.get(cacheKey)
+
+        if (cachedResponse) {
+          req.log.info({ cacheKey }, 'school detail cache hit')
+          res.json(JSON.parse(cachedResponse))
+          return
+        }
+
+        req.log.info({ cacheKey }, 'school detail cache miss')
+      } catch (error) {
+        req.log.warn(
+          { error, cacheKey },
+          'Redis cache read failed. Fallback to DB.'
+        )
+      }
+    }
+
     const school = await getSchoolById(id)
 
     if (!school) {
@@ -297,21 +328,34 @@ export const getSchoolByIdController: RequestHandler = async (req, res) => {
       return
     }
 
-    const user = await getCurrentUserIfAuthenticated(
-      req as AuthenticatedRequest
-    )
-
     const favoritedSchoolIds = user
       ? await getFavoritedSchoolIds(user.id, [school.id])
       : new Set<string>()
 
-    res.json({
+    const responseBody = {
       data: toSchoolDetail(
         school,
         favoritedSchoolIds.has(school.id.toString()),
         isPremiumUser(user)
       ),
-    })
+    }
+
+    if (useCache) {
+      try {
+        await redis.setEx(
+          cacheKey,
+          SCHOOL_DETAIL_CACHE_TTL_SECONDS,
+          JSON.stringify(responseBody)
+        )
+      } catch (error) {
+        req.log.warn(
+          { error, cacheKey },
+          'Redis cache write failed. Continue without cache.'
+        )
+      }
+    }
+
+    res.json(responseBody)
   } catch (error) {
     req.log.error({ error }, 'Failed to fetch school detail')
 
