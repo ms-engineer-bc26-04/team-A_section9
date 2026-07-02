@@ -3,13 +3,19 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import Toast from '@/components/common/Toast'
+import { SchoolCardSkeleton } from '@/components/common/Skeleton'
+import { SchoolSummary } from '@/types/school'
 
 export default function VisitPage() {
   const { id } = useParams()
   const router = useRouter()
+
+  const [school, setSchool] = useState<SchoolSummary | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   const today = new Date()
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
@@ -36,6 +42,27 @@ export default function VisitPage() {
     '11月',
     '12月',
   ]
+
+  useEffect(() => {
+    const fetchSchool = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/schools/${id}`
+        )
+        if (!res.ok) return
+        const { data } = await res.json()
+        setSchool(data)
+      } catch {
+        // 取得に失敗した場合はNo Image表示のままにする
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (id) {
+      fetchSchool()
+    }
+  }, [id])
 
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate()
@@ -101,41 +128,58 @@ export default function VisitPage() {
       <h1 className="text-xl font-bold text-gray-800 mb-4">見学予約</h1>
 
       {/* 園情報カード */}
-      <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
-        <div className="w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 relative">
-          <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-            No Image
-          </div>
+      {isLoading ? (
+        <div className="mb-6">
+          <SchoolCardSkeleton />
         </div>
-        <div className="flex-1">
-          <p className="font-bold text-gray-800 text-sm">さくら保育園</p>
-          <p className="text-xs text-gray-500">東京都千代田区xxxxxx</p>
-          <div className="flex gap-1 mt-1">
-            <span className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full">
-              保育園
-            </span>
-            <span className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full">
-              毎日給食
-            </span>
+      ) : (
+        <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
+          <div className="relative w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+            {school?.imageUrl ? (
+              <Image
+                src={school.imageUrl}
+                alt={school.name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                No Image
+              </div>
+            )}
           </div>
+          <div className="flex-1">
+            <p className="font-bold text-gray-800 text-sm">{school?.name}</p>
+            <p className="text-xs text-gray-500">{school?.address}</p>
+            <div className="flex gap-1 mt-1">
+              {(school?.tags ?? []).map((tag) => (
+                <span
+                  key={tag}
+                  className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+          <button className="p-1">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#ccc"
+              strokeWidth={2}
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+              />
+            </svg>
+          </button>
         </div>
-        <button className="p-1">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#ccc"
-            strokeWidth={2}
-            className="w-6 h-6"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-            />
-          </svg>
-        </button>
-      </div>
+      )}
 
       {/* カレンダー */}
       <div className="border border-gray-200 rounded-xl p-4 mb-6">
@@ -143,7 +187,6 @@ export default function VisitPage() {
           見学希望日を選択してください
         </p>
 
-        {/* 月ナビゲーション */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={handlePrevMonth} className="text-gray-500 px-2 py-1">
             {'<'}
@@ -156,7 +199,6 @@ export default function VisitPage() {
           </button>
         </div>
 
-        {/* 曜日ヘッダー */}
         <div className="grid grid-cols-7 mb-2">
           {dayLabels.map((day) => (
             <div key={day} className="text-center text-xs text-gray-500 py-1">
@@ -165,7 +207,6 @@ export default function VisitPage() {
           ))}
         </div>
 
-        {/* 日付グリッド */}
         <div className="grid grid-cols-7">
           {Array.from({ length: firstDay }).map((_, i) => (
             <div key={`empty-${i}`} />
