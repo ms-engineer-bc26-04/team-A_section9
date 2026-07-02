@@ -13,7 +13,6 @@ type SchoolDetailHeaderProps = {
   tags: string[]
   isFavorited: boolean
   isLoggedIn: boolean
-  isPremium: boolean // 追加
   onToggleFavorite: (schoolId: number) => void
   onVisit: () => void
 }
@@ -34,7 +33,6 @@ export default function SchoolDetailHeader({
   tags,
   isFavorited,
   isLoggedIn,
-  isPremium, // 追加
   onToggleFavorite,
   onVisit,
 }: SchoolDetailHeaderProps) {
@@ -76,8 +74,8 @@ export default function SchoolDetailHeader({
           </div>
 
           <div className="flex flex-col items-end gap-2 flex-shrink-0">
-            {/* ログイン済み＋プレミアムのみ表示 */}
-            {isLoggedIn && isPremium && (
+            {/* ログイン済みユーザーに表示 */}
+            {isLoggedIn && (
               <button
                 onClick={onVisit}
                 className="bg-[#F5A623] text-white text-sm font-bold px-4 py-2 rounded-full"

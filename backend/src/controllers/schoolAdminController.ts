@@ -23,6 +23,15 @@ export const getSchoolAdminMe = async (
     }
 
     const data = await getSchoolAdminMeService(schoolAdmin.id)
+    if (!data) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: '園管理者情報が見つかりません',
+        },
+      })
+    }
+
     return res.json({
       data: {
         ...data,
@@ -51,6 +60,15 @@ export const getManagedSchool = async (
     }
 
     const data = await getManagedSchoolService(schoolAdmin.schoolId)
+    if (!data) {
+      return res.status(404).json({
+        error: {
+          code: 'NOT_FOUND',
+          message: '管理対象の園情報が見つかりません',
+        },
+      })
+    }
+
     return res.json({
       data: {
         ...data,

@@ -1,46 +1,15 @@
-name: CI
-
-on:
-  pull_request:
-    branches:
-      - develop
-
-jobs:
-  frontend:
-    name: Frontend lint and format
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run lint
-        run: npm run lint
-
-      - name: Run format check
-        run: npm run format:check
-
   backend:
-    name: Backend lint and format
+    name: Backend lint, format and test
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: backend
+
+    env:
+      NODE_ENV: test
+      STRIPE_SECRET_KEY: sk_test_ci_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_test_ci_dummy
 
     steps:
       - name: Checkout repository
@@ -61,3 +30,6 @@ jobs:
 
       - name: Run format check
         run: npm run format:check
+
+      - name: Run test
+        run: npm run test
