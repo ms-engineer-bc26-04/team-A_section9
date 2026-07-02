@@ -14,9 +14,9 @@ import RecommendedSchoolCard from '@/components/compare/RecommendedSchoolCard'
 import { CompareChartSkeleton } from '@/components/common/Skeleton'
 
 const burdenToValue = (level: string) => {
-  if (level === 'LOW') return 1
+  if (level === 'LOW') return 3
   if (level === 'MEDIUM') return 2
-  return 3
+  return 1
 }
 
 export default function CompareChartPage() {
