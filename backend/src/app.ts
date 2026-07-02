@@ -15,8 +15,17 @@ const app = express()
 const isProduction = process.env.NODE_ENV === 'production'
 const rateLimitMax = isProduction ? 100 : 1000
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[]
+
 app.use(helmet())
-app.use(cors({ origin: process.env.FRONTEND_URL }))
+app.use(
+  cors({
+    origin: allowedOrigins,
+  })
+)
 
 // 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
 // 不要に 429 にならないよう上限を緩める
@@ -48,4 +57,5 @@ app.use('/api/v1/users', favoriteRoutes)
 app.use('/api/v1/payment', paymentRoutes)
 app.use('/api/v1/address', addressRoutes)
 app.use('/api/v1/school-admin', schoolAdminRoutes)
+
 export default app
