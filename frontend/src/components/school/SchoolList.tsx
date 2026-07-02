@@ -3,9 +3,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import SchoolCard from './SchoolCard'
 import EmptyState from '@/components/common/EmptyState'
 import Toast from '@/components/common/Toast'
+import Modal from '@/components/common/Modal'
+import Button from '@/components/common/Button'
 import { useAuth } from '@/lib/hooks/useAuth'
 import { getSchools } from '@/lib/api/schools'
 import { useFavorites } from '@/lib/hooks/useFavorites'
@@ -14,14 +17,16 @@ import { SchoolCardSkeleton } from '@/components/common/Skeleton'
 import { supabase } from '@/lib/supabase'
 
 export default function SchoolList() {
-  const { isLoggedIn, isLoading: isAuthLoading } = useAuth()
+  const { isLoggedIn, isLoading: isAuthLoading, isPremium } = useAuth()
   const [schools, setSchools] = useState<SchoolSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isLimitModalOpen, setIsLimitModalOpen] = useState(false)
   const [toast, setToast] = useState<{
     message: string
     type: 'success' | 'error' | 'warning'
   } | null>(null)
+  const router = useRouter()
 
   const { isFavorited, addFavorite, removeFavorite } = useFavorites(isLoggedIn)
 
@@ -58,7 +63,7 @@ export default function SchoolList() {
     return () => clearTimeout(timer)
   }, [fetchSchools])
 
-  //
+  // 修正：お気に入り上限超過時はSearchSchoolList.tsxと同じくモーダルで案内する
   const handleToggleFavorite = async (schoolId: number) => {
     if (!isLoggedIn) return
 
@@ -75,10 +80,11 @@ export default function SchoolList() {
     } catch (e: unknown) {
       const code = e instanceof Error ? e.message : ''
       if (code === 'FAVORITE_LIMIT_EXCEEDED') {
-        setToast({
-          message: 'お気に入りは5件まで登録できます。プレミアムで無制限に',
-          type: 'warning',
-        })
+        if (isPremium) {
+          setToast({ message: 'お気に入りの更新に失敗しました', type: 'error' })
+        } else {
+          setIsLimitModalOpen(true)
+        }
       } else {
         setToast({
           message: 'お気に入りの更新に失敗しました',
@@ -114,6 +120,37 @@ export default function SchoolList() {
 
   return (
     <>
+      <Modal
+        isOpen={isLimitModalOpen}
+        onClose={() => setIsLimitModalOpen(false)}
+        title="お気に入りの上限に達しました"
+      >
+        <div className="flex flex-col gap-4">
+          <p className="text-gray-600 text-sm text-center">
+            お気に入りは5件まで登録できます。
+            <br />
+            プレミアムに登録後、無制限に登録できます。
+          </p>
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full"
+            onClick={() => {
+              setIsLimitModalOpen(false)
+              router.push('/plans')
+            }}
+          >
+            プランを確認する
+          </Button>
+          <button
+            onClick={() => setIsLimitModalOpen(false)}
+            className="text-gray-400 text-sm text-center"
+          >
+            キャンセル
+          </button>
+        </div>
+      </Modal>
+
       {toast && (
         <Toast
           message={toast.message}

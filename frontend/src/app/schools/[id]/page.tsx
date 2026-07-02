@@ -187,7 +187,21 @@ export default function SchoolDetailPage() {
         isFavorited={favorited}
         isLoggedIn={isLoggedIn}
         onToggleFavorite={handleToggle}
-        onVisit={() => router.push(`/schools/${id}/visit`)}
+        onVisit={() => {
+          sessionStorage.setItem(
+            'visitSchool',
+            JSON.stringify({
+              id: school.id,
+              name: school.name,
+              address: school.address,
+              phoneNumber: school.phoneNumber,
+              imageUrl: school.imageUrl,
+              tags: school.tags,
+              isFavorited: favorited,
+            })
+          )
+          router.push(`/schools/${id}/visit`)
+        }}
       />
 
       <div className="px-4">

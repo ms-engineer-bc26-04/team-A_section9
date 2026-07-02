@@ -31,9 +31,10 @@ export default function Toast({
   return (
     <div
       className={`
-        fixed top-4 left-1/2 -translate-x-1/2 z-50
-        px-6 py-3 rounded-full shadow-lg
-        font-bold text-sm
+        fixed top-4 left-3 right-3 z-50
+        mx-auto w-fit max-w-full
+        px-4 py-2.5 rounded-2xl shadow-lg
+        font-bold text-sm text-center whitespace-pre-line
         ${typeStyles[type]}
       `}
     >

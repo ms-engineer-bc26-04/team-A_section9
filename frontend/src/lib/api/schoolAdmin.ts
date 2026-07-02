@@ -1,3 +1,4 @@
+// 園管理者（School Admin）のAPIを叩く関数群
 // src/lib/api/schoolAdmin.ts
 const getApiUrl = () => {
   if (typeof window === 'undefined') {

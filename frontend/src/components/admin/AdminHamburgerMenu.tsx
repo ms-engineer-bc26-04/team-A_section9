@@ -52,23 +52,27 @@ export default function AdminHamburgerMenu({
               <span className="block w-6 h-0.5 bg-white" />
             </button>
           </div>
-          {/* ログインページのみ「ホームに戻る」を表示 */}
+          {/* ログインページのみ「ENKATSUホーム画面に戻る」を表示 */}
           {isLoginPage ? (
-            <div className="px-6 py-5">
+            <div className="px-6 py-5 flex justify-center">
               <button
                 onClick={() => {
                   router.push('/')
                   onClose()
                 }}
-                className="bg-[#73c0ff] text-white font-extrabold text-sm px-6 py-2.5 rounded-full hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors"
+                className="w-full max-w-[283px] bg-white text-[#a0cd83] font-extrabold text-base rounded-full py-2.5 border-2 border-[#a0cd83] hover:bg-[#a0cd83]/10 active:bg-[#a0cd83]/10 transition-colors"
               >
-                ホームに戻る
+                ENKATSUホーム画面に戻る
               </button>
             </div>
           ) : (
             <div className="px-6 pt-4 pb-6">
+              {/* 修正：園名・担当者名を2行に分けて表示 */}
               <p className="font-bold text-gray-800 text-2xl">
-                {schoolName ?? '●●保育園'}　{staffName ?? '●●'}さん
+                {schoolName ?? '○○保育園'}
+              </p>
+              <p className="font-bold text-gray-800 text-lg mt-1">
+                担当者名：{staffName ?? '○○'}さん
               </p>
             </div>
           )}

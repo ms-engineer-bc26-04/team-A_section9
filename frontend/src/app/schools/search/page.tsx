@@ -1,7 +1,6 @@
 // /schools/search の検索結果画面
 // src/app/schools/search/page.tsx
-import SearchBar from '@/components/school/SearchBar'
-import FilterPanel from '@/components/school/FilterPanel'
+import SchoolSearchForm from '@/components/school/SchoolSearchForm'
 import SearchSchoolList from '@/components/school/SearchSchoolList'
 
 type Props = {
@@ -15,18 +14,16 @@ export default async function SearchPage({ searchParams }: Props) {
     <div className="flex flex-col min-h-screen">
       {/* 検索フォームセクション */}
       <div className="bg-white px-4 pt-4 pb-4 border-b border-gray-100">
-        <div className="max-w-2xl mx-auto flex flex-col gap-3">
-          <SearchBar
-            defaultValue={
+        <div className="max-w-2xl mx-auto">
+          <SchoolSearchForm
+            defaultKeyword={
               typeof params.keyword === 'string' ? params.keyword : ''
             }
-          />
-          <FilterPanel
             defaultFilters={{
               hasLunch: params.hasLunch === 'true',
               diaperDisposal: params.diaperDisposal === 'true',
               noBedding: params.noBedding === 'true',
-              extendedCareUntil19: params.extendedCareUntil19 === 'true',
+              extendedCareUsage: params.extendedCareUsage === 'true',
               noWeekdayEvents: params.noWeekdayEvents === 'true',
               noPTA: params.noPTA === 'true',
               hasClub: params.hasClub === 'true',

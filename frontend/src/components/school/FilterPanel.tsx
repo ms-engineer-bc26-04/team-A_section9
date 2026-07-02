@@ -1,13 +1,11 @@
 // src/components/school/FilterPanel.tsx
-//「条件で検索」の開閉パネル。毎日給食・おむつ廃棄などのチェックボックス群
+//「条件で検索」の開閉パネル。毎日給食・おむつ廃棄などのチェックボックス群（controlled）
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion' // ← 追加
-import Button from '@/components/common/Button'
+import { motion, AnimatePresence } from 'framer-motion'
 
-const FILTER_OPTIONS = [
+export const FILTER_OPTIONS = [
   { key: 'hasLunch', label: '毎日給食' },
   { key: 'hasClub', label: '園内習い事あり' },
   { key: 'diaperDisposal', label: 'おむつ園処理あり' },
@@ -19,25 +17,15 @@ const FILTER_OPTIONS = [
 ]
 
 type FilterPanelProps = {
-  defaultFilters?: Record<string, boolean>
+  value: Record<string, boolean>
+  onChange: (value: Record<string, boolean>) => void
 }
 
-export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
+export default function FilterPanel({ value, onChange }: FilterPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [filters, setFilters] =
-    useState<Record<string, boolean>>(defaultFilters)
-  const router = useRouter()
 
   const toggleFilter = (key: string) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  const handleSearch = () => {
-    const params = new URLSearchParams()
-    Object.entries(filters).forEach(([key, value]) => {
-      if (value) params.set(key, 'true')
-    })
-    router.push(`/schools/search?${params.toString()}`)
+    onChange({ ...value, [key]: !value[key] })
   }
 
   return (
@@ -50,7 +38,6 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
         {isOpen ? '▲' : '▼'} 条件で検索
       </button>
 
-      {/* ↓ ここだけ変更：AnimatePresence + motion.div で囲む */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -69,19 +56,13 @@ export default function FilterPanel({ defaultFilters = {} }: FilterPanelProps) {
                   >
                     <input
                       type="checkbox"
-                      checked={!!filters[option.key]}
+                      checked={!!value[option.key]}
                       onChange={() => toggleFilter(option.key)}
                       className="w-3.5 h-3.5 accent-primary"
                     />
                     {option.label}
                   </label>
                 ))}
-              </div>
-
-              <div className="flex justify-end mt-1">
-                <Button variant="primary" size="sm" onClick={handleSearch}>
-                  検索
-                </Button>
               </div>
             </div>
           </motion.div>

@@ -71,18 +71,9 @@ export default function AdminLoginPage() {
   return (
     <>
       <AdminHeader />
-      <div className="min-h-screen bg-white pt-4">
+      <div className="min-h-screen bg-white pt-15">
         <div className="max-w-2xl mx-auto px-4 pb-10">
-          <div className="mb-4">
-            <button
-              onClick={() => router.back()}
-              className="text-sm text-gray-500 flex items-center gap-1"
-            >
-              ＜戻る
-            </button>
-          </div>
-
-          <div className="flex flex-col items-center mb-8">
+          <div className="flex flex-col items-center mb-8 mt-4">
             <h1 className="text-2xl font-bold text-gray-500 text-center mb-6">
               保育園管理者サイト
               <br />

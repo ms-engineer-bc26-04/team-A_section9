@@ -135,7 +135,8 @@ export default function SearchSchoolList({ searchParams }: Props) {
         <div className="flex flex-col gap-4">
           <p className="text-gray-600 text-sm text-center">
             お気に入りは5件まで登録できます。
-            プレミアムに登録すると無制限に登録できます。
+            <br />
+            プレミアムに登録後、無制限に登録できます。
           </p>
           <Button
             variant="primary"
