@@ -3,19 +3,36 @@
 
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Toast from '@/components/common/Toast'
-import { SchoolCardSkeleton } from '@/components/common/Skeleton'
-import { SchoolSummary } from '@/types/school'
+import FavoriteButton from '@/components/school/FavoriteButton'
+import { useAuth } from '@/lib/hooks/useAuth'
+import { useFavorites } from '@/lib/hooks/useFavorites'
+
+type VisitSchool = {
+  id: number
+  name: string
+  address: string
+  phoneNumber: string | null
+  imageUrl: string | null
+  tags?: string[]
+  isFavorited: boolean
+}
 
 export default function VisitPage() {
   const { id } = useParams()
   const router = useRouter()
+  const { isLoggedIn } = useAuth()
+  const { addFavorite, removeFavorite } = useFavorites(isLoggedIn)
 
-  const [school, setSchool] = useState<SchoolSummary | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [school] = useState<VisitSchool | null>(() => {
+    if (typeof window === 'undefined') return null
+    const stored = sessionStorage.getItem('visitSchool')
+    return stored ? JSON.parse(stored) : null
+  })
+  const [favorited, setFavorited] = useState(school?.isFavorited ?? false)
 
   const today = new Date()
   const [currentYear, setCurrentYear] = useState(today.getFullYear())
@@ -43,26 +60,30 @@ export default function VisitPage() {
     '12月',
   ]
 
-  useEffect(() => {
-    const fetchSchool = async () => {
-      try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/v1/schools/${id}`
-        )
-        if (!res.ok) return
-        const { data } = await res.json()
-        setSchool(data)
-      } catch {
-        // 取得に失敗した場合はNo Image表示のままにする
-      } finally {
-        setIsLoading(false)
+  const handleToggleFavorite = async () => {
+    if (!school) return
+    try {
+      if (favorited) {
+        await removeFavorite(school.id)
+        setFavorited(false)
+        setToast({ message: 'お気に入りを解除しました', type: 'success' })
+      } else {
+        await addFavorite(school.id)
+        setFavorited(true)
+        setToast({ message: 'お気に入りに追加しました', type: 'success' })
+      }
+    } catch (e: unknown) {
+      const code = e instanceof Error ? e.message : ''
+      if (code === 'FAVORITE_LIMIT_EXCEEDED') {
+        setToast({
+          message: 'お気に入りは5件まで。プレミアムで無制限に',
+          type: 'warning',
+        })
+      } else {
+        setToast({ message: 'エラーが発生しました', type: 'error' })
       }
     }
-
-    if (id) {
-      fetchSchool()
-    }
-  }, [id])
+  }
 
   const getDaysInMonth = (year: number, month: number) => {
     return new Date(year, month + 1, 0).getDate()
@@ -128,58 +149,49 @@ export default function VisitPage() {
       <h1 className="text-xl font-bold text-gray-800 mb-4">見学予約</h1>
 
       {/* 園情報カード */}
-      {isLoading ? (
-        <div className="mb-6">
-          <SchoolCardSkeleton />
-        </div>
-      ) : (
-        <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
-          <div className="relative w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-            {school?.imageUrl ? (
-              <Image
-                src={school.imageUrl}
-                alt={school.name}
-                fill
-                className="object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                No Image
-              </div>
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-gray-800 text-sm">{school?.name}</p>
-            <p className="text-xs text-gray-500">{school?.address}</p>
-            <div className="flex gap-1 mt-1">
-              {(school?.tags ?? []).map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
-                >
-                  {tag}
-                </span>
-              ))}
+      <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
+        <div className="relative w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+          {school?.imageUrl ? (
+            <Image
+              src={school.imageUrl}
+              alt={school.name}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+              No Image
             </div>
-          </div>
-          <button className="p-1">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#ccc"
-              strokeWidth={2}
-              className="w-6 h-6"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
-              />
-            </svg>
-          </button>
+          )}
         </div>
-      )}
+        <div className="flex-1">
+          <p className="font-bold text-gray-800 text-sm">{school?.name}</p>
+          <p className="text-xs text-gray-500">{school?.address}</p>
+          {school?.phoneNumber && (
+            <p className="text-gray-500 text-xs">
+              電話番号：{school.phoneNumber}
+            </p>
+          )}
+          <div className="flex gap-1 mt-1">
+            {(school?.tags ?? []).map((tag) => (
+              <span
+                key={tag}
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+        {school && (
+          <FavoriteButton
+            schoolId={school.id}
+            isFavorited={favorited}
+            isLoggedIn={isLoggedIn}
+            onToggle={handleToggleFavorite}
+          />
+        )}
+      </div>
 
       {/* カレンダー */}
       <div className="border border-gray-200 rounded-xl p-4 mb-6">
