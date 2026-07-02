@@ -63,14 +63,13 @@ const MOCK_VISITS = [
 type Tab = 'contacts' | 'visits'
 
 // 未取得時のプレースホルダー表示
-const FALLBACK_SCHOOL_NAME = '○○保育園'
-const FALLBACK_STAFF_NAME = '○○'
+const FALLBACK_SCHOOL_NAME = '●●保育園'
+const FALLBACK_STAFF_NAME = '●●●●'
 
 export default function AdminPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('contacts')
 
-  // 修正：GET /school-admin/school から園名・担当者名を動的取得
   const [schoolName, setSchoolName] = useState(FALLBACK_SCHOOL_NAME)
   const [staffName, setStaffName] = useState(FALLBACK_STAFF_NAME)
   const [isMeLoading, setIsMeLoading] = useState(true)
@@ -89,14 +88,12 @@ export default function AdminPage() {
           return
         }
 
-        // GET /school-admin/school のレスポンス： { data: { name, contactPerson, ... } }
         const res = await getSchoolAdminSchool(accessToken)
         const school = res.data
 
         setSchoolName(school?.name ?? FALLBACK_SCHOOL_NAME)
         setStaffName(school?.contactPerson ?? FALLBACK_STAFF_NAME)
       } catch {
-        // 未ログイン・園管理者未登録の場合はログイン画面へ
         router.push('/admin/login')
       } finally {
         setIsMeLoading(false)
@@ -110,10 +107,12 @@ export default function AdminPage() {
     <>
       <AdminHeader schoolName={schoolName} staffName={staffName} />
 
-      {/* 修正：pt-14 から pt-4 に縮小してヘッダーとの隙間を狭く */}
-      <div className="min-h-screen bg-white pt-4">
+      {/* 修正：flex flex-col にし、水色エリアをflex-1で残り全部の高さに広げる
+          （min-h-[calc(100vh-350px)]という固定値だと、上部の実際の高さとズレて
+          画面下部が白く切れてしまっていたため） */}
+      <div className="min-h-screen bg-white pt-4 flex flex-col">
         {/* 上部コンテンツ（白背景エリア） */}
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto w-full">
           {/* 園情報カード */}
           <div className="mx-4 mt-2 bg-[#73c0ff] rounded-xl px-4 py-4 flex items-center gap-4">
             <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0 relative">
@@ -145,10 +144,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* 修正：ボーダーを画面いっぱい（またはmax-w）に伸ばすため、タブコンテナを分離 */}
         {/* タブ（白背景） */}
         <div className="mt-4 border-b border-gray-300">
-          {/* 修正：内側の要素を中央寄せ＆左右の余白（px-4）にすることで下線を最大化 */}
           <div className="max-w-2xl mx-auto px-4 flex pt-2">
             <button
               onClick={() => setActiveTab('contacts')}
@@ -157,7 +154,6 @@ export default function AdminPage() {
               }`}
             >
               お問い合わせ一覧
-              {/* 修正：アクティブ時の下線を文字幅ではなくボタン幅いっぱいにフィットさせる */}
               {activeTab === 'contacts' && (
                 <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#73c0ff]" />
               )}
@@ -176,9 +172,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* 修正：水色背景がPCでも途切れないよう、外側を幅いっぱいにし、内側に max-w-2xl を配置 */}
-        {/* 一覧エリア（水色背景：タブの下から） */}
-        <div className="bg-[#ddf0ff] min-h-[calc(100vh-350px)]">
+        {/* 一覧エリア（水色背景：タブの下から画面下部まで） */}
+        <div className="bg-[#ddf0ff] flex-1">
           <div className="max-w-2xl mx-auto">
             {/* お問い合わせ一覧 */}
             {activeTab === 'contacts' && (

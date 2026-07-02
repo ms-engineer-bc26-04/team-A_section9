@@ -38,9 +38,21 @@ const LEGEND_BORDER_STYLES: ('solid' | 'dashed' | 'dotted')[] = [
 // 修正：項目名を「〜の少なさ／しやすさ」に統一（値が大きい＝チャートが大きいほど良い、という向きに合わせた表現）
 // 追加：linesで改行位置を明示的に指定（「の」の有無に関わらず狙った位置で2行にできる）
 const AXES = [
-  { key: 'lifeBurdenLevel', label: '生活のしやすさ', lines: ['生活の', 'しやすさ'] },
-  { key: 'timeBurdenLevel', label: '時間的な余裕', lines: ['時間的な', '余裕'] },
-  { key: 'itemBurdenLevel', label: '持ち物の少なさ', lines: ['持ち物の', '少なさ'] },
+  {
+    key: 'lifeBurdenLevel',
+    label: '生活のしやすさ',
+    lines: ['生活の', 'しやすさ'],
+  },
+  {
+    key: 'timeBurdenLevel',
+    label: '時間的な余裕',
+    lines: ['時間的な', '余裕'],
+  },
+  {
+    key: 'itemBurdenLevel',
+    label: '持ち物の少なさ',
+    lines: ['持ち物の', '少なさ'],
+  },
   {
     key: 'weekdayEventsLevel',
     label: '平日行事の少なさ',
@@ -109,14 +121,15 @@ export default function BurdenRadarChart({ schools }: BurdenRadarChartProps) {
               tick={(props) => {
                 // 修正：x座標のしきい値による自前判定をやめ、rechartsが角度から算出する
                 // textAnchorをそのまま使う（画面幅が変わっても向きがずれない）
-                const { x, y, cx, cy, textAnchor, payload } = props as unknown as {
-                  x: number
-                  y: number
-                  cx: number
-                  cy: number
-                  textAnchor: 'start' | 'middle' | 'end'
-                  payload: { value: string }
-                }
+                const { x, y, cx, cy, textAnchor, payload } =
+                  props as unknown as {
+                    x: number
+                    y: number
+                    cx: number
+                    cy: number
+                    textAnchor: 'start' | 'middle' | 'end'
+                    payload: { value: string }
+                  }
 
                 // 追加：中心(cx,cy)から見た方向へラベルを少し押し出し、チャート本体との隙間を作る
                 const LABEL_OFFSET = 12
