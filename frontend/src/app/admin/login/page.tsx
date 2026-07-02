@@ -135,6 +135,14 @@ export default function AdminLoginPage() {
             >
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </button>
+
+            {/* 追加：ENKATSUホーム画面に戻るボタン（Figma node-id=113-1200） */}
+            <button
+              onClick={() => router.push('/')}
+              className="w-full bg-white text-[#a0cd83] font-extrabold rounded-full py-3 text-base border-2 border-[#a0cd83] hover:bg-[#a0cd83]/10 active:bg-[#a0cd83]/10 transition-colors mt-2"
+            >
+              ENKATSUホーム画面に戻る
+            </button>
           </div>
         </div>
       </div>

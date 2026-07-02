@@ -2,10 +2,12 @@
 // src/app/admin/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import AdminHeader from '@/components/admin/AdminHeader'
+import { supabase } from '@/lib/supabase'
+import { getSchoolAdminSchool } from '@/lib/api/schoolAdmin'
 
 const MOCK_CONTACTS = [
   {
@@ -60,12 +62,49 @@ const MOCK_VISITS = [
 
 type Tab = 'contacts' | 'visits'
 
+// 未取得時のプレースホルダー表示
+const FALLBACK_SCHOOL_NAME = '○○保育園'
+const FALLBACK_STAFF_NAME = '○○'
+
 export default function AdminPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<Tab>('contacts')
 
-  const schoolName = '●●保育園'
-  const staffName = '●●●●'
+  // 修正：GET /school-admin/school から園名・担当者名を動的取得
+  const [schoolName, setSchoolName] = useState(FALLBACK_SCHOOL_NAME)
+  const [staffName, setStaffName] = useState(FALLBACK_STAFF_NAME)
+  const [isMeLoading, setIsMeLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchMe = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        const accessToken = session?.access_token
+
+        if (!accessToken) {
+          router.push('/admin/login')
+          return
+        }
+
+        // GET /school-admin/school のレスポンス： { data: { name, contactPerson, ... } }
+        const res = await getSchoolAdminSchool(accessToken)
+        const school = res.data
+
+        setSchoolName(school?.name ?? FALLBACK_SCHOOL_NAME)
+        setStaffName(school?.contactPerson ?? FALLBACK_STAFF_NAME)
+      } catch {
+        // 未ログイン・園管理者未登録の場合はログイン画面へ
+        router.push('/admin/login')
+      } finally {
+        setIsMeLoading(false)
+      }
+    }
+
+    fetchMe()
+  }, [router])
 
   return (
     <>
@@ -86,8 +125,12 @@ export default function AdminPage() {
               />
             </div>
             <div className="flex-1">
-              <p className="text-white font-extrabold text-2xl">{schoolName}</p>
-              <p className="text-white text-sm">担当者名：{staffName}</p>
+              <p className="text-white font-extrabold text-2xl">
+                {isMeLoading ? FALLBACK_SCHOOL_NAME : schoolName}
+              </p>
+              <p className="text-white text-sm">
+                担当者名：{isMeLoading ? FALLBACK_STAFF_NAME : staffName}
+              </p>
             </div>
           </div>
 
