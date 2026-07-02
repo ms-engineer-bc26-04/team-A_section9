@@ -1,29 +1,24 @@
 // src/components/school/SearchBar.tsx
-//園名・住所を入力して検索するテキストボックス＋検索ボタン
+//園名・住所を入力するテキストボックス（controlled）
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-
 type SearchBarProps = {
-  defaultValue?: string
+  value: string
+  onChange: (value: string) => void
+  onSubmit: () => void
 }
 
-export default function SearchBar({ defaultValue = '' }: SearchBarProps) {
-  const [keyword, setKeyword] = useState(defaultValue)
-  const router = useRouter()
-
-  const handleSearch = () => {
-    if (!keyword.trim()) return
-    router.push(`/schools/search?keyword=${encodeURIComponent(keyword)}`)
-  }
-
+export default function SearchBar({
+  value,
+  onChange,
+  onSubmit,
+}: SearchBarProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch()
+    if (e.key === 'Enter') onSubmit()
   }
 
   return (
-    <div className="flex items-center gap-2 bg-white border border-gray-300 rounded-full px-3 py-2">
+    <div className="flex-1 flex items-center gap-2 bg-white border border-gray-300 rounded-full px-3 py-2">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="w-4 h-4 text-primary flex-shrink-0"
@@ -40,8 +35,8 @@ export default function SearchBar({ defaultValue = '' }: SearchBarProps) {
       </svg>
       <input
         type="text"
-        value={keyword}
-        onChange={(e) => setKeyword(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="園の名前か住所で検索"
         className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400 bg-transparent"

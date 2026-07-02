@@ -1,81 +1,15 @@
 // 選択した2〜3園を横並びで比較表示するテーブル
 // src/components/compare/CompareTable.tsx
-import Image from 'next/image'
-
-type SupportInfo = {
-  contactBookType: string | null
-  absenceContactMethod: string | null
-  lessons: string | null
-  allergySupport: string | null
-}
-
-type CompareSchool = {
-  id: string
-  name: string
-  area: string
-  schoolType: string
-  imageUrl: string | null // ← 追加
-  lifeBurdenLevel: string // ← 追加
-  timeBurdenLevel: string // ← 追加
-  itemBurdenLevel: string // ← 追加
-  weekdayEventsLevel: string // ← 追加
-  parentAssociationLevel: string // ← 追加
-  lifeBurden: {
-    mealType: string
-    itemBurdenDetail: string
-    diaperSupport: string | null
-    futonSupport: string | null
-  }
-  timeBurden: {
-    extendedCareTime: string | null
-    extendedCareUsage: string
-    weekdayEvents: string
-    parentAssociationFrequency: string
-  }
-  supportInfo?: SupportInfo | null
-}
-
-type MatchHighlights = {
-  [schoolId: string]: {
-    mealType: boolean
-    itemBurdenLevel: boolean
-    diaperSupport: boolean
-    futonSupport: boolean
-    extendedCare: boolean
-    lessons: boolean
-    allergySupport: boolean
-    weekdayEventsLevel: boolean
-    parentAssociationLevel: boolean
-  }
-} | null
-
-const mealTypeLabel: Record<string, string> = {
-  SCHOOL_LUNCH: '毎日給食あり',
-  LUNCH_BOX_REQUIRED: '弁当あり',
-  LUNCH_BOX: '弁当あり',
-  BOTH: '給食・弁当併用',
-  MIXED: '給食・弁当併用',
-}
-const diaperLabel: Record<string, string> = {
-  DISPOSED_BY_SCHOOL: '園で廃棄',
-  TAKE_HOME: '持ち帰り',
-  SUBSCRIPTION: 'サブスク対応',
-}
-const futonLabel: Record<string, string> = {
-  RENTAL: 'レンタルあり',
-  TAKE_HOME_WEEKLY: '毎週持ち帰り',
-  MANAGED_BY_SCHOOL: '園で管理',
-}
-const contactBookLabel: Record<string, string> = {
-  APP: 'アプリ',
-  PAPER: '手書き',
-  BOTH: 'アプリ・手書き併用',
-}
-const absenceContactLabel: Record<string, string> = {
-  APP: 'アプリ',
-  PHONE: '電話',
-  BOTH: 'アプリ・電話',
-}
+import SectionHeader from './SectionHeader'
+import CompareRow from './CompareRow'
+import {
+  mealTypeLabel,
+  diaperLabel,
+  futonLabel,
+  contactBookLabel,
+  absenceContactLabel,
+} from './compareLabels'
+import type { CompareSchool, MatchHighlights } from './compareTypes'
 
 type CompareTableProps = {
   schools: CompareSchool[]
@@ -310,73 +244,5 @@ export default function CompareTable({
   )
 }
 
-function SectionHeader({ icon, label }: { icon: string; label: string }) {
-  return (
-    <div className="flex items-center gap-2 mb-2">
-      <div className="relative w-8 h-8 flex-shrink-0">
-        <Image
-          src={icon}
-          alt={label}
-          fill
-          sizes="32px"
-          className="object-contain"
-        />
-      </div>
-      <p className="font-medium text-gray-800 text-base">{label}</p>
-    </div>
-  )
-}
-
-type CompareRowProps = {
-  label: string
-  schools: CompareSchool[]
-  getValue: (school: CompareSchool) => string
-  highlightKey: string | null
-  matchHighlights: MatchHighlights
-  isPremium: boolean
-  isLast?: boolean
-}
-
-function CompareRow({
-  label,
-  schools,
-  getValue,
-  highlightKey,
-  matchHighlights,
-  isPremium,
-  isLast = false,
-}: CompareRowProps) {
-  return (
-    <div className={`flex ${!isLast ? 'border-b border-gray-200' : ''}`}>
-      <div className="w-20 flex-shrink-0 px-2 py-3 flex items-center">
-        <p className="text-xs text-gray-700 whitespace-pre-line leading-tight">
-          {label}
-        </p>
-      </div>
-      {schools.map((school) => {
-        const isMatch =
-          isPremium &&
-          highlightKey &&
-          matchHighlights?.[String(school.id)]?.[
-            highlightKey as keyof (typeof matchHighlights)[string]
-          ]
-
-        return (
-          <div
-            key={school.id}
-            className={`flex-1 px-2 py-3 flex items-center justify-center border-l border-gray-200`}
-            style={isMatch ? { backgroundColor: 'rgba(255,255,154,0.3)' } : {}}
-          >
-            <p
-              className={`text-xs text-center ${isMatch ? 'font-bold text-gray-800' : 'text-gray-800'}`}
-            >
-              {getValue(school)}
-            </p>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-export type { CompareSchool, MatchHighlights }
+// 既存コードとの互換のため、型はここからも再エクスポートする
+export type { CompareSchool, MatchHighlights } from './compareTypes'

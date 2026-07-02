@@ -2,8 +2,7 @@
 //ホーム画面
 
 import Image from 'next/image'
-import SearchBar from '@/components/school/SearchBar'
-import FilterPanel from '@/components/school/FilterPanel'
+import SchoolSearchForm from '@/components/school/SchoolSearchForm'
 import SchoolList from '@/components/school/SchoolList'
 
 const FEATURE_ICONS = [
@@ -42,26 +41,25 @@ export default function HomePage() {
             復職後の生活が無理なく回る園を見つけよう
           </p>
 
-          {/* 検索バー */}
-          <div className="mb-3">
-            <SearchBar />
-          </div>
-
-          {/* 条件で検索 */}
-          <div className="mb-4 w-fit mr-auto text-sm">
-            <FilterPanel />
+          {/* 検索バー＋条件で検索 */}
+          <div className="mb-4">
+            <SchoolSearchForm />
           </div>
 
           {/* 特徴アイコンパネル */}
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <p className="text-gray-500 text-xs mb-3">
+            {/* 修正：見出しを中央寄せ */}
+            <p className="text-gray-500 text-xs mb-3 text-center">
               ENKATSUならこんな条件で探すことができます
             </p>
-            <div className="grid grid-cols-4 gap-2">
-              {FEATURE_ICONS.map((icon) => (
+            <div className="grid grid-cols-4">
+              {FEATURE_ICONS.map((icon, i) => (
                 <div
                   key={icon.label}
-                  className="flex flex-col items-center gap-1"
+                  // 追加：2つ目以降のアイコンの左側に薄い区切り線を表示
+                  className={`flex flex-col items-center gap-1 px-1 ${
+                    i > 0 ? 'border-l border-gray-200' : ''
+                  }`}
                 >
                   <div className="relative w-10 h-10">
                     <Image
