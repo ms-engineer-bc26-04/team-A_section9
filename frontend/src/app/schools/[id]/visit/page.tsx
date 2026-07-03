@@ -232,8 +232,19 @@ export default function VisitPage() {
               day === today.getDate() &&
               currentMonth === today.getMonth() &&
               currentYear === today.getFullYear()
-            const isPast = new Date(currentYear, currentMonth, day)
-            new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+            // 修正箇所：
+            // disabled属性には boolean | undefined を渡す必要がある。
+            // 以前は isPast に Date オブジェクトが入っていたため、
+            // Vercel build時に「Type 'Date' is not assignable to type 'boolean | undefined'」で失敗していた。
+            // 日付同士を比較して、過去日なら true、今日以降なら false になるように修正。
+            const targetDate = new Date(currentYear, currentMonth, day)
+            const todayDate = new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate()
+            )
+            const isPast = targetDate < todayDate
 
             return (
               <button
