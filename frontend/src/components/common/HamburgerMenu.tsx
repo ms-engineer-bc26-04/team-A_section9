@@ -13,6 +13,10 @@ type HamburgerMenuProps = {
   onClose: () => void
 }
 
+// 緑背景（#a0cd83 / #A0CD83）に対する白文字の視認性向上のための共通スタイル
+const GREEN_TEXT_SHADOW = '[text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]'
+const GREEN_ICON_SHADOW = '[box-shadow:0px_1px_1px_rgba(0,0,0,0.25)]'
+
 export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
   const { supabaseUser, appUser, isPremium, isLoading } = useAuth()
   const router = useRouter()
@@ -31,7 +35,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
       <div className="fixed top-0 right-0 h-auto w-full max-w-sm bg-white z-50 shadow-xl flex flex-col rounded-bl-3xl overflow-hidden">
         <div className="bg-gradient-to-b from-[#f2f8ee] to-white rounded-bl-[40px] flex flex-col">
           <div className="bg-[#a0cd83] h-14 px-6 flex items-center justify-between rounded-bl-[30px]">
-            <p className="text-white font-extrabold text-base tracking-wider">
+            <p
+              className={`text-white font-bold text-base tracking-wider ${GREEN_TEXT_SHADOW}`}
+            >
               アカウント
             </p>
             <button
@@ -39,9 +45,15 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               className="flex flex-col gap-1 p-1"
               aria-label="メニューを閉じる"
             >
-              <span className="block w-6 h-0.5 bg-white" />
-              <span className="block w-6 h-0.5 bg-white" />
-              <span className="block w-6 h-0.5 bg-white" />
+              <span
+                className={`block w-6 h-0.5 bg-white ${GREEN_ICON_SHADOW}`}
+              />
+              <span
+                className={`block w-6 h-0.5 bg-white ${GREEN_ICON_SHADOW}`}
+              />
+              <span
+                className={`block w-6 h-0.5 bg-white ${GREEN_ICON_SHADOW}`}
+              />
             </button>
           </div>
 
@@ -56,7 +68,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                   router.push('/register')
                   onClose()
                 }}
-                className="flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors"
+                className={`flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors ${GREEN_TEXT_SHADOW}`}
               >
                 新規会員登録
               </button>
@@ -65,7 +77,7 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
                   router.push('/login')
                   onClose()
                 }}
-                className="flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors"
+                className={`flex-1 bg-[#A0CD83] text-white font-bold text-sm py-2.5 px-4 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors ${GREEN_TEXT_SHADOW}`}
               >
                 ログイン
               </button>
@@ -84,7 +96,9 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
 
         <div className="bg-gradient-to-b from-[#f2f8ee] to-white rounded-bl-[50px] pb-4 flex flex-col mt-[-1px]">
           <div className="bg-[#a0cd83] h-14 px-6 flex items-center rounded-bl-[30px]">
-            <p className="text-white font-extrabold text-base tracking-wider">
+            <p
+              className={`text-white font-bold text-base tracking-wider ${GREEN_TEXT_SHADOW}`}
+            >
               マイ機能
             </p>
           </div>
@@ -113,13 +127,13 @@ export default function HamburgerMenu({ isOpen, onClose }: HamburgerMenuProps) {
               <div className="mt-4">
                 <button
                   onClick={handleLogout}
-                  className="bg-[#a0cd83] text-white font-extrabold text-sm px-6 py-2 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors"
+                  className={`bg-[#a0cd83] text-white font-bold text-sm px-6 py-2 rounded-full hover:bg-[#82b865] active:bg-[#82b865] transition-colors ${GREEN_TEXT_SHADOW}`}
                 >
                   ログアウト
                 </button>
               </div>
             )}
-            {/* 保育園の方はこちらボタン：全員に表示 */}
+            {/* 保育園の方はこちらボタン：全員に表示（白背景・青文字のためシャドウ対象外） */}
             <div className="mt-6">
               <button
                 onClick={() => {

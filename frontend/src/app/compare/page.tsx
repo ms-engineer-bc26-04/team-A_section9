@@ -135,7 +135,7 @@ export default function ComparePage() {
         </div>
         <Link
           href="/mypage/favorites"
-          className="bg-[#A0CD83] text-white font-bold px-6 py-3 rounded-full hover:bg-[#82b865] transition-colors"
+          className="bg-[#A0CD83] text-white font-semibold px-6 py-3 rounded-full hover:bg-[#82b865] transition-colors [text-shadow:0px_1px_1px_rgba(0,0,0,0.25)]"
         >
           お気に入り一覧へ戻る
         </Link>
@@ -169,7 +169,7 @@ export default function ComparePage() {
             {isPremium && (
               <button
                 onClick={() => router.push(`/compare/chart?ids=${idsParam}`)}
-                className="flex items-center gap-1 bg-[#A0CD83] text-white text-xs font-bold px-3 py-2 rounded-full hover:bg-[#82b865] transition-colors whitespace-nowrap"
+                className="flex items-center gap-1 bg-[#A0CD83] text-white text-xs font-semibold px-3 py-2 rounded-full hover:bg-[#82b865] transition-colors whitespace-nowrap [text-shadow:0px_1px_1px_rgba(0,0,0,0.25)]"
               >
                 比較チャートを見る
               </button>

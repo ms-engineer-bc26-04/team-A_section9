@@ -210,16 +210,27 @@ export default function CompareTable({
                   希望との{'\n'}一致
                 </p>
               </div>
-              {schools.map((school) => (
-                <div
-                  key={school.id}
-                  className="flex-1 px-2 py-3 flex items-center justify-center border-l border-gray-200"
-                >
-                  <p className="text-sm font-bold text-gray-800">
-                    {matchCounts[school.id]}
-                  </p>
-                </div>
-              ))}
+              {schools.map((school) => {
+                const hasMatch = matchCounts[school.id] > 0
+
+                return (
+                  <div
+                    key={school.id}
+                    className="flex-1 px-2 py-3 flex items-center justify-center border-l border-gray-200"
+                    style={
+                      hasMatch
+                        ? { backgroundColor: 'rgba(255,255,154,0.3)' }
+                        : {}
+                    }
+                  >
+                    <p
+                      className={`text-sm ${hasMatch ? 'font-bold text-gray-800' : 'text-gray-800'}`}
+                    >
+                      {matchCounts[school.id]}
+                    </p>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
