@@ -8,6 +8,8 @@ ENKATSU は、共働き家庭・仕事復帰を控えた保護者向けに、保
 
 園そのものの良し悪しではなく、保護者が復職後に感じる **生活負担**・**時間負担** に焦点を当てて、家庭に合う園を比較できるようにします。
 
+また、保護者向けの検索・比較機能に加えて、園情報を管理するための **園管理画面** も実装しています。園管理者は、園情報や園に紐づく詳細情報を管理できるため、利用者向け画面に表示する情報を管理側から更新できる構成にしています。
+
 ---
 
 ## MVP範囲
@@ -25,7 +27,7 @@ ENKATSU は、共働き家庭・仕事復帰を控えた保護者向けに、保
 
 - 会員登録・ログイン・ログアウト
 - お気に入り登録・解除
-- お気に入り5件まで登録
+- お気に入り3件まで登録
 - 2園比較
 - マイページ閲覧
 - プロフィール編集
@@ -39,6 +41,13 @@ ENKATSU は、共働き家庭・仕事復帰を控えた保護者向けに、保
 - サポート情報の閲覧
 - Stripe Checkout によるプレミアム登録
 - Stripe Customer Portal によるプラン変更
+
+### 園管理者
+
+- 園管理画面へのログイン
+- 園情報の閲覧
+- 園情報の編集
+- 園に紐づく詳細情報の管理
 
 ---
 
@@ -58,7 +67,7 @@ ENKATSU は、共働き家庭・仕事復帰を控えた保護者向けに、保
 | Security   | Helmet / CORS / Rate Limit                                |
 | Test       | Vitest / Supertest / Playwright                           |
 | CI         | GitHub Actions                                            |
-| Deploy     | Render（Backend） / Vercel（Frontend予定）                 |
+| Deploy     | Render（Backend） / Vercel（Frontend）                    |
 | Container  | Docker / Docker Compose                                   |
 
 ---
@@ -88,18 +97,19 @@ Backend API
 
 ```txt
 .
-├── .github/          # GitHub Actions などの設定
-├── .vscode/          # VS Code 設定
-├── backend/          # バックエンドアプリケーション
-├── frontend/         # フロントエンドアプリケーション
-├── docs/             # 企画・要件・各種設計ドキュメント
-│   ├── context/      # 補足資料・背景情報
-│   ├── diagrams/     # 図・画像資料
-│   ├── 画面遷移図/   # 画面遷移図
+├── .github/                # GitHub Actions などの設定
+├── .vscode/                # VS Code 設定
+├── backend/                # バックエンドアプリケーション
+├── frontend/               # フロントエンドアプリケーション
+├── docs/                   # 企画・要件・各種設計ドキュメント
+│   ├── context/            # 補足資料・背景情報
+│   ├── diagrams/           # 図・画像資料
+│   ├── 画面遷移図/         # 画面遷移図
 │   ├── API設計.md
 │   ├── DB設計.md
 │   ├── GitHub運用.md
 │   ├── PRD.md
+│   ├── ペルソナ案(最終版).md
 │   ├── セキュリティ設計.md
 │   ├── デプロイ.md
 │   ├── テスト設計書.md
@@ -118,10 +128,11 @@ Backend API
 
 ### 企画・要件
 
-| ドキュメント                 | 内容                                          |
-| ---------------------------- | --------------------------------------------- |
-| [PRD](docs/PRD.md)           | プロダクトの目的・背景・価値を整理            |
-| [要件定義](docs/要件定義.md) | MVPの機能要件・非機能要件・ユーザー区分を整理 |
+| ドキュメント                                | 内容                                          |
+| ------------------------------------------- | --------------------------------------------- |
+| [PRD](docs/PRD.md)                          | プロダクトの目的・背景・価値を整理            |
+| [ペルソナ案](<docs/ペルソナ案(最終版).md>) | MVPで想定する利用者像・課題・利用シーンを整理 |
+| [要件定義](docs/要件定義.md)                | MVPの機能要件・非機能要件・ユーザー区分を整理 |
 
 ### 設計
 
@@ -132,17 +143,17 @@ Backend API
 | [DB設計](docs/DB設計.md)                     | テーブル定義・リレーション・制約を整理                |
 | [API設計](docs/API設計.md)                   | エンドポイント・リクエスト・レスポンスを整理          |
 | [性能設計](docs/性能設計.md)                 | Redisキャッシュ対象API・TTL・キャッシュキー方針を整理 |
-| [セキュリティ設計](docs/セキュリティ設計.md) | Helmet / CORS / RateLimit / 認証確認を整理            |
+| [セキュリティ設計](docs/セキュリティ設計.md) | Helmet / CORS / Rate Limit / 認証確認を整理           |
 | [ログ設計](docs/ログ設計.md)                 | Pinoログ・cache hit / cache miss の確認方法を整理     |
 | [テスト設計書](docs/テスト設計書.md)         | MVP主要機能・API・デモ前確認のテスト観点を整理        |
 
 ### 開発・運用
 
-| ドキュメント                 | 内容                                                            |
-| ---------------------------- | --------------------------------------------------------------- |
-| [GitHub運用](docs/GitHub運用.md) | ブランチ・Issue・PR・レビュー・マージ運用を整理             |
-| [運用設計](docs/運用設計.md) | Redisキャッシュ・ログ・セキュリティ設定を含む運用確認手順を整理 |
-| [デプロイ](docs/デプロイ.md) | デプロイ構成・デプロイURL・Redis確認方法を整理                  |
+| ドキュメント                     | 内容                                                            |
+| -------------------------------- | --------------------------------------------------------------- |
+| [GitHub運用](docs/GitHub運用.md) | ブランチ・Issue・PR・レビュー・マージ運用を整理                 |
+| [運用設計](docs/運用設計.md)     | Redisキャッシュ・ログ・セキュリティ設定を含む運用確認手順を整理 |
+| [デプロイ](docs/デプロイ.md)     | デプロイ構成・デプロイURL・Redis確認方法を整理                  |
 
 ### 補足資料
 
@@ -159,11 +170,12 @@ Backend API
 
 | 項目          | 内容                                 |
 | ------------- | ------------------------------------ |
-| Frontend      | 未デプロイ / Vercel予定              |
+| Frontend      | Vercel                               |
 | Backend       | Render                               |
 | Database      | Supabase PostgreSQL                  |
 | Cache         | Upstash Redis                        |
 | Deploy Branch | staging                              |
+| Frontend URL  | https://enkatsu-frontend.vercel.app  |
 | Backend URL   | https://enkatsu-backend.onrender.com |
 
 詳細は [デプロイ](docs/デプロイ.md) を参照してください。
@@ -197,19 +209,19 @@ copy backend\.env.example backend\.env
 
 `backend/.env` を開いて、担当者から共有された値を設定してください。
 
-| キー                   | 内容                         |
-| ---------------------- | ---------------------------- |
-| `DATABASE_URL`         | Supabase接続URL（Pooler）    |
-| `DIRECT_URL`           | Supabase接続URL（Direct）    |
-| `SUPABASE_URL`         | SupabaseプロジェクトURL      |
-| `SUPABASE_SERVICE_KEY` | Supabase service_roleキー    |
-| `REDIS_URL`            | ローカルでは `redis://redis:6379` |
-| `LOG_LEVEL`            | Pinoログの出力レベル         |
-| `STRIPE_SECRET_KEY`    | Stripeシークレットキー       |
-| `STRIPE_PRICE_ID`      | Stripe Price ID              |
-| `STRIPE_WEBHOOK_SECRET`| Stripe Webhook Secret        |
-| `FRONTEND_URL`         | `http://localhost:3000`      |
-| `PORT`                 | `4000`                       |
+| キー                    | 内容                              |
+| ----------------------- | --------------------------------- |
+| `DATABASE_URL`          | Supabase接続URL（Pooler）         |
+| `DIRECT_URL`            | Supabase接続URL（Direct）         |
+| `SUPABASE_URL`          | SupabaseプロジェクトURL           |
+| `SUPABASE_SERVICE_KEY`  | Supabase service_roleキー         |
+| `REDIS_URL`             | ローカルでは `redis://redis:6379` |
+| `LOG_LEVEL`             | Pinoログの出力レベル              |
+| `STRIPE_SECRET_KEY`     | Stripeシークレットキー            |
+| `STRIPE_PRICE_ID`       | Stripe Price ID                   |
+| `STRIPE_WEBHOOK_SECRET` | Stripe Webhook Secret             |
+| `FRONTEND_URL`          | `http://localhost:3000`           |
+| `PORT`                  | `4000`                            |
 
 ---
 
@@ -332,7 +344,7 @@ docker compose exec backend npx prisma studio
 
 本プロジェクトでは、コード品質を保つために ESLint / Prettier を導入しています。
 
-また、`develop` ブランチへの Pull Request 作成時に GitHub Actions が自動で実行され、Lint / Format チェックが行われます。
+また、`develop` ブランチへの Pull Request 作成時に GitHub Actions が自動で実行され、Lint / Format チェックや Backend テストが行われます。
 
 詳細な運用は [GitHub運用](docs/GitHub運用.md) を参照してください。
 
@@ -352,6 +364,7 @@ npm run format:check
 cd backend
 npm run lint
 npm run format:check
+npm run test
 ```
 
 ---
@@ -365,9 +378,10 @@ main      # 最終提出・安定版
 develop   # 開発統合ブランチ
 staging   # デモ・デプロイ確認用ブランチ
 feature/* # 機能・修正ごとの作業ブランチ
+docs/*    # ドキュメント修正用ブランチ
 ```
 
-通常開発は `feature/*` → `develop` の流れで行います。
+通常開発は `feature/*` または `docs/*` → `develop` の流れで行います。
 
 Backend の Render デプロイ対象ブランチは `staging` です。  
 デモ環境へ反映したいタイミングで、`develop` の内容を `staging` に反映します。
