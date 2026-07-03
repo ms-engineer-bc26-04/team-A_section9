@@ -26,7 +26,7 @@ type BurdenRadarChartProps = {
   schools: ChartSchool[]
 }
 
-const CHART_COLORS = ['#A0CD83', '#73C0FF', '#FF8C8C']
+const CHART_COLORS = ['#A0CD83', '#F5A623', '#FF8C8C']
 // 追加：値が同じ園同士が重なった時に判別できるよう、色に加えて線種も分ける
 const STROKE_DASHARRAYS: (string | undefined)[] = [undefined, '6 4', '2 4']
 const LEGEND_BORDER_STYLES: ('solid' | 'dashed' | 'dotted')[] = [
