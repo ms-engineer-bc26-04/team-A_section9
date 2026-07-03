@@ -22,8 +22,8 @@ export default function Header() {
               alt="ENKATSUロゴ"
               width={36}
               height={36}
-              style={{ width: '36px', height: 'auto' }}
-              className="rounded-full"
+              style={{ width: '36px', height: '36px' }}
+              className="rounded-full object-cover"
             />
             <span className="text-white font-bold text-lg tracking-wide">
               ENKATSU
