@@ -56,9 +56,6 @@ export default function SchoolDetailHeader({
             {phoneNumber && (
               <p className="text-sm text-gray-500">電話番号：{phoneNumber}</p>
             )}
-            <p className="text-sm text-gray-500">
-              {schoolTypeLabel[schoolType] ?? schoolType}
-            </p>
             {tags && tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {tags.map((tag) => (
