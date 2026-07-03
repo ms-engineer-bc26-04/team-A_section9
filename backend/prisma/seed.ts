@@ -428,7 +428,6 @@ async function main() {
         weekdayEvents: 'なし',
         lessons: '英語教室・リトミック',
       }),
-
       school({
         id: 15,
         name: 'こぐま保育園',
@@ -574,7 +573,7 @@ async function main() {
         timeBurdenLevel: BurdenLevel.LOW,
         itemBurdenLevel: BurdenLevel.LOW,
         weekdayEventsLevel: BurdenLevel.LOW,
-        parentAssociationLevel: BurdenLevel.LOW,
+        parentAssociationLevel: BurdenLevel.HIGH,
 
         itemBurdenDetail: '着替え・タオル',
         diaperSupport: 'サブスク対応',
@@ -582,6 +581,7 @@ async function main() {
         extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
+        parentAssociationFrequency: '月に1回程度',
         lessons: '英語教室・プログラミング',
         allergySupport: '個別対応あり',
       }),
@@ -681,11 +681,11 @@ async function main() {
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
-        itemBurdenLevel: BurdenLevel.MEDIUM,
+        itemBurdenLevel: BurdenLevel.HIGH,
         weekdayEventsLevel: BurdenLevel.MEDIUM,
         parentAssociationLevel: BurdenLevel.LOW,
 
-        itemBurdenDetail: '着替え・タオル・水筒・食事用エプロン',
+        itemBurdenDetail: '着替え・タオル・水筒・食事用エプロン・午睡用シーツ',
         futonSupport: '週末持ち帰り',
         extendedCareHours: '18:00〜19:30',
         extendedCareUsage: '10〜15人程度',
@@ -790,6 +790,7 @@ async function main() {
         name: 'ルミナスキッズ保育園',
         area: '江東区',
         address: '東京都江東区豊洲3-2-6',
+        imageUrl: '/school-images/31_luminous-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -812,6 +813,7 @@ async function main() {
         name: 'みずべのこども園',
         area: '江東区',
         address: '東京都江東区豊洲5-1-7',
+        imageUrl: '/school-images/32_mizubeno-kodomoen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.LOW,
@@ -835,6 +837,7 @@ async function main() {
         name: 'つむぎ保育室',
         area: '江東区',
         address: '東京都江東区東雲2-3-8',
+        imageUrl: '/school-images/33_tsumugi-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -858,6 +861,7 @@ async function main() {
         name: 'そよかぜテラス保育園',
         area: '江東区',
         address: '東京都江東区有明1-6-2',
+        imageUrl: '/school-images/34_soyokazeterrace-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -880,6 +884,7 @@ async function main() {
         name: 'あしたばナーサリー',
         area: '江東区',
         address: '東京都江東区枝川2-9-4',
+        imageUrl: '/school-images/35_ashitaba-nursery.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -901,6 +906,7 @@ async function main() {
         name: 'みなとキッズガーデン',
         area: '江東区',
         address: '東京都江東区辰巳1-4-7',
+        imageUrl: '/school-images/36_minato-kidsgarden.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -923,6 +929,7 @@ async function main() {
         name: 'ぽっぽの森保育園',
         area: '江東区',
         address: '東京都江東区木場5-2-9',
+        imageUrl: '/school-images/37_popponomori-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -944,6 +951,7 @@ async function main() {
         name: 'なないろテラス保育園',
         area: '江東区',
         address: '東京都江東区東陽4-10-3',
+        imageUrl: '/school-images/38_nanairoterrace-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -967,6 +975,7 @@ async function main() {
         name: 'はるのき保育園',
         area: '江東区',
         address: '東京都江東区南砂2-7-6',
+        imageUrl: '/school-images/39_harunoki-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -988,6 +997,7 @@ async function main() {
         name: 'わかばの家保育園',
         area: '江東区',
         address: '東京都江東区清澄3-5-4',
+        imageUrl: '/school-images/40_wakabanoie-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1009,6 +1019,7 @@ async function main() {
         name: 'ひだまりの庭こども園',
         area: '練馬区',
         address: '東京都練馬区上石神井1-11-3',
+        imageUrl: '/school-images/41_hidamarinoniwa-kodomoenn.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1032,6 +1043,7 @@ async function main() {
         name: 'こぐまナーサリー',
         area: '練馬区',
         address: '東京都練馬区石神井町4-4-8',
+        imageUrl: '/school-images/42_koguma-nursery.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1052,6 +1064,7 @@ async function main() {
         name: 'りすの森保育園',
         area: '練馬区',
         address: '東京都練馬区石神井台3-4-9',
+        imageUrl: '/school-images/43_risunomori-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1072,6 +1085,7 @@ async function main() {
         name: 'メープルキッズ保育園',
         area: '練馬区',
         address: '東京都練馬区上石神井3-5-1',
+        imageUrl: '/school-images/44_maplekids-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -1093,6 +1107,7 @@ async function main() {
         name: '木かげ保育園',
         area: '練馬区',
         address: '東京都練馬区関町南2-10-4',
+        imageUrl: '/school-images/45_kokage-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1114,6 +1129,7 @@ async function main() {
         name: 'めばえこども園',
         area: '練馬区',
         address: '東京都練馬区大泉学園町2-12-6',
+        imageUrl: '/school-images/46_mebae-hoikuen.png',
         schoolType: SchoolType.CERTIFIED_CHILDCARE_CENTER,
 
         lifeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1136,6 +1152,7 @@ async function main() {
         name: 'リアン保育園',
         area: '練馬区',
         address: '東京都練馬区南大泉5-7-3',
+        imageUrl: '/school-images/47_rian-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
@@ -1157,6 +1174,7 @@ async function main() {
         name: 'きのみ保育園',
         area: '板橋区',
         address: '東京都板橋区きのみ2-12-5',
+        imageUrl: '/school-images/48_kinomi-hoikuen.png',
 
         itemBurdenDetail: '着替え・タオル・水筒・午睡用シーツ',
         futonSupport: 'シーツのみ週末持ち帰り',
@@ -1173,6 +1191,7 @@ async function main() {
         name: '中野ひなた保育園',
         area: '中野区',
         address: '東京都中野区中野3-9-8',
+        imageUrl: '/school-images/49_nakanohinata-hoikuen.png',
 
         itemBurdenDetail: '着替え・タオル・コップ・水筒',
         futonSupport: 'シーツのみ週末持ち帰り',
@@ -1188,6 +1207,7 @@ async function main() {
         name: 'シーサイド保育園',
         area: '品川区',
         address: '東京都品川区東品川4-12-6',
+        imageUrl: '/school-images/50_seaside_hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.MEDIUM,
