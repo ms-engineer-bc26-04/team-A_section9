@@ -149,7 +149,7 @@ export default function VisitPage() {
       <h1 className="text-xl font-bold text-gray-800 mb-4">見学予約</h1>
 
       {/* 園情報カード */}
-      <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
+      <div className="border border-gray-200 rounded-xl p-3 flex items-start gap-3 mb-6">
         <div className="relative w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           {school?.imageUrl ? (
             <Image
@@ -164,7 +164,7 @@ export default function VisitPage() {
             </div>
           )}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-bold text-gray-800 text-sm">{school?.name}</p>
           <p className="text-xs text-gray-500">{school?.address}</p>
           {school?.phoneNumber && (
@@ -172,11 +172,11 @@ export default function VisitPage() {
               電話番号：{school.phoneNumber}
             </p>
           )}
-          <div className="flex gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-1">
             {(school?.tags ?? []).map((tag) => (
               <span
                 key={tag}
-                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
               >
                 {tag}
               </span>
@@ -184,12 +184,14 @@ export default function VisitPage() {
           </div>
         </div>
         {school && (
-          <FavoriteButton
-            schoolId={school.id}
-            isFavorited={favorited}
-            isLoggedIn={isLoggedIn}
-            onToggle={handleToggleFavorite}
-          />
+          <div className="flex-shrink-0 flex items-start pt-1">
+            <FavoriteButton
+              schoolId={school.id}
+              isFavorited={favorited}
+              isLoggedIn={isLoggedIn}
+              onToggle={handleToggleFavorite}
+            />
+          </div>
         )}
       </div>
 
@@ -230,9 +232,8 @@ export default function VisitPage() {
               day === today.getDate() &&
               currentMonth === today.getMonth() &&
               currentYear === today.getFullYear()
-            const isPast =
-              new Date(currentYear, currentMonth, day) <
-              new Date(today.getFullYear(), today.getMonth(), today.getDate())
+            const isPast = new Date(currentYear, currentMonth, day)
+            new Date(today.getFullYear(), today.getMonth(), today.getDate())
 
             return (
               <button
