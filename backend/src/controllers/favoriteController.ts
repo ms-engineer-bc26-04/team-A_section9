@@ -65,7 +65,7 @@ export const addFavorite = async (
       return
     }
 
-    // #135対応：プレミアムユーザーは5件上限を適用しないよう、判定結果をserviceへ渡す
+    // #135対応：プレミアムユーザーは3件上限を適用しないよう、判定結果をserviceへ渡す
     const favorite = await addUserFavorite(
       user.id,
       isPremiumUser(user),

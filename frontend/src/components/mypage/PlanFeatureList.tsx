@@ -23,7 +23,7 @@ const PREMIUM_FEATURES = [
 
 const FREE_FEATURES = [
   { icon: 'icon12.png', text: '2つの園を同時比較' },
-  { icon: 'icon13.png', text: '5件までお気に入り機能の追加' },
+  { icon: 'icon13.png', text: '3件までお気に入り機能の追加' },
   { icon: 'icon14.png', text: 'マイページから希望条件の登録' },
 ]
 

@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '../lib/prisma'
 
-const FREE_USER_FAVORITE_LIMIT = 5
+const FREE_USER_FAVORITE_LIMIT = 3
 
 // #196対応：お気に入り一覧でも園一覧と同じタグを表示するため、園情報からタグを生成する
 const SCHOOL_TYPE_TAGS: Record<string, string> = {
@@ -160,7 +160,7 @@ export const addUserFavorite = async (
       throw new FavoriteServiceError(
         403,
         'FAVORITE_LIMIT_EXCEEDED',
-        '一般ユーザーは5件までお気に入り登録できます。プレミアムユーザーなら5件以上登録できます'
+        '一般ユーザーは3件までお気に入り登録できます。プレミアムユーザーは4件以上登録できます'
       )
     }
   }
