@@ -7,6 +7,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import HamburgerMenu from './HamburgerMenu'
 
+// 緑背景に対する白文字・白アイコンの視認性向上のための共通スタイル
+const GREEN_TEXT_SHADOW = '[text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]'
+const GREEN_ICON_SHADOW = '[box-shadow:0px_1px_1px_rgba(0,0,0,0.25)]'
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -25,7 +29,9 @@ export default function Header() {
               style={{ width: '36px', height: '36px' }}
               className="rounded-full object-cover"
             />
-            <span className="text-white font-bold text-lg tracking-wide">
+            <span
+              className={`text-white font-bold text-lg tracking-wide ${GREEN_TEXT_SHADOW}`}
+            >
               ENKATSU
             </span>
           </Link>
@@ -36,9 +42,9 @@ export default function Header() {
             className="text-white flex flex-col gap-1 p-1 ml-auto mr-[-6px]"
             aria-label="メニューを開く"
           >
-            <span className="block w-5 h-0.5 bg-white" />
-            <span className="block w-5 h-0.5 bg-white" />
-            <span className="block w-5 h-0.5 bg-white" />
+            <span className={`block w-5 h-0.5 bg-white ${GREEN_ICON_SHADOW}`} />
+            <span className={`block w-5 h-0.5 bg-white ${GREEN_ICON_SHADOW}`} />
+            <span className={`block w-5 h-0.5 bg-white ${GREEN_ICON_SHADOW}`} />
           </button>
         </div>
       </header>
