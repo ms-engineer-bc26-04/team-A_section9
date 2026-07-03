@@ -59,7 +59,7 @@ vi.mock('stripe', () => {
       retrieve: vi.fn(),
     }
 
-    constructor(_secretKey: string) {}
+    constructor() {}
   }
 
   return {
@@ -82,9 +82,8 @@ describe('paymentService', () => {
 
   describe('createCheckoutSessionService', () => {
     it('ユーザーが存在しない場合はUSER_NOT_FOUNDを投げる', async () => {
-      const { createCheckoutSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCheckoutSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue(null)
 
@@ -94,9 +93,8 @@ describe('paymentService', () => {
     })
 
     it('すでにACTIVEのサブスクリプションがある場合はALREADY_PREMIUMを投げる', async () => {
-      const { createCheckoutSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCheckoutSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -114,9 +112,8 @@ describe('paymentService', () => {
     })
 
     it('stripeCustomerIdがない場合、Customerを作成してCheckout SessionのURLを返す', async () => {
-      const { createCheckoutSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCheckoutSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -187,9 +184,8 @@ describe('paymentService', () => {
     })
 
     it('既存のstripeCustomerIdがある場合、Customerを新規作成せずCheckout Sessionを作成する', async () => {
-      const { createCheckoutSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCheckoutSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -221,13 +217,35 @@ describe('paymentService', () => {
         checkoutUrl: 'https://checkout.stripe.com/existing',
       })
     })
+
+    it('Stripe Checkout Session作成でエラーになった場合はエラーを投げる', async () => {
+      const { createCheckoutSessionService } =
+        await import('../services/paymentService')
+
+      mockUserFindUnique.mockResolvedValue({
+        id: 'user-1',
+        email: 'test@example.com',
+        supabaseUserId: 'supabase-user-1',
+        subscription: {
+          status: 'CANCELED',
+          stripeCustomerId: 'cus_existing',
+        },
+      })
+
+      mockCheckoutSessionsCreate.mockRejectedValue(
+        new Error('STRIPE_CHECKOUT_ERROR')
+      )
+
+      await expect(
+        createCheckoutSessionService('supabase-user-1')
+      ).rejects.toThrow('STRIPE_CHECKOUT_ERROR')
+    })
   })
 
   describe('createCustomerPortalSessionService', () => {
     it('ユーザーが存在しない場合はUSER_NOT_FOUNDを投げる', async () => {
-      const { createCustomerPortalSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCustomerPortalSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue(null)
 
@@ -237,9 +255,8 @@ describe('paymentService', () => {
     })
 
     it('ACTIVEでない場合はPREMIUM_REQUIREDを投げる', async () => {
-      const { createCustomerPortalSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCustomerPortalSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -257,9 +274,8 @@ describe('paymentService', () => {
     })
 
     it('stripeCustomerIdがない場合はPREMIUM_REQUIREDを投げる', async () => {
-      const { createCustomerPortalSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCustomerPortalSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -277,9 +293,8 @@ describe('paymentService', () => {
     })
 
     it('ACTIVEかつstripeCustomerIdがある場合、Customer Portal SessionのURLを返す', async () => {
-      const { createCustomerPortalSessionService } = await import(
-        '../services/paymentService'
-      )
+      const { createCustomerPortalSessionService } =
+        await import('../services/paymentService')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -310,9 +325,8 @@ describe('paymentService', () => {
 
   describe('handleStripeWebhookService', () => {
     it('signatureがない場合はINVALID_SIGNATUREを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       await expect(
         handleStripeWebhookService(Buffer.from('{}'), undefined)
@@ -320,9 +334,8 @@ describe('paymentService', () => {
     })
 
     it('signatureが配列の場合はINVALID_SIGNATUREを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       await expect(
         handleStripeWebhookService(Buffer.from('{}'), ['sig_mock'])
@@ -330,9 +343,8 @@ describe('paymentService', () => {
     })
 
     it('STRIPE_WEBHOOK_SECRETが未設定の場合はSTRIPE_WEBHOOK_SECRET_NOT_SETを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       delete process.env.STRIPE_WEBHOOK_SECRET
 
@@ -342,9 +354,8 @@ describe('paymentService', () => {
     })
 
     it('checkout.session.completedでsubscriptionをACTIVEに更新する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'checkout.session.completed',
@@ -404,9 +415,8 @@ describe('paymentService', () => {
     })
 
     it('checkout.session.completedで必要な値が不足している場合はエラーを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'checkout.session.completed',
@@ -425,9 +435,8 @@ describe('paymentService', () => {
     })
 
     it('customer.subscription.updatedでACTIVEの場合、planTypeをPAIDに更新する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'customer.subscription.updated',
@@ -471,9 +480,8 @@ describe('paymentService', () => {
     })
 
     it('customer.subscription.updatedでcanceledの場合、planTypeをFREEに更新する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'customer.subscription.updated',
@@ -517,9 +525,8 @@ describe('paymentService', () => {
     })
 
     it('customer.subscription.updatedでsubscriptionが存在しない場合はSUBSCRIPTION_NOT_FOUNDを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'customer.subscription.updated',
@@ -539,9 +546,8 @@ describe('paymentService', () => {
     })
 
     it('customer.subscription.deletedでsubscriptionをCANCELEDにし、planTypeをFREEに更新する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'customer.subscription.deleted',
@@ -582,9 +588,8 @@ describe('paymentService', () => {
     })
 
     it('invoice.payment_succeededでStripe Subscriptionを取得して状態を同期する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_succeeded',
@@ -632,9 +637,8 @@ describe('paymentService', () => {
     })
 
     it('invoice.payment_succeededでsubscription IDがない場合はINVOICE_MISSING_SUBSCRIPTION_IDを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_succeeded',
@@ -649,9 +653,8 @@ describe('paymentService', () => {
     })
 
     it('invoice.payment_failedでsubscriptionをEXPIREDにし、planTypeをFREEに更新する', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_failed',
@@ -691,9 +694,8 @@ describe('paymentService', () => {
     })
 
     it('invoice.payment_failedでparent配下のsubscription IDを使える', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_failed',
@@ -732,9 +734,8 @@ describe('paymentService', () => {
     })
 
     it('invoice.payment_failedでsubscription IDがない場合はINVOICE_MISSING_SUBSCRIPTION_IDを投げる', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'invoice.payment_failed',
@@ -749,9 +750,8 @@ describe('paymentService', () => {
     })
 
     it('未対応イベントの場合はDB更新せずeventを返す', async () => {
-      const { handleStripeWebhookService } = await import(
-        '../services/paymentService'
-      )
+      const { handleStripeWebhookService } =
+        await import('../services/paymentService')
 
       mockConstructEvent.mockReturnValue({
         type: 'customer.created',
