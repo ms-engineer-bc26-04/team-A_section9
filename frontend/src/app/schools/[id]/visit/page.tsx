@@ -176,7 +176,7 @@ export default function VisitPage() {
             {(school?.tags ?? []).map((tag) => (
               <span
                 key={tag}
-                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap"
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
               >
                 {tag}
               </span>
@@ -275,7 +275,7 @@ export default function VisitPage() {
       <button
         onClick={handleSubmit}
         disabled={!selectedDate || isSubmitting}
-        className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
+        className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50 [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
       >
         {isSubmitting ? '送信中...' : '見学予約を申し込む'}
       </button>

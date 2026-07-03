@@ -197,7 +197,7 @@ export default function AdminEditPage() {
           )}
 
           {/* 画像 */}
-          <div className="flex items-center gap-4 mb-6">
+          <div className="mb-6">
             <div className="relative w-24 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
               {form.imageUrl ? (
                 <Image
@@ -212,18 +212,26 @@ export default function AdminEditPage() {
                   No Image
                 </div>
               )}
-            </div>
-            <div>
-              <label className="block text-sm text-gray-600 mb-1">
-                画像URL
-              </label>
-              <input
-                type="text"
-                value={form.imageUrl}
-                onChange={(e) => handleChange('imageUrl', e.target.value)}
-                placeholder="https://..."
-                className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-[#73c0ff] w-48"
-              />
+              <button
+                type="button"
+                className="absolute -top-1 -right-1 w-6 h-6 bg-white rounded-full shadow flex items-center justify-center"
+                aria-label="画像を編集"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#F5A9B8"
+                  strokeWidth={2}
+                  className="w-3.5 h-3.5"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.862 4.487a2.06 2.06 0 1 1 2.915 2.914L7.5 19.678l-4 1 1-4L16.862 4.487Z"
+                  />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -379,7 +387,7 @@ export default function AdminEditPage() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="w-full bg-[#73c0ff] text-white font-extrabold rounded-full py-3 text-base hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors disabled:opacity-50"
+            className="w-full bg-[#73c0ff] text-white font-bold rounded-full py-3 text-base hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors disabled:opacity-50 [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
           >
             {isSaving ? '保存中...' : '保存'}
           </button>

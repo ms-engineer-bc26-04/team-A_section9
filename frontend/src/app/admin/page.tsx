@@ -137,7 +137,7 @@ export default function AdminPage() {
           <div className="flex justify-end mx-4 mt-4">
             <button
               onClick={() => router.push('/admin/edit')}
-              className="bg-[#73c0ff] text-white font-extrabold text-sm px-6 py-2.5 rounded-full hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors"
+              className="bg-[#73c0ff] text-white font-bold text-sm px-6 py-2.5 rounded-full hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
             >
               園情報編集
             </button>
