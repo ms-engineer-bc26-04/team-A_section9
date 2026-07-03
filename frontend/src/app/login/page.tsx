@@ -102,7 +102,7 @@ export default function LoginPage() {
         <button
           onClick={handleLogin}
           disabled={isLoading}
-          className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
+          className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50 [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
         >
           {isLoading ? 'ログイン中...' : 'ログイン'}
         </button>

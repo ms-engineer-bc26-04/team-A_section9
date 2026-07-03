@@ -61,7 +61,7 @@ export default function SchoolDetailHeader({
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
+                    className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
                   >
                     {tag}
                   </span>
