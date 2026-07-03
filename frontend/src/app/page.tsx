@@ -32,6 +32,7 @@ export default function HomePage() {
               width={300}
               height={90}
               loading="eager"
+              style={{ width: 'auto', height: 'auto' }}
               className="object-contain"
             />
           </div>

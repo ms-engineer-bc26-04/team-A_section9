@@ -128,7 +128,7 @@ export default function AdminPage() {
                 {isMeLoading ? FALLBACK_SCHOOL_NAME : schoolName}
               </p>
               <p className="text-white text-sm">
-                担当者名：{isMeLoading ? FALLBACK_STAFF_NAME : staffName}
+                担当者名：{isMeLoading ? FALLBACK_STAFF_NAME : staffName}さん
               </p>
             </div>
           </div>

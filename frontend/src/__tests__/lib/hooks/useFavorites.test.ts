@@ -1,7 +1,7 @@
 // frontend/src/__tests__/lib/hooks/useFavorites.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { favoritesFetcher, useFavorites } from '@/lib/hooks/useFavorites'
+import { useFavorites } from '@/lib/hooks/useFavorites'
 import { supabase } from '@/lib/supabase'
 
 // SWR のモック
