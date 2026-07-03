@@ -9,7 +9,9 @@ on:
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend-build.yml'
-
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
   push:
     branches:
       - develop
