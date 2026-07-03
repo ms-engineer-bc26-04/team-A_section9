@@ -76,7 +76,7 @@ export default function VisitPage() {
       const code = e instanceof Error ? e.message : ''
       if (code === 'FAVORITE_LIMIT_EXCEEDED') {
         setToast({
-          message: 'お気に入りは5件まで。プレミアムで無制限に',
+          message: 'お気に入りは3件まで。プレミアムで無制限に',
           type: 'warning',
         })
       } else {
