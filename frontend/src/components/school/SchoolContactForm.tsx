@@ -20,8 +20,11 @@ export default function SchoolContactForm({
       <h2 className="font-bold text-base text-gray-800 mb-1">
         園へのお問い合わせ
       </h2>
-      <p className="text-xs text-gray-500 mb-3">
+      <p className="text-xs text-gray-500 mb-1">
         見学の事や入園に関するご質問など、お気軽にお問い合わせください
+      </p>
+      <p className="text-xs text-gray-500 mb-3">
+        ご登録のメールアドレスに園側から返信があります
       </p>
       <label className="block text-sm text-gray-600 mb-1">
         お問い合わせ内容

@@ -82,7 +82,7 @@ describe('Favorite API', () => {
       new FavoriteServiceError(
         403,
         'FAVORITE_LIMIT_EXCEEDED',
-        '一般ユーザーは5件までお気に入り登録できます。プレミアムユーザーなら5件以上登録できます'
+        '一般ユーザーは3件までお気に入り登録できます。プレミアムユーザーは4件以上登録できます'
       )
     )
 

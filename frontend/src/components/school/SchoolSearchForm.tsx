@@ -52,10 +52,9 @@ export default function SchoolSearchForm({
           onChange={setKeyword}
           onSubmit={handleSearch}
         />
-        {/* Figmaデザイン（node-id=117-1373）に合わせ、入力欄の右側に検索ボタンを配置 */}
         <button
           onClick={handleSearch}
-          className="flex-shrink-0 bg-[#a0cd83] text-white font-extrabold text-sm rounded-full px-5 py-2.5 hover:bg-[#8fbb70] active:bg-[#8fbb70] transition-colors"
+          className="flex-shrink-0 bg-[#a0cd83] text-white font-bold text-sm rounded-full px-5 py-2.5 hover:bg-[#8fbb70] active:bg-[#8fbb70] transition-colors [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
         >
           検索
         </button>

@@ -144,7 +144,7 @@ export default function PlansPage() {
             </p>
             <div className="flex flex-col gap-3 mb-4">
               <PlanItem icon="icon12.png" text="2つの園を同時比較" />
-              <PlanItem icon="icon13.png" text="5件までお気に入り機能の追加" />
+              <PlanItem icon="icon13.png" text="3件までお気に入り機能の追加" />
               <PlanItem icon="icon14.png" text="マイページから希望条件の登録" />
             </div>
             <button

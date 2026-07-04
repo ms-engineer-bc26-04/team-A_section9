@@ -127,7 +127,7 @@ export default function SchoolList() {
       >
         <div className="flex flex-col gap-4">
           <p className="text-gray-600 text-sm text-center">
-            お気に入りは5件まで登録できます。
+            お気に入りは3件まで登録できます。
             <br />
             プレミアムに登録後、無制限に登録できます。
           </p>

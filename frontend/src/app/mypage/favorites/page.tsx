@@ -88,11 +88,27 @@ export default function FavoritesPage() {
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <h1 className="font-bold text-gray-800 text-xl">お気に入りの園</h1>
+        {/* 比較するボタン：白背景・緑ボーダー＋塗りつぶし緑丸のチェックアイコン */}
         <button
           onClick={handleCompare}
           disabled={selectedIds.length < 2}
-          className="px-5 py-2 rounded-full font-extrabold text-base bg-[#A0CD83] text-white hover:bg-[#82b865] active:bg-[#82b865] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-5 py-2 rounded-full font-extrabold text-base border-2 border-[#a0cd83] text-[#a0cd83] hover:bg-[#a0cd83]/10 active:bg-[#a0cd83]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            className="w-5 h-5 flex-shrink-0"
+          >
+            <circle cx="12" cy="12" r="12" fill="#a0cd83" />
+            <path
+              d="M8 12.5l2.5 2.5L16 9.5"
+              fill="none"
+              stroke="white"
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
           比較する
         </button>
       </div>
@@ -104,7 +120,9 @@ export default function FavoritesPage() {
             ? `${favoriteCount} / ${favoriteLimit}件登録中`
             : `${favoriteCount}件登録中`}
         </p>
-        <p className="text-gray-700 text-sm">比較対象：{maxCompare}園まで</p>
+        <p className="text-gray-700 text-sm">
+          比較対象：{maxCompare}園まで選択してください
+        </p>
       </div>
 
       {/* 空状態 */}
@@ -116,89 +134,92 @@ export default function FavoritesPage() {
         />
       ) : (
         <div className="flex flex-col gap-3">
-          {favorites.map((favorite) => (
-            <div
-              key={favorite.id}
-              className="relative border border-gray-200 rounded-xl bg-white shadow-sm"
-            >
-              {/* 画像・テキストをまとめてLinkに */}
-              <Link
-                href={`/schools/${favorite.school.id}`}
-                className="flex gap-3 p-3 transition-transform active:scale-95"
-              >
-                {/* 画像 */}
-                <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
-                  {favorite.school.imageUrl ? (
-                    <Image
-                      src={favorite.school.imageUrl}
-                      alt={favorite.school.name}
-                      fill
-                      sizes="96px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
-                      No Image
-                    </div>
-                  )}
-                </div>
+          {favorites.map((favorite) => {
+            const isSelected = selectedIds.includes(favorite.school.id)
 
-                {/* テキスト情報 */}
-                <div className="flex-1 min-w-0 flex flex-col gap-1 pr-8">
-                  <p className="font-bold text-gray-800 text-sm leading-snug">
-                    {favorite.school.name}
-                  </p>
-                  <p className="text-gray-500 text-xs truncate">
-                    {favorite.school.address}
-                  </p>
-                  {favorite.school.phoneNumber && (
-                    <p className="text-gray-500 text-xs">
-                      電話番号：{favorite.school.phoneNumber}
-                    </p>
-                  )}
-
-                  {/* タグ */}
-                  {favorite.school.tags && favorite.school.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {favorite.school.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </Link>
-
-              {/* チェックボックス（右上・丸型） */}
+            return (
               <div
-                className="absolute top-3 right-3 cursor-pointer"
-                onClick={() => handleToggleSelect(favorite.school.id)}
+                key={favorite.id}
+                className="relative border border-gray-200 rounded-xl bg-white shadow-sm"
               >
-                <motion.div
-                  animate={
-                    selectedIds.includes(favorite.school.id)
-                      ? { scale: [1, 1.4, 0.9, 1.15, 1] }
-                      : { scale: 1 }
-                  }
-                  transition={{ duration: 0.4, ease: 'easeInOut' }}
-                  className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                    selectedIds.includes(favorite.school.id)
-                      ? 'bg-[#A0CD83] border-[#A0CD83]'
-                      : 'bg-white border-gray-300'
-                  }`}
+                {/* 画像・テキストをまとめてLinkに */}
+                <Link
+                  href={`/schools/${favorite.school.id}`}
+                  className="flex gap-3 p-3 transition-transform active:scale-95"
                 >
-                  {selectedIds.includes(favorite.school.id) && (
+                  {/* 画像 */}
+                  <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100">
+                    {favorite.school.imageUrl ? (
+                      <Image
+                        src={favorite.school.imageUrl}
+                        alt={favorite.school.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-xs">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
+                  {/* テキスト情報 */}
+                  <div className="flex-1 min-w-0 flex flex-col gap-1 pr-8">
+                    <p className="font-bold text-gray-800 text-sm leading-snug">
+                      {favorite.school.name}
+                    </p>
+                    <p className="text-gray-500 text-xs truncate">
+                      {favorite.school.address}
+                    </p>
+                    {favorite.school.phoneNumber && (
+                      <p className="text-gray-500 text-xs">
+                        電話番号：{favorite.school.phoneNumber}
+                      </p>
+                    )}
+
+                    {/* タグ */}
+                    {/* 修正：SchoolCard.tsxと統一（font-semibold + text-shadow） */}
+                    {favorite.school.tags &&
+                      favorite.school.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {favorite.school.tags.slice(0, 3).map((tag) => (
+                            <span
+                              key={tag}
+                              className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-semibold [text-shadow:0px_1px_1px_rgba(0,0,0,0.25)]"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                  </div>
+                </Link>
+
+                {/* チェックボックス（右上・丸型） */}
+                {/* 修正：未選択時は薄いグレー背景＋白チェックマークに変更 */}
+                <div
+                  className="absolute top-3 right-3 cursor-pointer"
+                  onClick={() => handleToggleSelect(favorite.school.id)}
+                >
+                  <motion.div
+                    animate={
+                      isSelected
+                        ? { scale: [1, 1.4, 0.9, 1.15, 1] }
+                        : { scale: 1 }
+                    }
+                    transition={{ duration: 0.4, ease: 'easeInOut' }}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                      isSelected ? 'bg-[#A0CD83]' : 'bg-gray-300'
+                    }`}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="white"
                       strokeWidth={3}
-                      className="w-3 h-3"
+                      className="w-4 h-4"
                     >
                       <path
                         strokeLinecap="round"
@@ -206,21 +227,21 @@ export default function FavoritesPage() {
                         d="M4.5 12.75l6 6 9-13.5"
                       />
                     </svg>
-                  )}
-                </motion.div>
-              </div>
+                  </motion.div>
+                </div>
 
-              {/* 解除ボタン（右下） */}
-              <div className="absolute bottom-3 right-3">
-                <FavoriteButton
-                  schoolId={favorite.school.id}
-                  isFavorited={true}
-                  isLoggedIn={isLoggedIn}
-                  onToggle={handleRemoveFavorite}
-                />
+                {/* 解除ボタン（右下） */}
+                <div className="absolute bottom-3 right-3">
+                  <FavoriteButton
+                    schoolId={favorite.school.id}
+                    isFavorited={true}
+                    isLoggedIn={isLoggedIn}
+                    onToggle={handleRemoveFavorite}
+                  />
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

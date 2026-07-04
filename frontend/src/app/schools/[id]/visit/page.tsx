@@ -76,7 +76,7 @@ export default function VisitPage() {
       const code = e instanceof Error ? e.message : ''
       if (code === 'FAVORITE_LIMIT_EXCEEDED') {
         setToast({
-          message: 'お気に入りは5件まで。プレミアムで無制限に',
+          message: 'お気に入りは3件まで。プレミアムで無制限に',
           type: 'warning',
         })
       } else {
@@ -149,7 +149,7 @@ export default function VisitPage() {
       <h1 className="text-xl font-bold text-gray-800 mb-4">見学予約</h1>
 
       {/* 園情報カード */}
-      <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 mb-6">
+      <div className="border border-gray-200 rounded-xl p-3 flex items-start gap-3 mb-6">
         <div className="relative w-20 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           {school?.imageUrl ? (
             <Image
@@ -164,7 +164,7 @@ export default function VisitPage() {
             </div>
           )}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <p className="font-bold text-gray-800 text-sm">{school?.name}</p>
           <p className="text-xs text-gray-500">{school?.address}</p>
           {school?.phoneNumber && (
@@ -172,11 +172,11 @@ export default function VisitPage() {
               電話番号：{school.phoneNumber}
             </p>
           )}
-          <div className="flex gap-1 mt-1">
+          <div className="flex flex-wrap gap-1 mt-1">
             {(school?.tags ?? []).map((tag) => (
               <span
                 key={tag}
-                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full"
+                className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full whitespace-nowrap [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
               >
                 {tag}
               </span>
@@ -184,12 +184,14 @@ export default function VisitPage() {
           </div>
         </div>
         {school && (
-          <FavoriteButton
-            schoolId={school.id}
-            isFavorited={favorited}
-            isLoggedIn={isLoggedIn}
-            onToggle={handleToggleFavorite}
-          />
+          <div className="flex-shrink-0 flex items-start pt-1">
+            <FavoriteButton
+              schoolId={school.id}
+              isFavorited={favorited}
+              isLoggedIn={isLoggedIn}
+              onToggle={handleToggleFavorite}
+            />
+          </div>
         )}
       </div>
 
@@ -230,9 +232,19 @@ export default function VisitPage() {
               day === today.getDate() &&
               currentMonth === today.getMonth() &&
               currentYear === today.getFullYear()
-            const isPast =
-              new Date(currentYear, currentMonth, day) <
-              new Date(today.getFullYear(), today.getMonth(), today.getDate())
+
+            // 修正箇所：
+            // disabled属性には boolean | undefined を渡す必要がある。
+            // 以前は isPast に Date オブジェクトが入っていたため、
+            // Vercel build時に「Type 'Date' is not assignable to type 'boolean | undefined'」で失敗していた。
+            // 日付同士を比較して、過去日なら true、今日以降なら false になるように修正。
+            const targetDate = new Date(currentYear, currentMonth, day)
+            const todayDate = new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate()
+            )
+            const isPast = targetDate < todayDate
 
             return (
               <button
@@ -274,7 +286,7 @@ export default function VisitPage() {
       <button
         onClick={handleSubmit}
         disabled={!selectedDate || isSubmitting}
-        className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50"
+        className="w-full bg-[#A0CD83] text-white rounded-full py-3 font-bold text-sm disabled:opacity-50 [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
       >
         {isSubmitting ? '送信中...' : '見学予約を申し込む'}
       </button>

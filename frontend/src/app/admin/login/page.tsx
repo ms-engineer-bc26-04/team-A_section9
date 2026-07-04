@@ -122,7 +122,7 @@ export default function AdminLoginPage() {
             <button
               onClick={handleLogin}
               disabled={isLoading}
-              className="w-full bg-[#73c0ff] text-white font-extrabold rounded-full py-3 text-base hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors disabled:opacity-50 mt-2"
+              className="w-full bg-[#73c0ff] text-white font-bold rounded-full py-3 text-base hover:bg-[#5aabf0] active:bg-[#5aabf0] transition-colors disabled:opacity-50 mt-2 [text-shadow:0px_1px_2px_rgba(0,0,0,0.45)]"
             >
               {isLoading ? 'ログイン中...' : 'ログイン'}
             </button>

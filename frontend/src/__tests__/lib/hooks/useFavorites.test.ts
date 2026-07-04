@@ -69,7 +69,7 @@ beforeEach(() => {
   vi.resetAllMocks()
   global.fetch = vi.fn()
 
-  // デフォルトのSWRモック: 2件登録済み・上限5件の状態
+  // デフォルトのSWRモック: 2件登録済み・上限3件の状態
   mockUseSWR.mockReturnValue({
     data: {
       favorites: [MOCK_FAVORITE_1, MOCK_FAVORITE_2],

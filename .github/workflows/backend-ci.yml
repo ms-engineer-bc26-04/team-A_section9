@@ -1,5 +1,27 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+  push:
+    branches:
+      - develop
+      - staging
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+jobs:
   backend:
-    name: Backend lint, format and test
+    name: Backend lint, format, build and test
     runs-on: ubuntu-latest
 
     defaults:
@@ -8,6 +30,8 @@
 
     env:
       NODE_ENV: test
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
       STRIPE_SECRET_KEY: sk_test_ci_dummy
       STRIPE_WEBHOOK_SECRET: whsec_test_ci_dummy
 
@@ -25,11 +49,17 @@
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
       - name: Run lint
         run: npm run lint
 
       - name: Run format check
         run: npm run format:check
+
+      - name: Run build
+        run: npm run build
 
       - name: Run test
         run: npm run test

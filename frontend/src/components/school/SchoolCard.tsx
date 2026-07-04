@@ -51,11 +51,12 @@ export default function SchoolCard({
               </p>
             )}
             {/* タグ */}
+            {/* 修正：緑背景に対する白文字の視認性向上のため、font-bold + text-shadowを追加 */}
             <div className="flex flex-wrap gap-1 mt-1">
               {(school.tags ?? []).map((tag) => (
                 <span
                   key={tag}
-                  className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-normal"
+                  className="bg-[#A0CD83] text-white text-xs px-2 py-0.5 rounded-full font-semibold [text-shadow:0px_1px_1px_rgba(0,0,0,0.25)]"
                 >
                   {tag}
                 </span>
