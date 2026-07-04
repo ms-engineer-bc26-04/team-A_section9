@@ -11,7 +11,7 @@ const mockTxUserFindUnique = vi.fn()
 const mockTxUserUpdate = vi.fn()
 const mockTxUserCreate = vi.fn()
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     $transaction: mockTransaction,
     user: {
@@ -65,7 +65,8 @@ describe('userService', () => {
 
   describe('getOrCreateCurrentUser', () => {
     it('Supabaseユーザーのメールアドレスがない場合はエラーを投げる', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const authUser = createAuthUser({
         email: undefined,
@@ -79,7 +80,8 @@ describe('userService', () => {
     })
 
     it('supabaseUserIdで既存ユーザーが見つかった場合はそのユーザーを返す', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const existingUser = createUser()
 
@@ -103,7 +105,8 @@ describe('userService', () => {
     })
 
     it('emailで既存ユーザーが見つかり、supabaseUserIdが未設定の場合はsupabaseUserIdを更新する', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const existingUserByEmail = createUser({
         id: 'user-1',
@@ -152,7 +155,8 @@ describe('userService', () => {
     })
 
     it('emailで既存ユーザーが見つかり、supabaseUserIdが別IDの場合はエラーを投げる', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       mockTxUserFindUnique.mockResolvedValueOnce(null).mockResolvedValueOnce(
         createUser({
@@ -169,7 +173,8 @@ describe('userService', () => {
     })
 
     it('既存ユーザーが存在しない場合は新規作成する', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const createdUser = createUser()
 
@@ -194,7 +199,8 @@ describe('userService', () => {
     })
 
     it('P2002発生時に既存ユーザーを取得できた場合はそのユーザーを返す', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
@@ -232,7 +238,8 @@ describe('userService', () => {
     })
 
     it('P2002発生時に既存ユーザーを取得できない場合は元のエラーを投げる', async () => {
-      const { getOrCreateCurrentUser } = await import('../services/userService')
+      const { getOrCreateCurrentUser } =
+        await import('../../services/userService')
 
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
@@ -253,7 +260,8 @@ describe('userService', () => {
 
   describe('upsertUserPreference', () => {
     it('希望条件をupsertする', async () => {
-      const { upsertUserPreference } = await import('../services/userService')
+      const { upsertUserPreference } =
+        await import('../../services/userService')
 
       const preference = {
         userId: 'user-1',
@@ -307,7 +315,8 @@ describe('userService', () => {
     })
 
     it('未指定の希望条件はnullとしてupsertする', async () => {
-      const { upsertUserPreference } = await import('../services/userService')
+      const { upsertUserPreference } =
+        await import('../../services/userService')
 
       mockUserPreferenceUpsert.mockResolvedValue({
         userId: 'user-1',
@@ -348,7 +357,7 @@ describe('userService', () => {
 
   describe('updateUserProfile', () => {
     it('プロフィールを更新し、郵便番号のハイフンを除去する', async () => {
-      const { updateUserProfile } = await import('../services/userService')
+      const { updateUserProfile } = await import('../../services/userService')
 
       const updatedUser = createUser({
         name: 'テストユーザー',
@@ -379,7 +388,7 @@ describe('userService', () => {
     })
 
     it('未指定のプロフィール項目はnullとして更新する', async () => {
-      const { updateUserProfile } = await import('../services/userService')
+      const { updateUserProfile } = await import('../../services/userService')
 
       mockUserUpdate.mockResolvedValue(createUser())
 

@@ -4,7 +4,7 @@ const mockSchoolAdminFindUnique = vi.fn()
 const mockSchoolFindUnique = vi.fn()
 const mockSchoolUpdate = vi.fn()
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     schoolAdmin: {
       findUnique: mockSchoolAdminFindUnique,
@@ -44,7 +44,7 @@ describe('schoolAdminService', () => {
   describe('getSchoolAdminMeService', () => {
     it('園管理者自身の情報を取得し、bigintのidを文字列に変換して返す', async () => {
       const { getSchoolAdminMeService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       const schoolAdmin = createSchoolAdmin()
       mockSchoolAdminFindUnique.mockResolvedValue(schoolAdmin)
@@ -77,7 +77,7 @@ describe('schoolAdminService', () => {
 
     it('園管理者が存在しない場合はnullを返す', async () => {
       const { getSchoolAdminMeService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       mockSchoolAdminFindUnique.mockResolvedValue(null)
 
@@ -88,7 +88,7 @@ describe('schoolAdminService', () => {
 
     it('紐づく園情報がない場合はschoolにnullを返す', async () => {
       const { getSchoolAdminMeService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       mockSchoolAdminFindUnique.mockResolvedValue(
         createSchoolAdmin({
@@ -106,7 +106,7 @@ describe('schoolAdminService', () => {
   describe('getManagedSchoolService', () => {
     it('管理対象園を取得し、bigintのidを文字列に変換して返す', async () => {
       const { getManagedSchoolService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       const school = createSchool({
         id: 10n,
@@ -131,7 +131,7 @@ describe('schoolAdminService', () => {
 
     it('管理対象園が存在しない場合はnullを返す', async () => {
       const { getManagedSchoolService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       mockSchoolFindUnique.mockResolvedValue(null)
 
@@ -144,7 +144,7 @@ describe('schoolAdminService', () => {
   describe('updateManagedSchoolService', () => {
     it('管理対象園を更新する', async () => {
       const { updateManagedSchoolService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       const updatedSchool = createSchool({
         id: 1n,
@@ -176,7 +176,7 @@ describe('schoolAdminService', () => {
 
     it('更新時にnullの項目を除外する', async () => {
       const { updateManagedSchoolService } =
-        await import('../services/schoolAdminService')
+        await import('../../services/schoolAdminService')
 
       mockSchoolUpdate.mockResolvedValue(createSchool())
 

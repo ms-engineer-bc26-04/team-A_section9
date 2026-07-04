@@ -8,7 +8,7 @@ const mockFavoriteCreate = vi.fn()
 const mockFavoriteDelete = vi.fn()
 const mockSchoolFindUnique = vi.fn()
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     favorite: {
       findMany: mockFavoriteFindMany,
@@ -48,7 +48,8 @@ describe('favoriteService', () => {
 
   describe('getUserFavorites', () => {
     it('一般ユーザーのお気に入り一覧を取得し、favoriteLimitに3を返す', async () => {
-      const { getUserFavorites } = await import('../services/favoriteService')
+      const { getUserFavorites } =
+        await import('../../services/favoriteService')
 
       const favorite = createFavorite({
         id: 10n,
@@ -98,7 +99,8 @@ describe('favoriteService', () => {
     })
 
     it('プレミアムユーザーのお気に入り一覧ではfavoriteLimitにnullを返す', async () => {
-      const { getUserFavorites } = await import('../services/favoriteService')
+      const { getUserFavorites } =
+        await import('../../services/favoriteService')
 
       mockFavoriteFindMany.mockResolvedValue([
         createFavorite({ id: 1n, schoolId: 1n }),
@@ -114,7 +116,8 @@ describe('favoriteService', () => {
     })
 
     it('園タグを生成できない値の場合はtagsに含めない', async () => {
-      const { getUserFavorites } = await import('../services/favoriteService')
+      const { getUserFavorites } =
+        await import('../../services/favoriteService')
 
       mockFavoriteFindMany.mockResolvedValue([
         createFavorite({
@@ -134,7 +137,7 @@ describe('favoriteService', () => {
 
   describe('addUserFavorite', () => {
     it('お気に入り登録に成功し、登録結果をシリアライズして返す', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       const school = createSchool({ id: 1n })
       const favorite = createFavorite({
@@ -195,7 +198,7 @@ describe('favoriteService', () => {
 
     it('対象の園が存在しない場合はNOT_FOUNDを投げる', async () => {
       const { addUserFavorite, FavoriteServiceError } =
-        await import('../services/favoriteService')
+        await import('../../services/favoriteService')
 
       mockSchoolFindUnique.mockResolvedValue(null)
 
@@ -216,7 +219,7 @@ describe('favoriteService', () => {
     })
 
     it('すでにお気に入り登録済みの場合はALREADY_FAVORITEDを投げる', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       mockSchoolFindUnique.mockResolvedValue(createSchool())
       mockFavoriteFindUnique.mockResolvedValue(createFavorite())
@@ -232,7 +235,7 @@ describe('favoriteService', () => {
     })
 
     it('一般ユーザーのお気に入り数が上限に達している場合はFAVORITE_LIMIT_EXCEEDEDを投げる', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       mockSchoolFindUnique.mockResolvedValue(createSchool())
       mockFavoriteFindUnique.mockResolvedValue(null)
@@ -249,7 +252,7 @@ describe('favoriteService', () => {
     })
 
     it('プレミアムユーザーの場合はお気に入り数の上限チェックをスキップする', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       const favorite = createFavorite({
         id: 1n,
@@ -269,7 +272,7 @@ describe('favoriteService', () => {
     })
 
     it('Prismaの一意制約エラーが発生した場合はALREADY_FAVORITEDを投げる', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       const prismaError = new Prisma.PrismaClientKnownRequestError(
         'Unique constraint failed',
@@ -292,7 +295,7 @@ describe('favoriteService', () => {
     })
 
     it('Prismaの一意制約以外のエラーはそのまま投げる', async () => {
-      const { addUserFavorite } = await import('../services/favoriteService')
+      const { addUserFavorite } = await import('../../services/favoriteService')
 
       const error = new Error('DB_ERROR')
 
@@ -309,7 +312,8 @@ describe('favoriteService', () => {
 
   describe('deleteUserFavorite', () => {
     it('お気に入り削除に成功する', async () => {
-      const { deleteUserFavorite } = await import('../services/favoriteService')
+      const { deleteUserFavorite } =
+        await import('../../services/favoriteService')
 
       mockFavoriteFindUnique.mockResolvedValue(
         createFavorite({
@@ -337,7 +341,8 @@ describe('favoriteService', () => {
     })
 
     it('削除対象のお気に入りが存在しない場合はNOT_FOUNDを投げる', async () => {
-      const { deleteUserFavorite } = await import('../services/favoriteService')
+      const { deleteUserFavorite } =
+        await import('../../services/favoriteService')
 
       mockFavoriteFindUnique.mockResolvedValue(null)
 
