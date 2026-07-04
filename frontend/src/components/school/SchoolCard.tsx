@@ -27,6 +27,7 @@ export default function SchoolCard({
                 src={school.imageUrl}
                 alt={school.name}
                 fill
+                sizes="96px"
                 className="object-cover"
               />
             ) : (
