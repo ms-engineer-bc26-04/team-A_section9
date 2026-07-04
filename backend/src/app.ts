@@ -13,7 +13,7 @@ import schoolAdminRoutes from './routes/schoolAdminRoutes'
 const app = express()
 
 const isProduction = process.env.NODE_ENV === 'production'
-const rateLimitMax = isProduction ? 100 : 1000
+const rateLimitMax = isProduction ? 3000 : 1000
 
 const allowedOrigins = [
   'http://localhost:3000',
@@ -27,7 +27,7 @@ app.use(
   })
 )
 
-// 開発環境では React Strict Mode により API が複数回呼ばれることがあるため、
+// デモ・動作確認時に画面遷移や再読み込みで API が複数回呼ばれるため、
 // 不要に 429 にならないよう上限を緩める
 app.use(
   rateLimit({
