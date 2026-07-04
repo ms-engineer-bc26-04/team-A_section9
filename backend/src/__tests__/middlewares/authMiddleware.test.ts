@@ -1,13 +1,13 @@
 import type { NextFunction, Response } from 'express'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { AuthenticatedRequest } from '../middlewares/authMiddleware'
+import type { AuthenticatedRequest } from '../../middlewares/authMiddleware'
 
 const mockSupabaseGetUser = vi.fn()
 const mockUserFindFirst = vi.fn()
 const mockUserUpdate = vi.fn()
 const mockUserCreate = vi.fn()
 
-vi.mock('../lib/supabase', () => ({
+vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
       getUser: mockSupabaseGetUser,
@@ -15,7 +15,7 @@ vi.mock('../lib/supabase', () => ({
   },
 }))
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     user: {
       findFirst: mockUserFindFirst,
@@ -68,7 +68,7 @@ describe('authMiddleware', () => {
   describe('authenticateSupabaseUser', () => {
     it('Authorizationヘッダーがない場合は401を返す', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       const req = createRequest()
       const res = createResponse()
@@ -89,7 +89,7 @@ describe('authMiddleware', () => {
 
     it('AuthorizationヘッダーがBearer形式でない場合は401を返す', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       const req = createRequest('Token invalid-token')
       const res = createResponse()
@@ -110,7 +110,7 @@ describe('authMiddleware', () => {
 
     it('Supabaseユーザー取得に失敗した場合は401を返す', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       mockSupabaseGetUser.mockResolvedValue({
         data: {
@@ -140,7 +140,7 @@ describe('authMiddleware', () => {
 
     it('既存ユーザーがある場合はSupabaseユーザーIDとメールを更新してnextを呼ぶ', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       const authUser = createAuthUser()
 
@@ -197,7 +197,7 @@ describe('authMiddleware', () => {
 
     it('既存ユーザーがない場合はアプリ側Userを作成してnextを呼ぶ', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       const authUser = createAuthUser()
 
@@ -234,7 +234,7 @@ describe('authMiddleware', () => {
 
     it('処理中にエラーが発生した場合はnextに渡す', async () => {
       const { authenticateSupabaseUser } =
-        await import('../middlewares/authMiddleware')
+        await import('../../middlewares/authMiddleware')
 
       const error = new Error('DB_ERROR')
 
@@ -259,7 +259,7 @@ describe('authMiddleware', () => {
   describe('optionalAuthenticateSupabaseUser', () => {
     it('Authorizationヘッダーがない場合は認証せずnextを呼ぶ', async () => {
       const { optionalAuthenticateSupabaseUser } =
-        await import('../middlewares/optionalAuthMiddleware')
+        await import('../../middlewares/optionalAuthMiddleware')
 
       const req = createRequest()
       const res = createResponse()
@@ -274,7 +274,7 @@ describe('authMiddleware', () => {
 
     it('AuthorizationヘッダーがBearer形式でない場合は401を返す', async () => {
       const { optionalAuthenticateSupabaseUser } =
-        await import('../middlewares/optionalAuthMiddleware')
+        await import('../../middlewares/optionalAuthMiddleware')
 
       const req = createRequest('Token invalid-token')
       const res = createResponse()
@@ -295,7 +295,7 @@ describe('authMiddleware', () => {
 
     it('Supabaseユーザー取得に失敗した場合は401を返す', async () => {
       const { optionalAuthenticateSupabaseUser } =
-        await import('../middlewares/optionalAuthMiddleware')
+        await import('../../middlewares/optionalAuthMiddleware')
 
       mockSupabaseGetUser.mockResolvedValue({
         data: {
@@ -325,7 +325,7 @@ describe('authMiddleware', () => {
 
     it('Supabaseユーザーを取得できた場合はreq.authUserに設定してnextを呼ぶ', async () => {
       const { optionalAuthenticateSupabaseUser } =
-        await import('../middlewares/optionalAuthMiddleware')
+        await import('../../middlewares/optionalAuthMiddleware')
 
       const authUser = createAuthUser()
 
@@ -348,7 +348,7 @@ describe('authMiddleware', () => {
 
     it('処理中にエラーが発生した場合はnextに渡す', async () => {
       const { optionalAuthenticateSupabaseUser } =
-        await import('../middlewares/optionalAuthMiddleware')
+        await import('../../middlewares/optionalAuthMiddleware')
 
       const error = new Error('SUPABASE_ERROR')
 

@@ -5,7 +5,7 @@ const mockSchoolFindUnique = vi.fn()
 const mockUserFindUnique = vi.fn()
 const mockFavoriteFindMany = vi.fn()
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     school: {
       findMany: mockSchoolFindMany,
@@ -45,7 +45,7 @@ describe('schoolService', () => {
 
   describe('getSchools', () => {
     it('検索条件なしの場合、id昇順で園一覧を取得する', async () => {
-      const { getSchools } = await import('../services/schoolService')
+      const { getSchools } = await import('../../services/schoolService')
 
       const schools = [createSchool()]
       mockSchoolFindMany.mockResolvedValue(schools)
@@ -65,7 +65,7 @@ describe('schoolService', () => {
     })
 
     it('keywordが指定された場合、園名・住所・エリアを部分一致検索する', async () => {
-      const { getSchools } = await import('../services/schoolService')
+      const { getSchools } = await import('../../services/schoolService')
 
       mockSchoolFindMany.mockResolvedValue([])
 
@@ -106,7 +106,7 @@ describe('schoolService', () => {
     })
 
     it('qが指定された場合、keywordと同じ検索条件として扱う', async () => {
-      const { getSchools } = await import('../services/schoolService')
+      const { getSchools } = await import('../../services/schoolService')
 
       mockSchoolFindMany.mockResolvedValue([])
 
@@ -135,7 +135,7 @@ describe('schoolService', () => {
     })
 
     it('各検索条件をwhere句に反映する', async () => {
-      const { getSchools } = await import('../services/schoolService')
+      const { getSchools } = await import('../../services/schoolService')
 
       mockSchoolFindMany.mockResolvedValue([])
 
@@ -207,7 +207,7 @@ describe('schoolService', () => {
     })
 
     it('diaperSupport / futonSupport / extendedCareUsage がtrue以外の場合は部分一致検索する', async () => {
-      const { getSchools } = await import('../services/schoolService')
+      const { getSchools } = await import('../../services/schoolService')
 
       mockSchoolFindMany.mockResolvedValue([])
 
@@ -249,7 +249,7 @@ describe('schoolService', () => {
   describe('getRecommendedSchools', () => {
     it('ユーザーが存在しない場合、通常の園一覧をそのまま返す', async () => {
       const { getRecommendedSchools } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       const schools = [
         createSchool({ id: 1n, area: '渋谷区' }),
@@ -274,7 +274,7 @@ describe('schoolService', () => {
 
     it('ユーザーに住所・希望条件がない場合、通常の園一覧をそのまま返す', async () => {
       const { getRecommendedSchools } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       const schools = [
         createSchool({ id: 1n, area: '渋谷区' }),
@@ -295,7 +295,7 @@ describe('schoolService', () => {
 
     it('ユーザー住所と園のエリアが一致する園をおすすめ順で優先する', async () => {
       const { getRecommendedSchools } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       const shibuyaSchool = createSchool({
         id: 2n,
@@ -323,7 +323,7 @@ describe('schoolService', () => {
 
     it('希望条件との一致度が高い園をおすすめ順で優先する', async () => {
       const { getRecommendedSchools } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       const lowScoreSchool = createSchool({
         id: 1n,
@@ -379,7 +379,7 @@ describe('schoolService', () => {
 
     it('おすすめスコアが同じ場合はid昇順で並べる', async () => {
       const { getRecommendedSchools } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       const school2 = createSchool({
         id: 2n,
@@ -408,7 +408,7 @@ describe('schoolService', () => {
 
   describe('getSchoolById', () => {
     it('指定したidの園詳細を取得する', async () => {
-      const { getSchoolById } = await import('../services/schoolService')
+      const { getSchoolById } = await import('../../services/schoolService')
 
       const school = createSchool({ id: 1n })
       mockSchoolFindUnique.mockResolvedValue(school)
@@ -427,7 +427,7 @@ describe('schoolService', () => {
   describe('getFavoritedSchoolIds', () => {
     it('お気に入り登録済みのschoolIdを文字列のSetで返す', async () => {
       const { getFavoritedSchoolIds } =
-        await import('../services/schoolService')
+        await import('../../services/schoolService')
 
       mockFavoriteFindMany.mockResolvedValue([
         {

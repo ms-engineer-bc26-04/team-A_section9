@@ -1,11 +1,11 @@
 import type { NextFunction, Response } from 'express'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { SchoolAdminRequest } from '../middlewares/schoolAdminMiddleware'
+import type { SchoolAdminRequest } from '../../middlewares/schoolAdminMiddleware'
 
 const mockUserFindUnique = vi.fn()
 const mockSchoolAdminFindUnique = vi.fn()
 
-vi.mock('../lib/prisma', () => ({
+vi.mock('../../lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: mockUserFindUnique,
@@ -57,7 +57,7 @@ describe('schoolAdminMiddleware', () => {
   describe('requireSchoolAdmin', () => {
     it('req.authUserがない場合は401を返す', async () => {
       const { requireSchoolAdmin } =
-        await import('../middlewares/schoolAdminMiddleware')
+        await import('../../middlewares/schoolAdminMiddleware')
 
       const req = createRequest()
       const res = createResponse()
@@ -79,7 +79,7 @@ describe('schoolAdminMiddleware', () => {
 
     it('アプリ側Userが存在しない場合は401を返す', async () => {
       const { requireSchoolAdmin } =
-        await import('../middlewares/schoolAdminMiddleware')
+        await import('../../middlewares/schoolAdminMiddleware')
 
       mockUserFindUnique.mockResolvedValue(null)
 
@@ -108,7 +108,7 @@ describe('schoolAdminMiddleware', () => {
 
     it('園管理者として登録されていない場合は403を返す', async () => {
       const { requireSchoolAdmin } =
-        await import('../middlewares/schoolAdminMiddleware')
+        await import('../../middlewares/schoolAdminMiddleware')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -141,7 +141,7 @@ describe('schoolAdminMiddleware', () => {
 
     it('園管理者の場合はreq.schoolAdminを設定してnextを呼ぶ', async () => {
       const { requireSchoolAdmin } =
-        await import('../middlewares/schoolAdminMiddleware')
+        await import('../../middlewares/schoolAdminMiddleware')
 
       mockUserFindUnique.mockResolvedValue({
         id: 'user-1',
@@ -172,7 +172,7 @@ describe('schoolAdminMiddleware', () => {
 
     it('処理中にエラーが発生した場合はnextに渡す', async () => {
       const { requireSchoolAdmin } =
-        await import('../middlewares/schoolAdminMiddleware')
+        await import('../../middlewares/schoolAdminMiddleware')
 
       const error = new Error('DB_ERROR')
 
