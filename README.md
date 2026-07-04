@@ -111,9 +111,8 @@ Backend API
 │   ├── PRD.md
 │   ├── ペルソナ案(最終版).md
 │   ├── セキュリティ設計.md
-│   ├── デプロイ.md
 │   ├── デプロイ確認.md
-│   ├── テスト設計書.md
+│   ├── テスト設計.md
 │   ├── ログ設計.md
 │   ├── 性能設計.md
 │   ├── 画面設計.md
@@ -146,7 +145,7 @@ Backend API
 | [性能設計](docs/性能設計.md)                 | Redisキャッシュ対象API・TTL・キャッシュキー方針を整理 |
 | [セキュリティ設計](docs/セキュリティ設計.md) | Helmet / CORS / Rate Limit / 認証確認を整理           |
 | [ログ設計](docs/ログ設計.md)                 | Pinoログ・cache hit / cache miss の確認方法を整理     |
-| [テスト設計書](docs/テスト設計書.md)         | MVP主要機能・API・デモ前確認のテスト観点を整理        |
+| [テスト設計](docs/テスト設計.md)             | MVP主要機能・API・デモ前確認のテスト観点を整理        |
 
 ### 開発・運用
 
@@ -154,7 +153,6 @@ Backend API
 | ------------------------------------ | --------------------------------------------------------------------- |
 | [GitHub運用](docs/GitHub運用.md)     | ブランチ・Issue・PR・レビュー・マージ運用を整理                       |
 | [運用設計](docs/運用設計.md)         | Redisキャッシュ・ログ・セキュリティ設定を含む運用確認手順を整理       |
-| [デプロイ](docs/デプロイ.md)         | デプロイ構成・デプロイURL・Redis確認方法を整理                        |
 | [デプロイ確認](docs/デプロイ確認.md) | MVPデモ用デプロイURL・主要導線確認手順・外部サービス設定の注意点を整理 |
 
 ### 補足資料
@@ -170,28 +168,28 @@ Backend API
 
 MVPデモ用のデプロイ環境は以下です。
 
-| 項目          | 内容                                 |
-| ------------- | ------------------------------------ |
-| Frontend      | Vercel                               |
-| Backend       | Render                               |
-| Database      | Supabase PostgreSQL                  |
-| Auth          | Supabase Auth                        |
-| Cache         | Upstash Redis                        |
-| Payment       | Stripe Test Mode                     |
-| Deploy Branch | staging                              |
-| Frontend URL  | https://enkatsu-frontend.vercel.app  |
-| Backend URL   | https://enkatsu-backend-sg.onrender.com |
+| 項目          | 内容                                      |
+| ------------- | ----------------------------------------- |
+| Frontend      | Vercel                                    |
+| Backend       | Render                                    |
+| Database      | Supabase PostgreSQL                       |
+| Auth          | Supabase Auth                             |
+| Cache         | Upstash Redis                             |
+| Payment       | Stripe Test Mode                          |
+| Deploy Branch | staging                                   |
+| Frontend URL  | https://enkatsu-frontend.vercel.app       |
+| Backend URL   | https://enkatsu-backend-sg.onrender.com   |
 
 ### デプロイ確認・主要導線確認
 
 デプロイ環境での確認手順、Supabase Auth / Stripe Webhook / Redis / CORS などの注意点は、以下に整理しています。
 
-- [デプロイ](docs/デプロイ.md)
 - [デプロイ確認](docs/デプロイ確認.md)
 
 ### 注意点
 
 - デモ確認は `https://enkatsu-frontend.vercel.app` を利用します。
+- Backend API は `https://enkatsu-backend-sg.onrender.com` を利用します。
 - Vercel の Production Branch は `staging` です。
 - Render の Backend デプロイ対象ブランチも `staging` です。
 - シークレット情報の実値は README / docs / GitHub Issue / PR本文には記載しません。
