@@ -30,6 +30,8 @@ jobs:
 
     env:
       NODE_ENV: test
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
       STRIPE_SECRET_KEY: sk_test_ci_dummy
       STRIPE_WEBHOOK_SECRET: whsec_test_ci_dummy
 
