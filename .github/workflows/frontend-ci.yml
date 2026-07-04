@@ -21,12 +21,16 @@ on:
 
 jobs:
   frontend:
-    name: Frontend lint, format, build and E2E
+    name: Frontend lint, format and build
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: frontend
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
 
     steps:
       - name: Checkout repository
@@ -49,20 +53,26 @@ jobs:
         run: npm run format:check
 
       - name: Build frontend
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
         run: |
           test -n "$NEXT_PUBLIC_SUPABASE_URL"
           test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
           echo "Supabase env vars are set"
           npm run build
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright E2E tests
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
-        run: npm run test:e2e
+      # TODO: Playwright E2E tests will be enabled after CI environment is prepared.
+      # Current E2E tests require:
+      # - frontend server on localhost:3000
+      # - backend server
+      # - E2E test user credentials
+      #
+      # Required secrets:
+      # - E2E_GENERAL_USER_EMAIL
+      # - E2E_GENERAL_USER_PASSWORD
+      # - E2E_PREMIUM_USER_EMAIL
+      # - E2E_PREMIUM_USER_PASSWORD
+      #
+      # - name: Install Playwright browsers
+      #   run: npx playwright install --with-deps
+      #
+      # - name: Run Playwright E2E tests
+      #   run: npm run test:e2e
