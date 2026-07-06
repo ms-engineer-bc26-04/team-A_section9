@@ -67,6 +67,16 @@ const INITIAL_FORM: SchoolForm = {
   description: '',
 }
 
+// APIから返ってきたコード値を、画面表示用の日本語に変換する
+function displayText(value: string) {
+  const labels: Record<string, string> = {
+    SCHOOL_LUNCH: '毎日給食あり',
+    APP: 'アプリ',
+  }
+
+  return labels[value] ?? value
+}
+
 // APIレスポンス → フォーム用の整形
 // バックエンド未実装の間は使われないが、つなぎこみ時はここだけ調整すればOK
 function mapResponseToForm(data: Partial<SchoolForm>): SchoolForm {
@@ -310,7 +320,7 @@ export default function AdminEditPage() {
           <div className="flex flex-col gap-4 mb-6">
             <FormField
               label="給食・弁当"
-              value={form.mealType}
+              value={displayText(form.mealType)}
               onChange={(v) => handleChange('mealType', v)}
             />
             <FormField
@@ -358,12 +368,12 @@ export default function AdminEditPage() {
           <div className="flex flex-col gap-4 mb-6">
             <FormField
               label="連絡帳"
-              value={form.contactBookType}
+              value={displayText(form.contactBookType)}
               onChange={(v) => handleChange('contactBookType', v)}
             />
             <FormField
               label="欠席連絡方法"
-              value={form.absenceContactMethod}
+              value={displayText(form.absenceContactMethod)}
               onChange={(v) => handleChange('absenceContactMethod', v)}
             />
             <FormField
