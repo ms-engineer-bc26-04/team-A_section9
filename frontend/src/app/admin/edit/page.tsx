@@ -70,9 +70,13 @@ const INITIAL_FORM: SchoolForm = {
 // APIレスポンス → フォーム用の整形
 // バックエンド未実装の間は使われないが、つなぎこみ時はここだけ調整すればOK
 function mapResponseToForm(data: Partial<SchoolForm>): SchoolForm {
+  const sanitized = Object.fromEntries(
+    Object.entries(data).map(([key, value]) => [key, value ?? ''])
+  ) as Partial<SchoolForm>
+
   return {
     ...INITIAL_FORM,
-    ...data,
+    ...sanitized,
   }
 }
 
