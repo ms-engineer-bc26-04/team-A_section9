@@ -580,10 +580,11 @@ async function main() {
         futonSupport: '園で管理',
         extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
-        weekdayEvents: 'なし',
+        weekdayEvents: '3カ月に1回',
         parentAssociationFrequency: '月に1回程度',
+        absenceContactMethod: ContactType.PHONE,
         lessons: '英語教室・プログラミング',
-        allergySupport: '個別対応あり',
+        allergySupport: '個別対応なし',
       }),
 
       school({
@@ -645,11 +646,9 @@ async function main() {
         extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '20人以上',
         weekdayEvents: 'なし',
-        lessons: '体操教室',
+        lessons: '英語教室・体操教室・リトミック',
         allergySupport: '個別対応あり',
-      }),
-
-      // 佐藤恵さん：比較対象3位
+      }), // 佐藤恵さん：比較対象3位
       school({
         id: 25,
         name: 'まなびの森保育園',
@@ -668,7 +667,9 @@ async function main() {
         extendedCareHours: '18:00〜20:00',
         extendedCareUsage: '10〜20人程度',
         weekdayEvents: '月に1回程度',
-        lessons: '英語教室・プログラミング',
+        parentAssociationFrequency: '半年に1回',
+        contactBookType: ContactType.PAPER,
+        lessons: '英語教室',
       }),
 
       // 高橋美咲さん：比較対象3位
