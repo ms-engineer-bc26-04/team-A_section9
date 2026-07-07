@@ -14,6 +14,7 @@ export default function Loading({ size = 'md' }: LoadingProps) {
   return (
     <div className="flex items-center justify-center">
       <div
+        data-testid="loading-spinner"
         className={`
           ${sizeStyles[size]}
           border-primary border-t-transparent
