@@ -39,7 +39,7 @@ export default function HomePage() {
 
           {/* キャッチコピー */}
           <p className="text-[#75b64c] font-bold text-base mb-4 text-center">
-            “通える”だけじゃない。“続けられる”園選び。
+            “通える”だけじゃない。“通わせられる”園選び。
           </p>
 
           {/* 検索バー＋条件で検索 */}
