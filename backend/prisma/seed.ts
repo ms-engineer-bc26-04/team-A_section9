@@ -103,10 +103,10 @@ async function main() {
       // 高橋美咲さん：比較対象1位・問い合わせ対象園
       school({
         id: 1,
-        name: 'さくら保育園',
-        area: '練馬区',
-        address: '東京都練馬区石神井台1-1-1',
-        imageUrl: '/school-images/1_sakura-hoikuen.png',
+        name: 'かがやき保育園',
+        area: '江東区',
+        address: '東京都江東区東雲1-5-4',
+        imageUrl: '/school-images/24_kagayaki-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -114,19 +114,13 @@ async function main() {
         weekdayEventsLevel: BurdenLevel.LOW,
         parentAssociationLevel: BurdenLevel.LOW,
 
-        mealType: MealType.SCHOOL_LUNCH,
-        itemBurdenDetail: '着替え・タオルのみ',
-        diaperSupport: 'サブスク対応・園で廃棄',
+        itemBurdenDetail: '着替え・タオル',
         futonSupport: '園で管理',
-
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '15〜20人程度',
-        weekdayEvents: 'ほぼなし',
-        parentAssociationFrequency: '年に1回',
-
-        lessons: '英語教室・リトミック・体操教室',
-        allergySupport:
-          '完全除去食対応。園で代替食対応あり。必要に応じて栄養士との個別面談あり',
+        extendedCareUsage: '20人以上',
+        weekdayEvents: 'なし',
+        lessons: '英語教室・体操教室・リトミック',
+        allergySupport: '個別対応あり',
       }),
 
       school({
@@ -630,10 +624,10 @@ async function main() {
       // 佐藤恵さん：比較対象1位
       school({
         id: 24,
-        name: 'かがやき保育園',
-        area: '江東区',
-        address: '東京都江東区東雲1-5-4',
-        imageUrl: '/school-images/24_kagayaki-hoikuen.png',
+        name: 'さくら保育園',
+        area: '練馬区',
+        address: '東京都練馬区石神井台1-1-1',
+        imageUrl: '/school-images/1_sakura-hoikuen.png',
 
         lifeBurdenLevel: BurdenLevel.LOW,
         timeBurdenLevel: BurdenLevel.LOW,
@@ -641,14 +635,22 @@ async function main() {
         weekdayEventsLevel: BurdenLevel.LOW,
         parentAssociationLevel: BurdenLevel.LOW,
 
-        itemBurdenDetail: '着替え・タオル',
+        mealType: MealType.SCHOOL_LUNCH,
+        itemBurdenDetail: '着替え・タオルのみ',
+        diaperSupport: 'サブスク対応・園で廃棄',
         futonSupport: '園で管理',
+
         extendedCareHours: '18:00〜20:00',
-        extendedCareUsage: '20人以上',
-        weekdayEvents: 'なし',
-        lessons: '英語教室・体操教室・リトミック',
-        allergySupport: '個別対応あり',
-      }), // 佐藤恵さん：比較対象3位
+        extendedCareUsage: '15〜20人程度',
+        weekdayEvents: 'ほぼなし',
+        parentAssociationFrequency: '年に1回',
+
+        lessons: '英語教室・リトミック・体操教室',
+        allergySupport:
+          '完全除去食対応。園で代替食対応あり。必要に応じて栄養士との個別面談あり',
+      }),
+
+      // 佐藤恵さん：比較対象3位
       school({
         id: 25,
         name: 'まなびの森保育園',
