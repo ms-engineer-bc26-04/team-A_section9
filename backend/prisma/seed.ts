@@ -624,7 +624,7 @@ async function main() {
       // 佐藤恵さん：比較対象1位
       school({
         id: 24,
-        name: 'かがやき保育園',
+        name: 'さくら保育園',
         area: '練馬区',
         address: '東京都練馬区石神井台1-1-1',
         imageUrl: '/school-images/1_sakura-hoikuen.png',
