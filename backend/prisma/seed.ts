@@ -648,9 +648,7 @@ async function main() {
         weekdayEvents: 'なし',
         lessons: '英語教室・体操教室・リトミック',
         allergySupport: '個別対応あり',
-      }),
-
-      // 佐藤恵さん：比較対象3位
+      }),// 佐藤恵さん：比較対象3位
       school({
         id: 25,
         name: 'まなびの森保育園',
