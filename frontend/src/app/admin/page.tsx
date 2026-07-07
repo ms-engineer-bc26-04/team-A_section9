@@ -35,7 +35,7 @@ const MOCK_CONTACTS = [
     id: 4,
     name: '高橋 美咲',
     email: 'misaki.takahashi@example.com',
-    message: 'プログラミング教室の具体的なカリキュラムについて教えてください。',
+    message: '体操教室の具体的なカリキュラムについて教えてください。',
     createdAt: '2026/6/28 10:00',
   },
 ]
