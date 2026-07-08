@@ -69,10 +69,10 @@ export default function AdminHamburgerMenu({
             <div className="px-6 pt-4 pb-6">
               {/* 修正：園名・担当者名を2行に分けて表示 */}
               <p className="font-bold text-gray-800 text-2xl">
-                {schoolName ?? '○○保育園'}
+                {schoolName ?? 'かがやき保育園'}
               </p>
               <p className="font-bold text-gray-800 text-lg mt-1">
-                担当者名：{staffName ?? '○○'}さん
+                担当者名：{staffName ?? 'かがやき瞬'}さん
               </p>
             </div>
           )}
