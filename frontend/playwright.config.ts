@@ -27,12 +27,20 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: [/general-user\.spec\.ts/, /premium-user\.spec\.ts/],
+      testIgnore: [
+        /general-user\.spec\.ts/,
+        /premium-user\.spec\.ts/,
+        /admin\.spec\.ts/,
+      ],
     },
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 5'] },
-      testIgnore: [/general-user\.spec\.ts/, /premium-user\.spec\.ts/],
+      testIgnore: [
+        /general-user\.spec\.ts/,
+        /premium-user\.spec\.ts/,
+        /admin\.spec\.ts/,
+      ],
     },
     {
       name: 'general-user-authenticated',
@@ -50,6 +58,15 @@ export default defineConfig({
         storageState: 'playwright/.auth/premium-user.json',
       },
       testMatch: /premium-user\.spec\.ts/,
+      dependencies: ['setup'],
+    },
+    {
+      name: 'admin-authenticated',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/admin-user.json',
+      },
+      testMatch: /^admin\.spec\.ts$/,
       dependencies: ['setup'],
     },
   ],

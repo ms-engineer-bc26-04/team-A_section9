@@ -6,7 +6,7 @@ test.describe('未登録ユーザーの主要導線', () => {
     await page.goto('/')
     await expect(page).toHaveURL('/')
     await expect(
-      page.getByText('復職後の生活が無理なく回る園を見つけよう')
+      page.getByText('“通える”だけじゃない。“通わせられる”園選び。')
     ).toBeVisible()
   })
 
