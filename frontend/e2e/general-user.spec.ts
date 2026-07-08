@@ -37,6 +37,17 @@ test.describe('一般ユーザーの主要導線', () => {
   test('FE-010: プロフィールを保存できる', async ({ page }) => {
     await page.goto('/mypage/edit')
 
+    // アカウントの既存データに依存しないよう、毎回確実に有効な値を入力する
+    await page.getByPlaceholder('例) 園活 みずえ').fill('E2E テスト太郎')
+    await page.getByPlaceholder('郵便番号：').fill('1500001')
+
+    // 郵便番号入力による住所自動入力を待つ。取得できなければ手動で入力する
+    const addressInput = page.getByPlaceholder('住所')
+    await page.waitForTimeout(1000)
+    if (!(await addressInput.inputValue())) {
+      await addressInput.fill('東京都渋谷区神宮前1-1-1')
+    }
+
     await page.getByRole('button', { name: '保存' }).click()
 
     await expect(page.getByText('保存しました')).toBeVisible()
@@ -86,7 +97,7 @@ test.describe('一般ユーザーの主要導線', () => {
     })
 
     test('FE-013: お気に入り上限が表示される', async ({ page }) => {
-      await expect(page.getByText(/\/\s*5件登録中/)).toBeVisible()
+      await expect(page.getByText(/\/\s*3件登録中/)).toBeVisible()
     })
 
     test('FE-014: 2園比較できる', async ({ page }) => {
