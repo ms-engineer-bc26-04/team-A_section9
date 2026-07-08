@@ -18,7 +18,9 @@ export default function SearchBar({
   }
 
   return (
-    <div className="flex-1 flex items-center gap-2 bg-white border border-gray-300 rounded-full px-3 py-2">
+    // 修正：min-w-0を追加。flexアイテムはデフォルトでmin-width:autoを持つため、
+    // 指定しないとinput内のテキスト分だけ幅を要求し、親のflexコンテナからはみ出す
+    <div className="flex-1 min-w-0 flex items-center gap-2 bg-white border border-gray-300 rounded-full px-3 py-2">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         className="w-4 h-4 text-primary flex-shrink-0"
@@ -39,7 +41,8 @@ export default function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="園の名前か住所で検索"
-        className="flex-1 text-sm outline-none text-gray-700 placeholder-gray-400 bg-transparent"
+        // 修正：同じ理由でinput自体にもmin-w-0を追加
+        className="flex-1 min-w-0 text-sm outline-none text-gray-700 placeholder-gray-400 bg-transparent"
       />
     </div>
   )
