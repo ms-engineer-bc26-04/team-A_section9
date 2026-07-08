@@ -78,8 +78,8 @@ const MOCK_VISITS = [
 type Tab = 'contacts' | 'visits'
 
 // 未取得時のプレースホルダー表示
-const FALLBACK_SCHOOL_NAME = '●●保育園'
-const FALLBACK_STAFF_NAME = '●●●●'
+const FALLBACK_SCHOOL_NAME = 'かがやき保育園'
+const FALLBACK_STAFF_NAME = 'かがやき 瞬'
 
 export default function AdminPage() {
   const router = useRouter()
