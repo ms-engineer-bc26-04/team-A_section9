@@ -123,6 +123,10 @@ export default function AdminEditPage() {
   const [form, setForm] = useState<SchoolForm>(INITIAL_FORM)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  // 追加：ハンバーガーメニューに表示する園名・担当者名
+  // （未取得の間はundefinedのままにし、AdminHamburgerMenu側のデフォルト表示に委ねる）
+  const [schoolName, setSchoolName] = useState<string | undefined>(undefined)
+  const [staffName, setStaffName] = useState<string | undefined>(undefined)
   const [toast, setToast] = useState<{
     message: string
     type: 'success' | 'error'
@@ -145,6 +149,9 @@ export default function AdminEditPage() {
 
         const json = await getSchoolAdminSchool(accessToken)
         setForm(mapResponseToForm(json.data))
+        // 追加：ハンバーガーメニュー表示用に園名・担当者名も保持する
+        setSchoolName(json.data?.name)
+        setStaffName(json.data?.contactPerson)
       } catch {
         // API未実装・接続エラー時はモック初期値のまま表示する
       } finally {
@@ -183,7 +190,8 @@ export default function AdminEditPage() {
 
   return (
     <>
-      <AdminHeader />
+      {/* 修正：園名・担当者名をハンバーガーメニューに渡す */}
+      <AdminHeader schoolName={schoolName} staffName={staffName} />
       {toast && (
         <Toast
           message={toast.message}
