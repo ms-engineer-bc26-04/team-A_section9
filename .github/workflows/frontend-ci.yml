@@ -40,7 +40,6 @@ jobs:
       DIRECT_URL: ${{ secrets.DIRECT_URL }}
 
       FRONTEND_URL: http://localhost:3000
-      PORT: 4000
 
       REDIS_URL: redis://localhost:6379
 
@@ -93,6 +92,7 @@ jobs:
         working-directory: backend
         env:
           NODE_ENV: production
+          PORT: 4000
         run: |
           npm run start > backend.log 2>&1 &
           echo $! > backend.pid
@@ -117,6 +117,7 @@ jobs:
         working-directory: frontend
         env:
           NODE_ENV: production
+          PORT: 3000
         run: |
           npm run start > frontend.log 2>&1 &
           echo $! > frontend.pid
