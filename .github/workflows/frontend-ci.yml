@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - 'frontend/**'
+      - 'backend/**'
       - '.github/workflows/frontend-ci.yml'
 
   push:
@@ -17,20 +18,34 @@ on:
       - main
     paths:
       - 'frontend/**'
+      - 'backend/**'
       - '.github/workflows/frontend-ci.yml'
 
 jobs:
   frontend:
-    name: Frontend lint, format and build
+    name: Frontend lint, format, build and guest E2E
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
+    timeout-minutes: 30
 
     env:
-      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: dummy-anon-key
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      INTERNAL_API_URL: http://localhost:4000
+
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DIRECT_URL: ${{ secrets.DIRECT_URL }}
+
+      FRONTEND_URL: http://localhost:3000
+
+      REDIS_URL: redis://localhost:6379
+
+      STRIPE_SECRET_KEY: sk_test_dummy
+      STRIPE_PRICE_ID: price_dummy
+      STRIPE_WEBHOOK_SECRET: whsec_dummy
 
     steps:
       - name: Checkout repository
@@ -41,38 +56,117 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
+        working-directory: frontend
         run: npm ci
 
-      - name: Run lint
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run frontend lint
+        working-directory: frontend
         run: npm run lint
 
-      - name: Run format check
+      - name: Run frontend format check
+        working-directory: frontend
         run: npm run format:check
 
-      - name: Build frontend
-        run: |
-          test -n "$NEXT_PUBLIC_SUPABASE_URL"
-          test -n "$NEXT_PUBLIC_SUPABASE_ANON_KEY"
-          echo "Supabase env vars are set"
-          npm run build
+      - name: Build backend
+        working-directory: backend
+        run: npm run build
 
-      # TODO: Playwright E2E tests will be enabled after CI environment is prepared.
-      # Current E2E tests require:
-      # - frontend server on localhost:3000
-      # - backend server
-      # - E2E test user credentials
-      #
-      # Required secrets:
-      # - E2E_GENERAL_USER_EMAIL
-      # - E2E_GENERAL_USER_PASSWORD
-      # - E2E_PREMIUM_USER_EMAIL
-      # - E2E_PREMIUM_USER_PASSWORD
-      #
-      # - name: Install Playwright browsers
-      #   run: npx playwright install --with-deps
-      #
-      # - name: Run Playwright E2E tests
-      #   run: npm run test:e2e
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      - name: Install Playwright browsers
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Start backend
+        working-directory: backend
+        env:
+          NODE_ENV: production
+          PORT: 4000
+        run: |
+          npm run start > backend.log 2>&1 &
+          echo $! > backend.pid
+
+      - name: Wait for backend
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:4000/health > /dev/null; then
+              echo "Backend is ready"
+              exit 0
+            fi
+
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+
+          echo "Backend failed to start"
+          cat backend/backend.log
+          exit 1
+
+      - name: Start frontend
+        working-directory: frontend
+        env:
+          NODE_ENV: production
+          PORT: 3000
+        run: |
+          npm run start > frontend.log 2>&1 &
+          echo $! > frontend.pid
+
+      - name: Wait for frontend
+        run: |
+          for i in {1..30}; do
+            if curl --fail --silent http://localhost:3000 > /dev/null; then
+              echo "Frontend is ready"
+              exit 0
+            fi
+
+            echo "Waiting for frontend... ($i/30)"
+            sleep 2
+          done
+
+          echo "Frontend failed to start"
+          cat frontend/frontend.log
+          exit 1
+
+      - name: Run guest user Playwright E2E tests
+        working-directory: frontend
+        run: npx playwright test e2e/guest-user.spec.ts --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload Playwright test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: frontend/test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Upload server logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-server-logs
+          path: |
+            frontend/frontend.log
+            backend/backend.log
+          retention-days: 7
+          if-no-files-found: ignore
