@@ -21,7 +21,7 @@
 |---|---|
 | フレームワーク | [Next.js](https://nextjs.org/) 16（App Router） |
 | 言語 | TypeScript |
-| UI | React 19 / Tailwind CSS v4 |
+| UI | React / Tailwind CSS |
 | アニメーション | Framer Motion |
 | データ取得・キャッシュ | SWR |
 | チャート | Recharts |
